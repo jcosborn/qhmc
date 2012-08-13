@@ -1,0 +1,18 @@
+#!/bin/sh
+
+fs=`\ls -1 "$@" |sort -n -t . -k 2`
+echo $fs
+tag="plaq ss"
+
+get() {
+  for f in $fs; do
+    grep "$tag" $f |tail -n +2 |awk '{print$'$1'}'
+  done
+}
+
+n=`get 7 |wc -l`
+n9=$((9*n/10))
+n2=$((n/2))
+get 7 |ave
+get 7 |tail -n $n9 |ave
+get 7 |tail -n $n2 |ave

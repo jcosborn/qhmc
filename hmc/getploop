@@ -1,0 +1,45 @@
+#!/bin/sh
+
+if [ "X$1" = "X=" ]; then
+  h=1
+  shift
+fi
+
+fs=`\ls -1 "$@" |sort -n -t . -k 2`
+echo "#" $fs
+tag="ploop"
+
+get() {
+  for f in $fs; do
+    grep $tag $f |tail -n +2 |awk '{printf("%g\t%g\n",$2,$3);}'
+  done
+}
+
+getre() {
+  get |awk '{print($1)}'
+}
+
+getmag() {
+  get |awk '{print(sqrt($1*$1+$2*$2))}'
+}
+
+if [ "X$h" = "X1" ]; then
+  #getmag
+  getre
+  exit
+fi
+
+n=`get |wc -l`
+n9=$((9*n/10))
+n8=$((8*n/10))
+n2=$((n/2))
+
+get |ave
+get |tail -n $n9 |ave
+get |tail -n $n8 |ave
+get |tail -n $n2 |ave
+
+getmag |ave
+getmag |tail -n $n9 |ave
+getmag |tail -n $n8 |ave
+getmag |tail -n $n2 |ave

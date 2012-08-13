@@ -1,0 +1,17 @@
+#!/bin/sh
+
+fs=`\ls -1 "$@" |sort -n -t . -k 2`
+echo $fs
+n=`cat $fs |grep delta |wc -l`
+n1=$((1+n/10))
+n2=$((1+n/5))
+n5=$((1+n/2))
+cat $fs |grep delta |awk '{print($4);}' |ave
+cat $fs |grep delta |tail -n +$n1 |awk '{print($4);}' |ave
+cat $fs |grep delta |tail -n +$n2 |awk '{print($4);}' |ave
+cat $fs |grep delta |tail -n +$n5 |awk '{print($4);}' |ave
+
+cat $fs |grep delta |awk '{print(exp(-$4));}' |ave
+cat $fs |grep delta |tail -n +$n1 |awk '{print(exp(-$4));}' |ave
+cat $fs |grep delta |tail -n +$n2 |awk '{print(exp(-$4));}' |ave
+cat $fs |grep delta |tail -n +$n5 |awk '{print(exp(-$4));}' |ave
