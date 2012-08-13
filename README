@@ -1,0 +1,32 @@
+QHMC (aka FUEL)
+James C. Osborn
+=========================================================================
+Quick Build Instructions
+
+Edit CC, COPT and SciDAC library directories in
+ qopqdp/make-qopqdp.inc
+
+Do "make"
+
+You should now have main/qhmc
+
+You can test it by going into test/milc, modifying
+runtest to run a job, and running it
+=========================================================================
+directory structure:
+
+hmc
+  scripts for running hmc
+
+lua-5.2.0
+  Lua source tree
+
+main
+  main qhmc source
+
+qopqdp
+  wrappers for QOPQDP
+
+test
+  some test inputs
+=========================================================================

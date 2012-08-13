@@ -1,0 +1,8 @@
+*~
+*.gz
+*.[ao]
+lua
+luac
+qhmc
+misc
+TODO
