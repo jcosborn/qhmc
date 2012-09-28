@@ -90,7 +90,7 @@ gauge_random(QLA_ColorMatrix *m, int i, void *args)
   QLA_C_eq_det_M(&c, &m3);
   QLA_DF_c_eq_c(d1, c);
   d2 = QLA_clog(&d1);
-  QLA_c_eq_r_times_c(d1, -1./3., d2);
+  QLA_c_eq_r_times_c(d1, -1./QLA_Nc, d2);
   d2 = QLA_cexp(&d1);
   QLA_FD_c_eq_c(c, d2);
   QLA_M_eq_C_times_M(m, &c, &m3);

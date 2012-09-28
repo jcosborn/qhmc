@@ -71,6 +71,34 @@ qopqdp_wquark_random(lua_State *L)
   return 0;
 }
 
+static void
+lnormalize_D(QLA_DiracFermion *x, int i)
+{
+  for(int ic=0; ic<QLA_Nc; ic++) {
+    for(int is=0; is<QLA_Ns; is++) {
+      QLA_Complex z = QLA_elem_D(*x,ic,is);
+      QLA_Real n = QLA_norm2_c(z);
+      if(n!=0) n = 1/sqrt(n);
+      QLA_c_eq_r_times_c(QLA_elem_D(*x,ic,is), n, z);
+    }
+  }
+}
+
+static int
+qopqdp_wquark_randomU1(lua_State *L)
+{
+  int narg = lua_gettop(L);
+  qassert(narg==1 || narg==2);
+  wquark_t *q = qopqdp_wquark_check(L, 1);
+  QDP_Subset sub = QDP_all;
+  if(narg!=1) {
+    sub = qopqdp_check_subset(L, 2);
+  }
+  QDP_D_eq_gaussian_S(q->df, qopqdp_srs, sub);
+  QDP_D_eq_funci(q->df, lnormalize_D, sub);
+  return 0;
+}
+
 static int
 qopqdp_wquark_set(lua_State *L)
 {
@@ -143,13 +171,14 @@ qopqdp_wquark_combine(lua_State *L)
 }
 
 static struct luaL_Reg wquark_reg[] = {
-  { "__gc",    qopqdp_wquark_gc },
-  { "zero",    qopqdp_wquark_zero },
-  { "random",  qopqdp_wquark_random },
-  { "set",     qopqdp_wquark_set },
-  { "norm2",   qopqdp_wquark_norm2 },
-  { "Re_dot",  qopqdp_wquark_redot },
-  { "combine", qopqdp_wquark_combine },
+  { "__gc",     qopqdp_wquark_gc },
+  { "zero",     qopqdp_wquark_zero },
+  { "random",   qopqdp_wquark_random },
+  { "randomU1", qopqdp_wquark_randomU1 },
+  { "set",      qopqdp_wquark_set },
+  { "norm2",    qopqdp_wquark_norm2 },
+  { "Re_dot",   qopqdp_wquark_redot },
+  { "combine",  qopqdp_wquark_combine },
   { NULL, NULL}
 };
 

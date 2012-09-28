@@ -1,6 +1,8 @@
-package.path = "./hmc/?.lua;" .. package.path
+package.path = arg[0]:gsub("[^/]*.lua","?.lua") .. ";./hmc/?.lua;" .. package.path
 require 'common'
 require 'run'
+
+trace(doTrace)
 
 local nx = nx or 4
 local nt = nt or 8

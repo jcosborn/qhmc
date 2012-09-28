@@ -1,4 +1,4 @@
-LUADIR = lua-5.2.0
+LUADIR = lua-5.2.1
 LUAINC = -I../$(LUADIR)/src -DLUA_COMPAT_ALL
 LUALIBS = ../$(LUADIR)/src/liblua.a
 LUADEPS = $(LUALIBS)

@@ -1,6 +1,7 @@
 *~
 *.gz
 *.[ao]
+.git
 lua
 luac
 qhmc

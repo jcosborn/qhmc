@@ -4,4 +4,4 @@ qhmc="../../main/qhmc"
 hmc="../../hmc"
 t="test.out"
 
-$qhmc $hmc/wilson.lua
+$qhmc -e "doTrace=false;tau=1;ntraj=20;beta=4;mass=0.5" $hmc/wilson.lua

@@ -64,6 +64,27 @@ do
   end
 end
 
+do
+  local spaces = ""
+  local function printline(event, ln)
+    if(event == "call") then 
+      spaces = spaces .. "  "
+      elseif(event == "return") then
+      spaces = string.sub(spaces, 1, -3)
+    else
+      if ln==nil then ln = "" end
+      print(spaces .. (debug.getinfo(2,"n").name or "main") ..  " : " .. ln)
+    end
+  end
+  function trace(on)
+    if(on) then
+      debug.sethook(printline, "crl")
+    else
+      debug.sethook(nil, "crl")
+    end
+  end
+end
+
 function readfile(fn, levelkeys)
   local p = {}
   local pl = {}

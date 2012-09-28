@@ -265,8 +265,9 @@ qopqdp_wilson_solve(lua_State *L)
       precNE = 2;
       eo = QOP_EVEN;
     } else {
-      printf0("unknown solver type %s\n", s);
-      qerror(1);
+      eo = qopqdp_check_evenodd(L, nextarg);
+      //printf0("unknown solver type %s\n", s);
+      //qerror(1);
     }
     nextarg++;
   }
@@ -417,10 +418,7 @@ qopqdp_wilson_force(lua_State *L)
       dfr[i] = qr[i]->df;
     }
     for(int i=0; i<f->nd; i++) QDP_M_eq_zero(f->force[i], QDP_all);
-    QOP_Force *qf = QOP_create_F_from_qdp(f->force);
-    QOP_wilson_force_prec_multi_qdp(&info, w->fl, qf, qks, qeps, dfl, dfr, nql);
-    QOP_extract_F_to_qdp(f->force, qf);
-    QOP_destroy_F(qf);
+    QOP_wilson_force_prec_multi_qdp(&info, w->fl, f->force, qks, qeps, dfl, dfr, nql);
   }
 
   f->time = info.final_sec;

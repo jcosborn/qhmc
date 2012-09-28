@@ -254,6 +254,14 @@ qopqdp_wilson(lua_State* L)
 }
 
 static int
+qopqdp_dw(lua_State* L)
+{
+  qassert(lua_gettop(L)==0);
+  qopqdp_dw_create(L);
+  return 1;
+}
+
+static int
 qopqdp_remapout(lua_State* L)
 {
   qassert(lua_gettop(L)==1);
@@ -281,6 +289,7 @@ static struct luaL_Reg qopqdp_reg[] = {
   { "force",     qopqdp_force },
   { "hisq",      qopqdp_hisq },
   { "wilson",    qopqdp_wilson },
+  { "dw",        qopqdp_dw },
   { "remapout",  qopqdp_remapout },
   { NULL, NULL}
 };
@@ -295,4 +304,8 @@ open_qopqdp(lua_State* L)
   lua_setglobal(L, "jobnum");
   lua_pushinteger(L, numjobs);
   lua_setglobal(L, "numjobs");
+  lua_getglobal(L, "qopqdp");
+  lua_pushinteger(L, QLA_Nc);
+  lua_setfield(L, -2, "Nc");
+  lua_pop(L, 1);
 }

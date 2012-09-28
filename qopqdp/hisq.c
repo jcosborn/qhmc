@@ -166,7 +166,7 @@ static int
 qopqdp_hisq_set(lua_State *L)
 {
   int nargs = lua_gettop(L);
-  qassert(nargs==2);
+  qassert(nargs>=4&&nargs<=5);
   hisq_t *h = qopqdp_hisq_check(L, 1);
   gauge_t *g = qopqdp_gauge_check(L, 2);
   double u0 = luaL_checknumber(L, 3);
@@ -244,7 +244,7 @@ static int
 qopqdp_hisq_solve(lua_State *L)
 {
   int narg = lua_gettop(L);
-  qassert(narg==5 || narg==6);
+  qassert(narg>=5 && narg<=7);
   hisq_t *h = qopqdp_hisq_check(L, 1);
   int nqd; get_table_len(L, 2, &nqd);
   squark_t *qd[nqd]; qopqdp_squark_array_check(L, 2, nqd, qd);
@@ -373,7 +373,8 @@ qopqdp_hisq_solve(lua_State *L)
 static int
 qopqdp_hisq_force(lua_State *L)
 {
-  qassert(lua_gettop(L)==4);
+  int narg = lua_gettop(L);
+  qassert(narg>=4 && narg<=5);
   hisq_t *h = qopqdp_hisq_check(L, 1);
   force_t *f = qopqdp_force_check(L, 2);
   int nq; get_table_len(L, 3, &nq);
@@ -398,9 +399,7 @@ qopqdp_hisq_force(lua_State *L)
       fforce[i] = QDP_F_create_M();
       QDP_F_M_eq_zero(fforce[i], QDP_all);
     }
-    QOP_F_Force *qf = QOP_F_create_F_from_qdp(fforce);
-    QOP_F_hisq_force_multi_qdp(&info, h->ffl, qf, &h->coeffs, qeps, qcv, &nq);
-    QOP_F_extract_F_to_qdp(fforce, qf);
+    QOP_F_hisq_force_multi_qdp(&info, h->ffl, fforce, &h->coeffs, qeps, qcv, &nq);
     for(int i=0; i<f->nd; i++) {
       QDP_DF_M_eq_M(f->force[i], fforce[i], QDP_all);
       QDP_F_destroy_M(fforce[i]);
@@ -408,17 +407,13 @@ qopqdp_hisq_force(lua_State *L)
     for(int i=0; i<nq; i++) {
       QDP_F_destroy_V(qcv[i]);
     }
-    QOP_F_destroy_F(qf);
   } else {
     hisq_set(h, 2);
     // factor of 4 normalizes force to that of phi^+ [s-4*Deo*Doe]^-1 phi
     QLA_Real qeps[ne]; for(int i=0; i<ne; i++) qeps[i] = 4*eps[i];
     QDP_ColorVector *qcv[nq]; for(int i=0; i<nq; i++) qcv[i] = q[i]->cv;
     for(int i=0; i<f->nd; i++) QDP_M_eq_zero(f->force[i], QDP_all);
-    QOP_Force *qf = QOP_create_F_from_qdp(f->force);
-    QOP_hisq_force_multi_qdp(&info, h->fl, qf, &h->coeffs, qeps, qcv, &nq);
-    QOP_extract_F_to_qdp(f->force, qf);
-    QOP_destroy_F(qf);
+    QOP_hisq_force_multi_qdp(&info, h->fl, f->force, &h->coeffs, qeps, qcv, &nq);
   }
 
   f->time = info.final_sec;
@@ -429,7 +424,7 @@ qopqdp_hisq_force(lua_State *L)
 static int
 qopqdp_hisq_squark(lua_State* L)
 {
-  qassert(lua_gettop(L)==0);
+  qassert(lua_gettop(L)==1);
   qopqdp_squark_create(L);
   return 1;
 }
@@ -464,7 +459,7 @@ qopqdp_hisq_its(lua_State *L)
 static int
 qopqdp_hisq_printcoeffs(lua_State *L)
 {
-  qassert(lua_gettop(L)==2);
+  qassert(lua_gettop(L)==3);
   //hisq_t *h = qopqdp_hisq_check(L, 1);
   double u0 = luaL_checknumber(L, 2);
   double f7lf = luaL_checknumber(L, 3);

@@ -4,7 +4,8 @@ qhmc="../../main/qhmc"
 hmc="../../hmc"
 t="test.out"
 
-#$qhmc $hmc/milc.lua su3_rhmc_hisq.1.sample-in -qmp-geom 1 1 1 1 >$t
+#$qhmc $hmc/milc.lua su3_rhmc_hisq.1.sample-in0 -qmp-geom 1 1 1 1 >$t"0"
+
 #OMP_NUM_THREADS=1 mpirun -np 2 $qhmc $hmc/milc.lua su3_rhmc_hisq.1.sample-in0 -qmp-geom 1 1 1 2 >$t"0"
 #OMP_NUM_THREADS=1 mpirun -np 2 $qhmc $hmc/milc.lua su3_rhmc_hisq.1.sample-in1 -qmp-geom 1 1 1 2 >$t"1"
 #diff -I sec $t"0" su3_rhmc_hisq.1.sample-out0
