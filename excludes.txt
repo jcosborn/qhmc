@@ -7,3 +7,4 @@ luac
 qhmc
 misc
 TODO
+lua-5.2.0

@@ -33,15 +33,16 @@
 extern QLA_RandomState qopqdp_nrs;
 extern QDP_RandomState *qopqdp_srs;
 
-extern void get_int_array(lua_State *L, int idx, int n, int *a);
-extern void push_int_array(lua_State *L, int n, int *a);
-extern void get_double_array(lua_State *L, int idx, int n, double *a);
-extern void push_double_array(lua_State *L, int n, double *a);
-extern QOP_evenodd_t qopqdp_check_evenodd(lua_State *L, int idx);
-extern QDP_Subset qopqdp_check_subset(lua_State *L, int idx);
-extern QDP_Subset *qhmcqdp_get_timeslices(void);
+void get_int_array(lua_State *L, int idx, int n, int *a);
+void push_int_array(lua_State *L, int n, int *a);
+void get_double_array(lua_State *L, int idx, int n, double *a);
+void push_double_array(lua_State *L, int n, double *a);
+QOP_evenodd_t qopqdp_check_evenodd(lua_State *L, int idx);
+QDP_Subset qopqdp_check_subset(lua_State *L, int idx);
+QDP_Subset *qhmcqdp_get_timeslices(void);
 
-extern QLA_Real infnorm_M(QDP_ColorMatrix *m, QDP_Subset s);
+QLA_Real infnorm_M(QDP_ColorMatrix *m, QDP_Subset s);
+int check_uniform_M(QDP_ColorMatrix *m, QDP_Subset s);
 
 
 typedef struct {
@@ -50,7 +51,7 @@ typedef struct {
   int nd;
 } gauge_t;
 
-extern gauge_t *qopqdp_gauge_create(lua_State* L);
+extern gauge_t *qopqdp_gauge_create(lua_State *L);
 extern gauge_t *qopqdp_gauge_check(lua_State *L, int idx);
 
 
@@ -61,7 +62,7 @@ typedef struct {
   QDP_ColorMatrix *force[];
 } force_t;
 
-extern force_t *qopqdp_force_create(lua_State* L);
+extern force_t *qopqdp_force_create(lua_State *L);
 extern force_t *qopqdp_force_check(lua_State *L, int idx);
 extern void check_force(force_t *f, gauge_t *g, double (*act)(gauge_t *g, void*), void*);
 extern void get_lie_force(force_t *f, gauge_t *g);
@@ -85,19 +86,18 @@ typedef struct {
   QDP_Complex **fatphase, **longphase;
 } hisq_t;
 
-extern hisq_t *qopqdp_hisq_create(lua_State* L);
+extern hisq_t *qopqdp_hisq_create(lua_State *L);
 extern hisq_t *qopqdp_hisq_check(lua_State *L, int idx);
 extern void
 hisqInvert(QOP_info_t *info, QOP_FermionLinksAsqtad *fla, QOP_invert_arg_t *invarg,
 	   QOP_resid_arg_t *residarg[], QLA_Real *masses, int nm,
 	   QDP_ColorVector *prop[],  QDP_ColorVector *source);
 
-
 typedef struct {
   QDP_ColorVector *cv;
 } squark_t;
 
-extern squark_t *qopqdp_squark_create(lua_State* L);
+extern squark_t *qopqdp_squark_create(lua_State *L);
 extern squark_t *qopqdp_squark_check(lua_State *L, int idx);
 extern void qopqdp_squark_array_check(lua_State *L, int idx, int n, squark_t *q[n]);
 
@@ -112,14 +112,37 @@ typedef struct {
   gauge_t *g;
 } wilson_t;
 
-extern wilson_t *qopqdp_wilson_create(lua_State* L);
+extern wilson_t *qopqdp_wilson_create(lua_State *L);
 extern wilson_t *qopqdp_wilson_check(lua_State *L, int idx);
-
 
 typedef struct {
   QDP_DiracFermion *df;
 } wquark_t;
 
-extern wquark_t *qopqdp_wquark_create(lua_State* L);
+extern wquark_t *qopqdp_wquark_create(lua_State *L);
 extern wquark_t *qopqdp_wquark_check(lua_State *L, int idx);
 extern void qopqdp_wquark_array_check(lua_State *L, int idx, int n, wquark_t *q[n]);
+
+
+typedef struct {
+  double time;
+  double flops;
+  int its;
+  int ls;
+  QOP_dw_coeffs_t coeffs;
+  QOP_FermionLinksDW *fl;
+  QOP_F_FermionLinksDW *ffl;
+  gauge_t *g;
+} dw_t;
+
+extern dw_t *qopqdp_dw_create(lua_State *L);
+extern dw_t *qopqdp_dw_check(lua_State *L, int idx);
+
+typedef struct {
+  QDP_DiracFermion **df;
+  int ls;
+} dwquark_t;
+
+extern dwquark_t *qopqdp_dwquark_create(lua_State *L, int ls);
+extern dwquark_t *qopqdp_dwquark_check(lua_State *L, int idx);
+extern void qopqdp_dwquark_array_check(lua_State *L, int idx, int n, dwquark_t *q[n]);

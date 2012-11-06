@@ -172,7 +172,7 @@ qopqdp_squark_combine(lua_State *L)
   double c[nc]; get_double_array(L, 3, nc, c);
   QLA_Real qc[nc]; for(int i=0; i<nc; i++) qc[i] = c[i];
   QDP_Subset sub = QDP_all;
-  if(narg>32) {
+  if(narg>3) {
     sub = qopqdp_check_subset(L, 4);
   }
   QDP_V_eq_r_times_V(qd->cv, &qc[0], qs[0]->cv, sub);

@@ -53,6 +53,9 @@ qopqdp_hisq_set_coeffs(QOP_hisq_coeffs_t *coeffs, double u0, double f7lf)
   double u2, u4;
   u2 = 1.0/(u0*u0);
   u4 = u2*u2;
+#ifdef QHMC_REPRO_UNIFORM
+  u2 = -u2;
+#endif
   coeffs->fat7_one_link = (1.0+3.0*f7lf)/8.0;
   coeffs->fat7_three_staple = -u2/16.0;
   coeffs->fat7_five_staple = u4/64.0;
@@ -131,9 +134,12 @@ hisq_set(hisq_t *h, int prec)
     bcphase[i].re = 1;
     bcphase[i].im = 0;
   }
+#ifdef QHMC_REPRO_UNIFORM
+  int signmask[4] = {0,0,0,0};
+#else
   bcphase[nd-1].re = -1;
-  //int signmask[4] = {0,1,3,7};
   int signmask[4] = {8,9,11,0};
+#endif
   QOP_staggered_sign_t ss;
   ss.signmask = signmask;
   int r0[4] = {0,0,0,0};

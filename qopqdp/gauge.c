@@ -720,6 +720,19 @@ qopqdp_gauge_update(lua_State *L)
     QDP_M_eq_exp_M(m2, m1, QDP_all);
     QDP_M_eq_M_times_M(m1, m2, g->links[i], QDP_all);
     QDP_M_eq_M(g->links[i], m1, QDP_all);
+#ifdef QHMC_REPRO_UNIFORM
+    int err;
+#define chk(x, i, s) \
+    err = check_uniform_M((x)[i], s); \
+    if(err) { \
+      fprintf(stderr, "%i repro error %s %i index %i\n", QDP_this_node, #x, i, err-1); \
+      QDP_abort(1); \
+    }
+    chk(f->force, i, QDP_even);
+    chk(f->force, i, QDP_odd);
+    chk(g->links, i, QDP_even);
+    chk(g->links, i, QDP_odd);
+#endif
   }
   QDP_destroy_M(m1);
   QDP_destroy_M(m2);

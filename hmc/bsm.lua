@@ -1,30 +1,36 @@
-package.path = "./hmc/?.lua;" .. package.path
+package.path = arg[0]:gsub("[^/]*.lua","?.lua") .. ";./hmc/?.lua;" .. package.path
 require 'common'
 require 'run'
 
-local nx = 8
-local nt = 4
-local beta = 4
-local u0 = 0.8163
-local nf = 8
-local mass = 0.04
+local nx = nx or 8
+local nt = nt or 4
+local beta = beta or 6
+local u0 = u0 or 1
+local nf = nf or 4
+local mass = mass or 0.01
 local rhmc = {}
---local hmcmasses = { mass }
-local hmcmasses = { mass, 20*mass }
+local hmcmasses = { mass }
+--local hmcmasses = { mass, 20*mass }
 --local hmcmasses = { mass, 2*mass, 3*mass, 4*mass, 5*mass, 6*mass, 7*mass, 8*mass }
-local seed = 1316844761
+--local seed = 1316844761
+local seed = seed or os.time()
 
---local inlat = nil
+local inlat = inlat or nil
 --local inlat = "f8x88b40m01.100"
-local inlat = "l84f8b40m04a.2700.scidac"
-local outlat = nil
+--local inlat = "l84f8b40m04a.2700.scidac"
+local outlat = outlat or nil
 --local outlat = "f8x88b40m01.100"
 
-local ntraj = 10
-local tau = 2
-local ngsteps = 240
---local nfsteps = { 80 }
-local nfsteps = { 80, 80 }
+local ntraj = ntraj or 10
+local tau = tau or 2
+ngpfs = ngpfs or 4
+lambdaG = lambdaG or 0.3
+lambdaF = lambdaF or 0.3
+local nsteps = nsteps or 80
+
+local ngsteps = ngsteps or ngpfs*nsteps
+local nfsteps = nfsteps or { nsteps }
+--local nfsteps = { 80, 80 }
 --local nfsteps = { 100, 100, 100, 100, 100, 100, 100, 200 }
 nfsteps = repelem(nfsteps, nf/4)
 local grcg = { prec=1, resid=1e-5, restart=500 }
@@ -34,9 +40,9 @@ local ffprec = 1
 --local gintalg = {type="leapfrog"}
 --local gintalg = {type="omelyan"}
 --local gintalg = {type="omelyan", lambda=0.2}
-local gintalg = {type="omelyan", lambda=0.33}
+local gintalg = {type="omelyan", lambda=lambdaG}
 --local fintalg = {type="omelyan", lambda=0.2}
-local fintalg = {type="omelyan", lambda=0.33}
+local fintalg = {type="omelyan", lambda=lambdaF}
 
 local pbp = {}
 pbp[1] = { reps=1 }
@@ -136,11 +142,11 @@ r.pbp = pbp
 
 if inlat then
   acts:load(inlat)
-  local ps,pt = acts.fields.G:plaq()
-  printf("plaq ss: %g  st: %g  tot: %g\n", ps, pt, 0.5*(ps+pt))
 else
   acts:unit()
 end
+local ps,pt = acts.fields.G:plaq()
+printf("plaq ss: %g  st: %g  tot: %g\n", ps, pt, 0.5*(ps+pt))
 
 acts:run(r)
 
