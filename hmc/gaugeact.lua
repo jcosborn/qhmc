@@ -97,8 +97,9 @@ function gaugeact(p)
   qopqdp.profile(0)
   qopqdp.verbosity(0)
   qopqdp.seed(p.seed)
-  printf("gauge coeffs:\n")
-  for k,v in pairs(a.coeffs) do printf(" %-5s = % g\n", k, v) end
+  --printf("gauge coeffs: ")
+  --for k,v in pairs(a.coeffs) do printf(" %-5s = % g\n", k, v) end
+  myprint("gauge coeffs: ", a.coeffs, "\n")
   a.act0 = a.vol*(6*a.coeffs.plaq + 12*a.coeffs.rect + 16*a.coeffs.pgm)
   a.gf = actmt.forceNew(a)
   actmt.clearStats(a)

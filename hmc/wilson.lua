@@ -29,9 +29,9 @@ local nfsteps = nfsteps or { 80 }
 --local nfsteps = { 80, 80 }
 
 nfsteps = repelem(nfsteps, nf/2)
-local grcg = { prec=1, resid=1e-6, restart=500 }
-local facg = { prec=1, resid=1e-6, restart=500 }
-local mdcg = { prec=1, resid=1e-4, restart=500 }
+local grcg = { prec=2, resid=1e-10, restart=500 }
+local facg = { prec=2, resid=1e-10, restart=500 }
+local mdcg = { prec=2, resid=1e-10, restart=500 }
 local ffprec = 2
 --local gintalg = {type="leapfrog"}
 --local gintalg = {type="omelyan"}
@@ -45,6 +45,15 @@ pbp[1] = { reps=1 }
 pbp[1].mass = mass
 pbp[1].resid = 1e-6
 pbp[1].opts = { restart=500, max_restarts=5, max_iter=2000 }
+
+local smear = {}
+--smear[#smear+1] = { type="fat7", coeffs={one_link=1} }
+--smear[#smear+1] = { type="fat7", coeffs={one_link=0.5} }
+--smear[#smear+1] = { type="fat7", coeffs={one_link=2} }
+--smear[#smear+1] = { type="fat7", coeffs={three_staple=0.01} }
+--smear[#smear+1] = { type="fat7", coeffs={one_link=0.1,three_staple=0.01} }
+--smear[#smear+1] = { type="stout", rho=0.01 }
+smear[#smear+1] = { type="stout", rho=0.14 }
 
 --- end of parameters
 
@@ -95,6 +104,7 @@ p.u0 = u0
 p.gaugeact = {type="plaquette"}
 p.npseudo = npseudo
 p.fermact = {type="wilson", rhmc=rhmc}
+p.fermact.smear = smear
 
 local rhmc0 = copy(rhmc)
 local acts = setupacts(p)

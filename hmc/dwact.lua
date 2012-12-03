@@ -1,5 +1,3 @@
-require 'smear'
-
 local actmt = {}
 actmt.__index = actmt
 
@@ -63,12 +61,10 @@ local function setMD(a)
   end
 end
 
-function wilsonact(ga, params)
-  local rhmc = params.rhmc
-  local smear = params.smear
+function dwact(ga, rhmc)
   local a = {}
   a.ga = ga
-  a.w = qopqdp.wilson()
+  a.w = qopqdp.dw()
   a.w:printcoeffs()
   a.npseudo = #rhmc
   a.pseudo = {}
@@ -78,7 +74,6 @@ function wilsonact(ga, params)
   a.ncg = 0
   a.nff = a.npseudo
   a.rhmc = rhmc
-  a.smear = smear
   setGR(a)
   setFA(a)
   setMD(a)
@@ -155,8 +150,7 @@ function actmt.set(a, g, prec)
   local nup = g:nupdates()
   if nup~=a.gnupdate then
     local t0 = clock()
-    local sg = smearGauge(g, a.smear)
-    a.w:set(sg, prec)
+    a.w:set(g.g, prec)
     a.LLtime = a.LLtime + clock() - t0
     a.LLflops = a.LLflops + a.w:flops()
     a.LLn = a.LLn + 1
@@ -225,14 +219,7 @@ function actmt.updateMomentum(a, f, g, teps, ti)
   local tmin = a.rhmc[imin].MD
 
   local t0 = clock()
-  if a.smear then
-    a.w:force(tmin.ff.f, pt, qt, ms, c, {prec=tmin.ffprec,deriv=1})
-    smearForce(tmin.ff.f, g, a.smear)
-  else
-    a.w:force(tmin.ff.f, pt, qt, ms, c, {prec=tmin.ffprec})
-    --a.w:force(tmin.ff.f, pt, qt, ms, c, {prec=tmin.ffprec,deriv=1})
-    --tmin.ff.f:derivForce(g.g)
-  end
+  a.w:force(tmin.ff.f, pt, qt, ms, c, tmin.ffprec)
   a.FFtime[imin] = a.FFtime[imin] + clock() - t0
   --a.FFtime[imin] = a.FFtime[imin] + a.ff.f:time()
   a.FFflops[imin] = a.FFflops[imin] + a.ff.f:flops()

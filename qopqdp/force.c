@@ -20,6 +20,21 @@ qopqdp_force_check(lua_State *L, int idx)
   return g;
 }
 
+void
+qopqdp_force_array_check(lua_State *L, int idx, int n, force_t *g[n])
+{
+  luaL_checktype(L, idx, LUA_TTABLE);
+  qassert(lua_objlen(L, idx)==n);
+  lua_pushvalue(L, idx); // make copy for indexing convenience
+  for(int i=0; i<n; i++) {
+    lua_pushnumber(L, i+1);
+    lua_gettable(L, -2);
+    g[i] = qopqdp_force_check(L, -1);
+    lua_pop(L, 1);
+  }
+  lua_pop(L, 1);
+}
+
 static void
 qopqdp_force_free(lua_State *L, int idx)
 {
@@ -36,7 +51,6 @@ qopqdp_force_gc(lua_State *L)
   return 0;
 }
 
-#if 0
 static int
 qopqdp_force_zero(lua_State *L)
 {
@@ -47,7 +61,18 @@ qopqdp_force_zero(lua_State *L)
   }
   return 0;
 }
-#endif
+
+static int
+qopqdp_force_set(lua_State *L)
+{
+  qassert(lua_gettop(L)==2);
+  force_t *f1 = qopqdp_force_check(L, 1);
+  force_t *f2 = qopqdp_force_check(L, 2);
+  for(int i=0; i<f1->nd; i++) {
+    QDP_M_eq_M(f1->force[i], f2->force[i], QDP_all);
+  }
+  return 0;
+}
 
 static void
 randforce(QLA_ColorMatrix *m, int i, void *args)
@@ -128,14 +153,32 @@ static int
 qopqdp_force_infnorm(lua_State *L)
 {
   qassert(lua_gettop(L)==1);
-  force_t *g = qopqdp_force_check(L, 1);
+  force_t *f = qopqdp_force_check(L, 1);
   QLA_Real nrm = 0;
-  for(int i=0; i<g->nd; i++) {
-    QLA_Real t = infnorm_M(g->force[i], QDP_all);
+  for(int i=0; i<f->nd; i++) {
+    QLA_Real t = infnorm_M(f->force[i], QDP_all);
     if(t>nrm) nrm = t;
   }
   lua_pushnumber(L, nrm);
   return 1;
+}
+
+static int
+qopqdp_force_derivForce(lua_State *L)
+{
+  qassert(lua_gettop(L)==2);
+  force_t *f = qopqdp_force_check(L, 1);
+  gauge_t *g = qopqdp_gauge_check(L, 2);
+  QDP_ColorMatrix *t = QDP_create_M();
+  for(int mu=0; mu<4; mu++) {
+    QDP_M_eq_M_times_Ma(t, g->links[mu], f->force[mu], QDP_all);
+    // factor of -2 for GL -> U
+    QDP_M_eq_r_times_M(t, (QLA_Real[1]){-2}, t, QDP_all);
+    QDP_M_eq_antiherm_M(f->force[mu], t, QDP_all);
+  }
+  //info->final_flop += (4.*(198+24+18))*QDP_sites_on_node;
+  QDP_destroy_M(t);
+  return 0;
 }
 
 static int
@@ -310,10 +353,13 @@ check_force(force_t *f, gauge_t *g, double (*act)(gauge_t *g, void *), void *arg
 
 static struct luaL_Reg force_reg[] = {
   { "__gc",    qopqdp_force_gc },
+  { "zero",    qopqdp_force_zero },
+  { "set",     qopqdp_force_set },
   { "random",  qopqdp_force_random },
   { "scale",   qopqdp_force_scale },
   { "norm2",   qopqdp_force_norm2 },
   { "infnorm", qopqdp_force_infnorm },
+  { "derivForce", qopqdp_force_derivForce },
   { "update",  qopqdp_force_update },
   { "time",    qopqdp_force_time },
   { "flops",   qopqdp_force_flops },

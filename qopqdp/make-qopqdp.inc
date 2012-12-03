@@ -5,7 +5,7 @@ COPT = -O3 -std=gnu99 -Wall -fopenmp
 COLORLIB = 3
 NC = 3
 
-DEFINES = -DQHMC_REPRO_UNIFORM
+#DEFINES = -DQHMC_REPRO_UNIFORM
 
 TAG = 
 SCIDAC = $(HOME)/lqcd/install
@@ -13,7 +13,7 @@ QMPDIR = $(SCIDAC)/qmp$(TAG)
 QIODIR = $(SCIDAC)/qio$(TAG)
 QLADIR = $(SCIDAC)/qla$(TAG)
 QDPDIR = $(SCIDAC)/qdp$(TAG)
-QOPDIR = $(SCIDAC)/qopqdp$(TAG)
+QOPDIR = $(SCIDAC)/qopqdp-cvs$(TAG)
 
 IQMP = -I$(QMPDIR)/include
 LQMP = -L$(QMPDIR)/lib -lqmp

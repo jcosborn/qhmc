@@ -20,6 +20,18 @@ fini_qopqdp(void)
 }
 
 void
+get_bool_array(lua_State *L, int idx, int n, int *a)
+{
+  luaL_checktype(L, idx, LUA_TTABLE);
+  qassert(n==lua_objlen(L, idx));
+  for(int i=0; i<n; i++) {
+    lua_rawgeti(L, idx, i+1);
+    a[i] = lua_toboolean(L, -1);
+    lua_pop(L, 1);
+  }
+}
+
+void
 get_int_array(lua_State *L, int idx, int n, int *a)
 {
   luaL_checktype(L, idx, LUA_TTABLE);
@@ -61,6 +73,15 @@ push_double_array(lua_State *L, int n, double *a)
     lua_pushnumber(L, a[i]);
     lua_rawseti(L, -2, i+1);
   }
+}
+
+const char *
+tableGetString(lua_State *L, int idx, char *key)
+{
+  lua_getfield(L, idx, key);
+  const char *s = luaL_checkstring(L, -1);
+  lua_pop(L, 1);
+  return s;
 }
 
 int
@@ -312,4 +333,5 @@ open_qopqdp(lua_State* L)
   lua_pushinteger(L, QLA_Nc);
   lua_setfield(L, -2, "Nc");
   lua_pop(L, 1);
+  open_qopqdp_smear(L);
 }

@@ -19,7 +19,7 @@ function setupacts(p)
   printf("nf = %g\n", p.nf)
   acts.g = gaugeact(p)
   if p.fermact.type == "wilson" then
-    acts.f = wilsonact(acts.g, p.fermact.rhmc)
+    acts.f = wilsonact(acts.g, p.fermact)
   else
     acts.f = hisqact(acts.g, 1, p.fermact.rhmc)
   end

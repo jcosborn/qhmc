@@ -20,6 +20,21 @@ qopqdp_gauge_check(lua_State *L, int idx)
   return g;
 }
 
+void
+qopqdp_gauge_array_check(lua_State *L, int idx, int n, gauge_t *g[n])
+{
+  luaL_checktype(L, idx, LUA_TTABLE);
+  qassert(lua_objlen(L, idx)==n);
+  lua_pushvalue(L, idx); // make copy for indexing convenience
+  for(int i=0; i<n; i++) {
+    lua_pushnumber(L, i+1);
+    lua_gettable(L, -2);
+    g[i] = qopqdp_gauge_check(L, -1);
+    lua_pop(L, 1);
+  }
+  lua_pop(L, 1);
+}
+
 static void
 qopqdp_gauge_free(lua_State *L, int idx)
 {
