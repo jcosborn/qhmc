@@ -72,7 +72,7 @@ qopqdp_wquark_random(lua_State *L)
 }
 
 static void
-lnormalize_D(QLA_DiracFermion *x, int i)
+lnormalize_D(NCPROT QLA_DiracFermion(*x), int i)
 {
   for(int ic=0; ic<QLA_Nc; ic++) {
     for(int is=0; is<QLA_Ns; is++) {

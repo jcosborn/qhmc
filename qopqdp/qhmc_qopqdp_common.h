@@ -18,6 +18,59 @@
   } while(0)
 #endif
 
+#if QOP_Colors == 'N'
+
+#define NC nc
+//#undef QOP_Nc
+//#define QOP_Nc NC
+#undef QDP_Nc
+#define QDP_Nc QOP_Nc
+#undef QLA_Nc
+#define QLA_Nc QOP_Nc
+#define NCPROT int NC,
+#define NCPROTVOID int NC
+#define NCARG NC,
+#define NCARGVOID NC
+
+#define PARENIFNOTEMPTY(x) IFEMPTY(x,(x),x)
+#define IFEMPTY(t,f,x) IFEMPTY_(COMMAFUNC x (), t, f, dum)
+#define IFEMPTY_(...) THIRDARG(__VA_ARGS__)
+#define THIRDARG(a,b,c,...) c
+#define COMMAFUNC(...) ,
+
+#ifndef QLA_ColorMatrix
+#if QOP_Precision == 'F'
+#define QLA_ColorVector(x)  QLA_FN_ColorVector (QLA_Nc,PARENIFNOTEMPTY(x))
+#define QLA_ColorMatrix(x)  QLA_FN_ColorMatrix (QLA_Nc,PARENIFNOTEMPTY(x))
+#define QLA_DiracFermion(x) QLA_FN_DiracFermion(QLA_Nc,PARENIFNOTEMPTY(x))
+#else
+#define QLA_ColorVector(x)  QLA_DN_ColorVector (QLA_Nc,PARENIFNOTEMPTY(x))
+#define QLA_ColorMatrix(x)  QLA_DN_ColorMatrix (QLA_Nc,PARENIFNOTEMPTY(x))
+#define QLA_DiracFermion(x) QLA_DN_DiracFermion(QLA_Nc,PARENIFNOTEMPTY(x))
+#endif
+#define QLA_F_ColorVector(x)  QLA_FN_ColorVector (QLA_Nc,PARENIFNOTEMPTY(x))
+#define QLA_F_ColorMatrix(x)  QLA_FN_ColorMatrix (QLA_Nc,PARENIFNOTEMPTY(x))
+#define QLA_F_DiracFermion(x) QLA_FN_DiracFermion(QLA_Nc,PARENIFNOTEMPTY(x))
+#define QLA_D_ColorVector(x)  QLA_DN_ColorVector (QLA_Nc,PARENIFNOTEMPTY(x))
+#define QLA_D_ColorMatrix(x)  QLA_DN_ColorMatrix (QLA_Nc,PARENIFNOTEMPTY(x))
+#define QLA_D_DiracFermion(x) QLA_DN_DiracFermion(QLA_Nc,PARENIFNOTEMPTY(x))
+#endif
+
+#else
+
+#define NCPROT
+#define NCPROTVOID void
+#define NCARG
+#define NCARGVOID
+#ifndef QLA_ColorMatrix
+#define QLA_ColorMatrix(x) QLA_ColorMatrix x
+#define QLA_F_ColorMatrix(x) QLA_F_ColorMatrix x
+#define QLA_D_ColorMatrix(x) QLA_D_ColorMatrix x
+#endif
+
+#endif
+
+
 #define printf0 if(QDP_this_node==0) printf
 #define printerr(...) fprintf(stderr, __VA_ARGS__)
 #define ABORT(code) QDP_abort(code)

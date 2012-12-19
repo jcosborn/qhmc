@@ -91,10 +91,12 @@ qopqdp_gauge_unit(lua_State *L)
 }
 
 static void
-gauge_random(QLA_ColorMatrix *m, int i, void *args)
+gauge_random(NCPROT QLA_ColorMatrix(*m), int i, void *args)
 {
   QLA_D_Complex d1, d2;
-  QLA_ColorMatrix m1, m2, m3;
+  QLA_ColorMatrix(m1);
+  QLA_ColorMatrix(m2);
+  QLA_ColorMatrix(m3);
   QLA_Complex c;
   QLA_RandomState *s = &((QLA_RandomState *)args)[i];
   QLA_M_eq_gaussian_S(&m1, s);
@@ -112,7 +114,7 @@ gauge_random(QLA_ColorMatrix *m, int i, void *args)
 }
 
 static void
-make_herm(QLA_ColorMatrix *m, int idx, void *args)
+make_herm(NCPROT QLA_ColorMatrix(*m), int idx, void *args)
 {
   QLA_Complex tr;
   QLA_c_eq_r(tr, 0);
@@ -304,10 +306,10 @@ qopqdp_gauge_copy(lua_State *L)
 }
 
 static void
-checkU(QLA_ColorMatrix *m, int idx, void *args)
+checkU(NCPROT QLA_ColorMatrix(*m), int idx, void *args)
 {
   double *devs = (double *) args;
-  QLA_ColorMatrix m2;
+  QLA_ColorMatrix(m2);
   QLA_M_eq_Ma_times_M(&m2, m, m);
   for(int i=0; i<QLA_Nc; i++) QLA_c_meq_r(QLA_elem_M(m2,i,i), 1);
   QLA_Real dev;
@@ -335,10 +337,10 @@ qopqdp_gauge_checkU(lua_State *L)
 }
 
 static void
-checkSU(QLA_ColorMatrix *m, int idx, void *args)
+checkSU(NCPROT QLA_ColorMatrix(*m), int idx, void *args)
 {
   double *devs = (double *) args;
-  QLA_ColorMatrix m2;
+  QLA_ColorMatrix(m2);
   QLA_M_eq_Ma_times_M(&m2, m, m);
   for(int i=0; i<QLA_Nc; i++) QLA_c_meq_r(QLA_elem_M(m2,i,i), 1);
   QLA_Real dev;
@@ -370,10 +372,11 @@ qopqdp_gauge_checkSU(lua_State *L)
 }
 
 static void
-makeSU(QLA_ColorMatrix *m, int idx, void *args)
+makeSU(NCPROT QLA_ColorMatrix(*m), int idx, void *args)
 {
   QLA_D_Complex d1,d2;
-  QLA_ColorMatrix m1,m2;
+  QLA_ColorMatrix(m1);
+  QLA_ColorMatrix(m2);
   QLA_Complex c1;
   QLA_M_eq_Ma_times_M(&m2, m, m);
   QLA_M_eq_sqrt_M(&m1, &m2);

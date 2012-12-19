@@ -75,7 +75,7 @@ qopqdp_force_set(lua_State *L)
 }
 
 static void
-randforce(QLA_ColorMatrix *m, int i, void *args)
+randforce(NCPROT QLA_ColorMatrix(*m), int i, void *args)
 {
   QLA_RandomState *s = (QLA_RandomState*)args + i;
   QLA_Real s2 = 0.70710678118654752440;  // sqrt(1/2)

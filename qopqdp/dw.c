@@ -415,14 +415,14 @@ qopqdp_dw_force(lua_State *L)
 #endif
   } else {
     dw_set(w, 2);
-    QLA_Real qks[nql], qeps[nql];
-    QDP_DiracFermion *dfl[nql], *dfr[nql];
-    for(int i=0; i<nql; i++) {
+    //QLA_Real qks[nql], qeps[nql];
+    //QDP_DiracFermion *dfl[nql], *dfr[nql];
+    //for(int i=0; i<nql; i++) {
       //qks[i] = kappa(ms[i]);
-      qeps[i] = eps[i];
-      dfl[i] = ql[i]->df[0];
-      dfr[i] = qr[i]->df[0];
-    }
+      //qeps[i] = eps[i];
+      //dfl[i] = ql[i]->df[0];
+      //dfr[i] = qr[i]->df[0];
+    //}
     for(int i=0; i<f->nd; i++) QDP_M_eq_zero(f->force[i], QDP_all);
     //QOP_dw_force_prec_multi_qdp(&info, w->fl, f->force, qks, qeps, dfl, dfr, nql);
   }
