@@ -200,7 +200,7 @@ end
 
 function gaugemt.plaq(g)
   local ss,st = g.g:action({plaq=1})
-  local s = 3*g.a.vol
+  local s = qopqdp.Nc*g.a.vol
   return ss/s, st/s
 end
 

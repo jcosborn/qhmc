@@ -124,13 +124,20 @@ qopqdp_smear(lua_State *L)
 	  }));
     }
   } else
+  if(strcmp(type,"project")==0) {
+    qassert(nsg==1 && ng==1);
+    int nd = sg[0]->nd;
+    for(int mu=0; mu<nd; mu++) {
+      QOP_projectU_qdp(NULL, sg[0]->links[mu], g[0]->links[mu]);
+    }
+  } else
   if(strcmp(type,"exp")==0) {
     qassert(nsg==1 && ng==1);
     tableGetField(L, 3, "rho");
     int ns; get_table_len(L, -1, &ns);
     double rho[ns]; get_double_array(L, -1, ns, rho);
     lua_pop(L, 1);
-#if 1
+#if 0
     int nd = sg[0]->nd;
     for(int mu=0; mu<nd; mu++) {
       QLA_Real r = rho[mu];
@@ -144,8 +151,9 @@ qopqdp_smear(lua_State *L)
 	QDP_M_eq_r_times_M(cm, &r, g[0]->links[mu], QDP_all);
 	QDP_M_eq_exp_M(sg[0]->links[mu], cm, QDP_all);
       } else {
-	QLA_Real one = 1;
-	QDP_M_eq_r(sg[0]->links[mu], &one, QDP_all);
+	QLA_Complex one;
+	QLA_c_eq_r(one, 1);
+	QDP_M_eq_c(sg[0]->links[mu], &one, QDP_all);
       }
     }
     QDP_destroy_M(cm);

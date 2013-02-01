@@ -42,6 +42,17 @@ function dochain.fat7(f, sg, g, p)
   f:set(p.f)
 end
 
+function dosmear.project(sg, g, p)
+  qopqdp.smear({sg}, {g}, p)
+end
+
+function dochain.project(f, sg, g, p)
+  if not p.f then p.f = qopqdp.force() end
+  p.f:zero()
+  qopqdp.smearChain({p.f}, {f}, {sg}, {g}, p)
+  f:set(p.f)
+end
+
 function dosmear.stout(sg, g, p)
   if not p.fat7 then
     p.fat7 = {type="fat7",coeffs={three_staple=1}}

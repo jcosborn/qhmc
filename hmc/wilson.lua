@@ -16,10 +16,10 @@ local hmcmasses = { mass }
 --local hmcmasses = { mass, 20*mass }
 local seed = 1316844761
 
-local inlat = nil
+--local inlat = nil
 --local inlat = "f8x88b40m01.100"
 --local inlat = "l84f8b40m04a.2700.scidac"
-local outlat = nil
+--local outlat = nil
 --local outlat = "f8x88b40m01.100"
 
 local ntraj = ntraj or 10
@@ -50,8 +50,8 @@ local smear = {}
 --smear[#smear+1] = { type="fat7", coeffs={one_link=1} }
 --smear[#smear+1] = { type="fat7", coeffs={one_link=0.5} }
 --smear[#smear+1] = { type="fat7", coeffs={one_link=2} }
---smear[#smear+1] = { type="fat7", coeffs={three_staple=0.01} }
---smear[#smear+1] = { type="fat7", coeffs={one_link=0.1,three_staple=0.01} }
+--smear[#smear+1] = { type="fat7", coeffs={three_staple=0.2} }
+--smear[#smear+1] = { type="fat7", coeffs={one_link=0.4,three_staple=0.1} }
 --smear[#smear+1] = { type="stout", rho=0.01 }
 smear[#smear+1] = { type="stout", rho=0.14 }
 
