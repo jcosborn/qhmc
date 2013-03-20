@@ -9,28 +9,32 @@ ifneq ($(strip $(HAVE_QOPQDP)),)
   DIRS += qopqdp
   include qopqdp/make-qopqdp.inc
 endif
-
 SUBDIRS = $(DIRS) main
 
-.PHONY: all subdirs clean realclean lua luaclean $(SUBDIRS)
+.PHONY: all clean realclean lua $(SUBDIRS)
 
-all: lua subdirs
-main: lua $(DIRS)
-
-subdirs: $(SUBDIRS)
-
-$(SUBDIRS):
-	$(MAKE) -C $@ $(MAKECMDGOALS)
-
+all: lua $(SUBDIRS)
+main: lua $(DIRS)  # needed for parallel make to esure main is last
+$(LFSDIR): lua
 clean: $(SUBDIRS)
+realclean: $(SUBDIRS) lua
 
-realclean: $(SUBDIRS) luaclean
+ifeq ($(MAKECMDGOALS),realclean)
+  lua: luaclean
+else
+  ifneq ($(MAKECMDGOALS),clean)
+    lua: luabuild
+  endif
+endif
 
-lua:
+luabuild:
 	$(MAKE) -C $(LUADIR) PLAT=generic CC="$(CC)" CFLAGS="$(COPT) $(LUAOPTS)"
 
 luaclean:
 	$(MAKE) -C $(LUADIR) clean
+
+$(SUBDIRS):
+	$(MAKE) -C $@ $(MAKECMDGOALS)
 
 VER = $(shell date +%Y%m%d%H%M)
 TARNAME = qhmc-$(VER).tar.gz
