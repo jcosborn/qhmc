@@ -55,6 +55,17 @@ function intpat.omelyan(eps, p)
   ip.forcestep = { eps, eps,  0 }
   return ip
 end
+intpat["2MNV"] = function(eps, p)
+  local lambda = p.lambda or 0.1932
+  local s0 = 2*eps*lambda
+  local s1 = 2*(eps-s0)
+  local ip = {}
+  ip.nsteps = 3
+  ip.nforcesteps = 2
+  ip.fieldstep = {  0, eps, eps }
+  ip.forcestep = { s0,  s1,  s0 }
+  return ip
+end
 
 function getintpat(tau, nsteps, p)
   local eps = tau/nsteps
@@ -137,10 +148,22 @@ function integrate(f, p)
     if x.eps ~= 0 then
       local s = x.t - fieldtime[i]
       if fi==i and s<teps then
-	table.insert(fj, j)
-	table.insert(fe, x.eps)
+	local k = 1
+	while(true) do
+	  if fj[k]==j then
+	    fe[k] = fe[k] + x.eps
+	    break
+	  end
+	  k = k + 1
+	  if k>#fj then
+	    fj[k] = j
+	    fe[k] = x.eps
+	    break
+	  end
+	end
       else
 	if fi>0 then
+	  --myprint("fi: ",fi,"  fj: ",fj,"  fe: ",fe,"\n")
 	  f:updateMomentum(fi, fj, fe)
 	end
 	if s > teps then

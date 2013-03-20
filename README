@@ -18,7 +18,7 @@ directory structure:
 hmc
   scripts for running hmc
 
-lua-5.2.0
+lua-5.2.1
   Lua source tree
 
 main

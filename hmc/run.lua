@@ -1,5 +1,6 @@
 require 'common'
 require 'gaugeact'
+require 'asqtadact'
 require 'hisqact'
 require 'wilsonact'
 require 'fields'
@@ -20,8 +21,10 @@ function setupacts(p)
   acts.g = gaugeact(p)
   if p.fermact.type == "wilson" then
     acts.f = wilsonact(acts.g, p.fermact)
-  else
+  elseif p.fermact.type == "hisq" then
     acts.f = hisqact(acts.g, 1, p.fermact.rhmc)
+  else
+    acts.f = asqtadact(acts.g, p.fermact)
   end
   acts.fields = setupfields(acts, p)
   return setmetatable(acts, actsmt)

@@ -330,7 +330,7 @@ qopqdp_hisq_solve(lua_State *L)
   }
 #endif
   QOP_info_t info;
-  hisqInvert(&info, fla, &invarg, rap, mass, nm, qqd, qs->cv);
+  asqtadInvert(&info, fla, &invarg, rap, mass, nm, qqd, qs->cv);
 #if 0
   {
     int i;

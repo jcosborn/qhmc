@@ -20,7 +20,14 @@ fini_libs(void)
 
 void
 open_qhmc(lua_State* L) {
+  luaopen_lfs(L);
   open_qopqdp(L);
+  int rc = luaL_dostring(L, "table.insert(package.searchers,1, \
+    function(m) return function(m) return _ENV[m] end end)");
+  if(rc!=0) {
+    printf("error: %s: luaL_dostring failed\n", __func__);
+    exit(1);
+  }
 }
 
 int

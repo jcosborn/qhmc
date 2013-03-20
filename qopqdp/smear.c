@@ -35,19 +35,22 @@ qopqdp_smear(lua_State *L)
   int ng; get_table_len(L, 2, &ng);
   gauge_t *g[ng]; qopqdp_gauge_array_check(L, 2, ng, g);
   const char *type = tableGetString(L, 3, "type");
-  if(strcmp(type,"fat7")==0) {
-    qassert(nsg==1 && ng==1);
-    QOP_asqtad_coeffs_t coeffs;
-    zero_asqtad_coeffs(&coeffs);
+  QOP_info_t info;
+  // sum
+  if(strcmp(type,"sum")==0) {
+    qassert(nsg==1 && ng==2);
     tableGetField(L, 3, "coeffs");
-    get_asqtad_coeffs(L, -1, &coeffs);
+    int nc; get_table_len(L, -1, &nc);
+    QLA_Real coeffs[nc]; get_real_array(L, -1, nc, coeffs);
     lua_pop(L, 1);
-    coeffs.naik = 0;
-    QOP_info_t info;
-    //printf0("one_link = %g\n", coeffs.one_link);
-    QOP_smear_fat7l_qdp(&info, sg[0]->links, g[0]->links, &coeffs);
-    //for(int mu=0; mu<4; mu++) QDP_M_eq_M(sg[0]->links[mu], g[0]->links[mu], QDP_all);
+    qassert(nc==ng);
+    int nd = sg[0]->nd;
+    for(int mu=0; mu<nd; mu++) {
+      QDP_M_eq_r_times_M(sg[0]->links[mu], &coeffs[0], g[0]->links[mu], QDP_all);
+      QDP_M_peq_r_times_M(sg[0]->links[mu], &coeffs[1], g[1]->links[mu], QDP_all);
+    }
   } else
+  // product
   if(strcmp(type,"product")==0) {
     qassert(nsg==1 && ng==2);
     tableGetField(L, 3, "adj");
@@ -78,18 +81,18 @@ qopqdp_smear(lua_State *L)
       }
     }
   } else
+  // antiherm
   if(strcmp(type,"antiherm")==0) {
     qassert(nsg==1 && ng==1);
     int nd = sg[0]->nd;
     for(int mu=0; mu<nd; mu++) {
-      //QDP_M_eq_M(sg[0]->links[mu], g[0]->links[mu], QDP_all);
-      //QDP_M_eq_antiherm_M(sg[0]->links[mu], g[0]->links[mu], QDP_all);
       QDP_M_eq_M(sg[0]->links[mu], g[0]->links[mu], QDP_all);
       QDP_M_meq_Ma(sg[0]->links[mu], g[0]->links[mu], QDP_all);
       QLA_Real half=0.5;
       QDP_M_eq_r_times_M(sg[0]->links[mu], &half, sg[0]->links[mu], QDP_all);
     }
   } else
+  // tracelessAntiherm
   if(strcmp(type,"tracelessAntiherm")==0) {
     qassert(nsg==1 && ng==1);
     int nd = sg[0]->nd;
@@ -98,6 +101,7 @@ qopqdp_smear(lua_State *L)
       QDP_M_eq_antiherm_M(sg[0]->links[mu], g[0]->links[mu], QDP_all);
     }
   } else
+  // mobius
   if(strcmp(type,"mobius")==0) {
     qassert(nsg==1 && ng==1);
     tableGetField(L, 3, "coeffs");
@@ -124,26 +128,35 @@ qopqdp_smear(lua_State *L)
 	  }));
     }
   } else
-  if(strcmp(type,"project")==0) {
+  // sqrt
+  if(strcmp(type,"sqrt")==0) {
     qassert(nsg==1 && ng==1);
     int nd = sg[0]->nd;
     for(int mu=0; mu<nd; mu++) {
-      QOP_projectU_qdp(NULL, sg[0]->links[mu], g[0]->links[mu]);
+      QDP_M_eq_sqrt_M(sg[0]->links[mu], g[0]->links[mu], QDP_all);
     }
   } else
+  // projectU
+  if(strcmp(type,"projectU")==0) {
+    qassert(nsg==1 && ng==1);
+    int nd = sg[0]->nd;
+#if QOP_Colors == 3
+    for(int mu=0; mu<nd; mu++) {
+      QOP_u3reunit(&info, g[0]->links[mu], sg[0]->links[mu]);
+    }
+#else
+    for(int mu=0; mu<nd; mu++) {
+      QOP_projectU_qdp(&info, sg[0]->links[mu], g[0]->links[mu]);
+    }
+#endif
+  } else
+  // exp
   if(strcmp(type,"exp")==0) {
     qassert(nsg==1 && ng==1);
     tableGetField(L, 3, "rho");
     int ns; get_table_len(L, -1, &ns);
     double rho[ns]; get_double_array(L, -1, ns, rho);
     lua_pop(L, 1);
-#if 0
-    int nd = sg[0]->nd;
-    for(int mu=0; mu<nd; mu++) {
-      QLA_Real r = rho[mu];
-      QDP_M_eq_r_times_M(sg[0]->links[mu], &r, g[0]->links[mu], QDP_all);
-    }
-#else    
     QDP_ColorMatrix *cm = QDP_create_M();
     for(int mu=0; mu<ns; mu++) {
       QLA_Real r = rho[mu];
@@ -157,7 +170,87 @@ qopqdp_smear(lua_State *L)
       }
     }
     QDP_destroy_M(cm);
-#endif
+  } else
+  // fat7
+  if(strcmp(type,"fat7")==0) {
+    qassert(nsg==1 && ng==1);
+    QOP_asqtad_coeffs_t coeffs;
+    zero_asqtad_coeffs(&coeffs);
+    tableGetField(L, 3, "coeffs");
+    get_asqtad_coeffs(L, -1, &coeffs);
+    lua_pop(L, 1);
+    coeffs.naik = 0;
+    //printf0("one_link = %g\n", coeffs.one_link);
+    QOP_smear_fat7l_qdp(&info, sg[0]->links, g[0]->links, &coeffs);
+    //for(int mu=0; mu<4; mu++) QDP_M_eq_M(sg[0]->links[mu], g[0]->links[mu], QDP_all);
+  } else
+  // staples
+  if(strcmp(type,"staples")==0) {
+    int nd = sg[0]->nd;
+    int nout = nd*nsg;
+    int nin  = nd*ng;
+    QDP_ColorMatrix *out[nout], *in[nin];
+    int nsmax = 0;
+    int nstaples[nout];
+    tableGetField(L, 3, "topdir");
+    for(int i=0; i<nout; i++) {
+      tableGetIndex(L, -1, i+1);
+      int ntd; get_table_len(L, -1, &ntd);
+      nstaples[i] = ntd;
+      if(ntd>nsmax) nsmax = ntd;
+      lua_pop(L, 1);
+      out[i] = sg[i/nd]->links[i%nd];
+      QDP_M_eq_zero(out[i], QDP_all);
+    }
+    for(int i=0; i<nin; i++) {
+      in[i] = g[i/nd]->links[i%nd];
+    }
+    int td[nout][nsmax], *topdir[nout];
+    int sd[nout][nsmax], *sidedir[nout];
+    int tn[nout][nsmax], *toplinknum[nout];
+    int sn[nout][nsmax], *sidelinknum[nout];
+    QLA_Real c[nout][nsmax], *coeffs[nout];
+    for(int i=0; i<nout; i++) {
+      topdir[i] = td[i];
+      tableGetIndex(L, -1, i+1);
+      get_int_array(L, -1, nstaples[i], topdir[i]);
+      lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+    tableGetField(L, 3, "sidedir");
+    for(int i=0; i<nout; i++) {
+      sidedir[i] = sd[i];
+      tableGetIndex(L, -1, i+1);
+      get_int_array(L, -1, nstaples[i], sidedir[i]);
+      lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+    tableGetField(L, 3, "toplinknum");
+    for(int i=0; i<nout; i++) {
+      toplinknum[i] = tn[i];
+      tableGetIndex(L, -1, i+1);
+      get_int_array(L, -1, nstaples[i], toplinknum[i]);
+      lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+    tableGetField(L, 3, "sidelinknum");
+    for(int i=0; i<nout; i++) {
+      sidelinknum[i] = sn[i];
+      tableGetIndex(L, -1, i+1);
+      get_int_array(L, -1, nstaples[i], sidelinknum[i]);
+      lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+    tableGetField(L, 3, "coef");
+    for(int i=0; i<nout; i++) {
+      coeffs[i] = c[i];
+      tableGetIndex(L, -1, i+1);
+      get_real_array(L, -1, nstaples[i], coeffs[i]);
+      lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+    QOP_staples(nout, nin, out, in, nstaples,
+		topdir, sidedir, toplinknum, sidelinknum, coeffs);
   } else {
     printerr("unknown smearing type: %s\n", type);
     ABORT(1);
@@ -178,23 +271,24 @@ qopqdp_smearChain(lua_State *L)
   int ng; get_table_len(L, 4, &ng);
   gauge_t *g[ng]; qopqdp_gauge_array_check(L, 4, ng, g);
   const char *type = tableGetString(L, 5, "type");
-  if(strcmp(type,"fat7")==0) {
-    qassert(nf==1 && nfc==1 && nsg==1 && ng==1);
-    QOP_asqtad_coeffs_t coeffs;
-    zero_asqtad_coeffs(&coeffs);
+  QOP_info_t info;
+  // sum
+  if(strcmp(type,"sum")==0) {
+    qassert(nf==2 && nfc==1 && nsg==1 && ng==2);
     tableGetField(L, 5, "coeffs");
-    get_asqtad_coeffs(L, -1, &coeffs);
+    int nc; get_table_len(L, -1, &nc);
+    double coeffs[nc]; get_double_array(L, -1, nc, coeffs);
     lua_pop(L, 1);
-    coeffs.naik = 0;
-    //printf0("one_link = %g\n", coeffs.one_link);
-    QOP_info_t info;
-    //for(int mu=0; mu<4; mu++) QDP_M_eq_zero(f[0]->force[mu], QDP_all);
-    //for(int mu=0; mu<4; mu++) QDP_M_peq_M(f[0]->force[mu], fc[0]->force[mu], QDP_all);
-    //coeffs.one_link *= 0.5;
-    //coeffs.three_staple *= -1;
-    QOP_asqtad_deriv(&info, g[0]->links, f[0]->force, &coeffs,
-		     fc[0]->force, NULL);
+    qassert(nc==ng);
+    QLA_Real c0 = coeffs[0];
+    QLA_Real c1 = coeffs[1];
+    int nd = sg[0]->nd;
+    for(int mu=0; mu<nd; mu++) {
+      QDP_M_peq_r_times_M(f[0]->force[mu], &c0, fc[0]->force[mu], QDP_all);
+      QDP_M_peq_r_times_M(f[1]->force[mu], &c1, fc[0]->force[mu], QDP_all);
+    }
   } else
+  // product
   if(strcmp(type,"product")==0) {
     qassert(nf==2 && nfc==1 && nsg==1 && ng==2);
     tableGetField(L, 5, "adj");
@@ -206,8 +300,8 @@ qopqdp_smearChain(lua_State *L)
     if(adj[0]) {
       if(adj[1]) {
 	for(int mu=0; mu<nd; mu++) {
-	  QDP_M_peq_Ma_times_Ma(f[0]->force[mu], g[1]->links[mu], fc[0]->force[mu], QDP_all);
-	  QDP_M_peq_Ma_times_Ma(f[1]->force[mu], fc[0]->force[mu], g[0]->links[mu], QDP_all);
+	  QDP_M_peq_Ma_times_Ma(f[0]->force[mu], g[1]->links[mu], fc[0]->force[mu],QDP_all);
+	  QDP_M_peq_Ma_times_Ma(f[1]->force[mu], fc[0]->force[mu], g[0]->links[mu],QDP_all);
 	}
       } else {
 	for(int mu=0; mu<nd; mu++) {
@@ -229,6 +323,7 @@ qopqdp_smearChain(lua_State *L)
       }
     }
   } else
+  //antiherm
   if(strcmp(type,"antiherm")==0) {
     qassert(nf==1 && nfc==1 && nsg==1 && ng==1);
     int nd = f[0]->nd;
@@ -240,6 +335,7 @@ qopqdp_smearChain(lua_State *L)
       QDP_M_eq_r_times_M(f[0]->force[mu], &half, f[0]->force[mu], QDP_all);
     }
   } else
+  // tracelessAntiherm
   if(strcmp(type,"tracelessAntiherm")==0) {
     // X = 0.5*(A-A^+)
     // Y = X - <X>/Nc
@@ -254,6 +350,7 @@ qopqdp_smearChain(lua_State *L)
       QDP_M_eq_antiherm_M(f[0]->force[mu], fc[0]->force[mu], QDP_all);
     }
   } else
+  // mobius
   if(strcmp(type,"mobius")==0) {
     qassert(nf==1 && nfc==1 && nsg==1 && ng==1);
     tableGetField(L, 5, "coeffs");
@@ -281,33 +378,134 @@ qopqdp_smearChain(lua_State *L)
 	  }));
     }
   } else
+  // sqrt
+  if(strcmp(type,"sqrt")==0) {
+    qassert(nf==1 && nfc==1 && nsg==1 && ng==1);
+    int nd = sg[0]->nd;
+    for(int mu=0; mu<nd; mu++) {
+      sqrt_deriv(f[0]->force[mu], sg[0]->links[mu],
+		 g[0]->links[mu], fc[0]->force[mu], QDP_all);
+    }
+  } else
+  // projectU
+  if(strcmp(type,"projectU")==0) {
+    qassert(nf==1 && nfc==1 && nsg==1 && ng==1);
+    int nd = sg[0]->nd;
+#if QOP_Colors == 0
+    QDP_ColorMatrix *tf[nd], *tfc[nd];
+    for(int mu=0; mu<nd; mu++) {
+      tf[mu] = QDP_create_M();
+      tfc[mu] = QDP_create_M();
+      QDP_M_eq_Ma(tfc[mu], fc[0]->force[mu], QDP_all);
+    }
+    QOP_hisq_force_multi_reunit(&info, g[0]->links, tf, tfc);
+    for(int mu=0; mu<nd; mu++) {
+      QDP_M_eq_Ma(f[0]->force[mu], tf[mu], QDP_all);
+      QDP_destroy_M(tf[mu]);
+      QDP_destroy_M(tfc[mu]);
+    }
+#else
+    for(int mu=0; mu<nd; mu++) {
+      //QOP_projectU_deriv_qdp(&info, f[0]->force[mu], sg[0]->links[mu],
+      //g[0]->links[mu], fc[0]->force[mu]);
+      projectU_deriv(f[0]->force[mu], sg[0]->links[mu], g[0]->links[mu],
+		     fc[0]->force[mu], QDP_all);
+    }
+#endif
+  } else
+  // exp
   if(strcmp(type,"exp")==0) {
     qassert(nf==1 && nfc==1 && nsg==1 && ng==1);
     tableGetField(L, 5, "rho");
     int ns; get_table_len(L, -1, &ns);
     double rho[ns]; get_double_array(L, -1, ns, rho);
     lua_pop(L, 1);
-#if 1
     int nd = sg[0]->nd;
     for(int mu=0; mu<nd; mu++) {
       QLA_Real r = rho[mu];
       QDP_M_peq_r_times_M(f[0]->force[mu], &r, fc[0]->force[mu], QDP_all);
     }
-#else    
-    QDP_ColorMatrix *cm2 = QDP_create_M();
-    for(int mu=0; mu<ns; mu++) {
-      QLA_Real r = rho[mu];
-      if(r) {
-	QDP_ColorMatrix *cm1 = sg[0]->links[mu];
-	QDP_M_eq_M_times_Ma(cm1, g[1]->links[mu], g[0]->links[mu], QDP_all);
-	QDP_M_eq_antiherm_M(cm2, cm1, QDP_all);
-	QDP_M_eq_r_times_M(cm1, &r, cm2, QDP_all);
-	QDP_M_eq_exp_M(cm2, cm1, QDP_all);
-	QDP_M_eq_M_times_M(sg[0]->links[mu], cm2, g[0]->links[mu], QDP_all);
-      }
+  } else
+  // fat7
+  if(strcmp(type,"fat7")==0) {
+    qassert(nf==1 && nfc==1 && nsg==1 && ng==1);
+    QOP_asqtad_coeffs_t coeffs;
+    zero_asqtad_coeffs(&coeffs);
+    tableGetField(L, 5, "coeffs");
+    get_asqtad_coeffs(L, -1, &coeffs);
+    lua_pop(L, 1);
+    coeffs.naik = 0;
+    QOP_asqtad_deriv(&info, g[0]->links, f[0]->force, &coeffs,
+		     fc[0]->force, NULL);
+  } else
+  // staples
+  if(strcmp(type,"staples")==0) {
+    qassert(nf==ng && nfc==nsg);
+    int nd = sg[0]->nd;
+    int nout = nd*nsg;
+    int nin  = nd*ng;
+    QDP_ColorMatrix *deriv[nin], *chain[nout], *in[nin];
+    int nsmax = 0;
+    int nstaples[nout];
+    tableGetField(L, 5, "topdir");
+    for(int i=0; i<nout; i++) {
+      tableGetIndex(L, -1, i+1);
+      int ntd; get_table_len(L, -1, &ntd);
+      nstaples[i] = ntd;
+      if(ntd>nsmax) nsmax = ntd;
+      lua_pop(L, 1);
+      chain[i] = fc[i/nd]->force[i%nd];
     }
-    QDP_destroy_M(cm2);
-#endif
+    for(int i=0; i<nin; i++) {
+      in[i] = g[i/nd]->links[i%nd];
+      deriv[i] = f[i/nd]->force[i%nd];
+    }
+    int td[nout][nsmax], *topdir[nout];
+    int sd[nout][nsmax], *sidedir[nout];
+    int tn[nout][nsmax], *toplinknum[nout];
+    int sn[nout][nsmax], *sidelinknum[nout];
+    QLA_Real c[nout][nsmax], *coeffs[nout];
+    for(int i=0; i<nout; i++) {
+      topdir[i] = td[i];
+      tableGetIndex(L, -1, i+1);
+      get_int_array(L, -1, nstaples[i], topdir[i]);
+      lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+    tableGetField(L, 5, "sidedir");
+    for(int i=0; i<nout; i++) {
+      sidedir[i] = sd[i];
+      tableGetIndex(L, -1, i+1);
+      get_int_array(L, -1, nstaples[i], sidedir[i]);
+      lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+    tableGetField(L, 5, "toplinknum");
+    for(int i=0; i<nout; i++) {
+      toplinknum[i] = tn[i];
+      tableGetIndex(L, -1, i+1);
+      get_int_array(L, -1, nstaples[i], toplinknum[i]);
+      lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+    tableGetField(L, 5, "sidelinknum");
+    for(int i=0; i<nout; i++) {
+      sidelinknum[i] = sn[i];
+      tableGetIndex(L, -1, i+1);
+      get_int_array(L, -1, nstaples[i], sidelinknum[i]);
+      lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+    tableGetField(L, 5, "coef");
+    for(int i=0; i<nout; i++) {
+      coeffs[i] = c[i];
+      tableGetIndex(L, -1, i+1);
+      get_real_array(L, -1, nstaples[i], coeffs[i]);
+      lua_pop(L, 1);
+    }
+    lua_pop(L, 1);
+    QOP_staples_deriv(nout, nin, deriv, chain, in, nstaples,
+		topdir, sidedir, toplinknum, sidelinknum, coeffs);
   } else {
     printerr("unknown smearing type: %s\n", type);
     ABORT(1);

@@ -1,28 +1,6 @@
 #include <math.h>
 #include "qhmc_qopqdp_common.h"
 
-static QOP_F_FermionLinksAsqtad *
-create_F_links(QOP_FermionLinksAsqtad *fla)
-{
-  QDP_ColorMatrix *cm[8];
-  QDP_F_ColorMatrix *fcm[8];
-  for(int i=0; i<8; i++) {
-    cm[i] = QDP_create_M();
-    fcm[i] = QDP_F_create_M();
-  }
-  QOP_asqtad_extract_L_to_qdp(cm, cm+4, fla);
-  for(int i=0; i<8; i++) {
-    QDP_FD_M_eq_M(fcm[i], cm[i], QDP_all);
-  }
-  QOP_F_FermionLinksAsqtad *r =
-    QOP_F_asqtad_create_L_from_qdp(fcm, fcm+4);
-  for(int i=0; i<8; i++) {
-    QDP_destroy_M(cm[i]);
-    QDP_F_destroy_M(fcm[i]);
-  }
-  return r;
-}
-
 static void
 get_resid(QDP_ColorVector *r, QDP_ColorVector *x, QDP_ColorVector *b,
 	  QOP_FermionLinksAsqtad *fla, QLA_Real m, QOP_evenodd_t eo, QDP_ColorVector *t)
@@ -46,9 +24,10 @@ get_resid(QDP_ColorVector *r, QDP_ColorVector *x, QDP_ColorVector *b,
 }
 
 void
-hisqInvert(QOP_info_t *info, QOP_FermionLinksAsqtad *fla, QOP_invert_arg_t *invarg,
-	   QOP_resid_arg_t *residarg[], QLA_Real *masses, int nm,
-	   QDP_ColorVector *prop[],  QDP_ColorVector *source)
+asqtadInvert(QOP_info_t *info, QOP_FermionLinksAsqtad *fla,
+	     QOP_invert_arg_t *invarg, QOP_resid_arg_t *residarg[],
+	     QLA_Real *masses, int nm, QDP_ColorVector *prop[],
+	     QDP_ColorVector *source)
 {
   QDP_Subset sub=QDP_all;
   if(invarg->evenodd==QOP_EVEN) {
@@ -56,7 +35,7 @@ hisqInvert(QOP_info_t *info, QOP_FermionLinksAsqtad *fla, QOP_invert_arg_t *inva
   } else if(invarg->evenodd==QOP_ODD) {
     sub = QDP_odd;
   }
-  QOP_F_FermionLinksAsqtad *ffla = create_F_links(fla);
+  QOP_F_FermionLinksAsqtad *ffla = QOP_FD_asqtad_create_L_from_L(fla);
   QLA_F_Real m[nm];
   QDP_F_ColorVector *x[nm], *b;
   for(int i=0; i<nm; i++) {
@@ -70,7 +49,7 @@ hisqInvert(QOP_info_t *info, QOP_FermionLinksAsqtad *fla, QOP_invert_arg_t *inva
 
   double flops=0, secs=0;
   int its=0;
-  double preres = 1e-3;
+  double preres = 1e-4;
 
   if(nm>1) {
     QOP_resid_arg_t **ra = residarg;
@@ -100,6 +79,7 @@ hisqInvert(QOP_info_t *info, QOP_FermionLinksAsqtad *fla, QOP_invert_arg_t *inva
     while(1) {
       get_resid(r, prop[i], source, fla, masses[i], invarg->evenodd, Dprop);
       QDP_r_eq_norm2_V(&rsq, r, sub);
+      //printf0("its: %i  resid[%i]/in = %g\n", its, i, sqrt(rsq/norm2in));
       if(rsq<rsqstop) break;
       if(restarts>invarg->max_restarts) break;
       if(iters>0) restarts++;

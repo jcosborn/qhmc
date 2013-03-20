@@ -1,0 +1,306 @@
+latsize = 4 4 4 4
+volume = 256
+beta = 8
+u0 = 1
+nf = 4
+mass = 0.1
+ntraj = 10
+tau = 1
+nsteps = 40
+seed = 987654321
+smear = {
+  1 = {
+    coeffs = {
+      five_staple = 0.015625
+      one_link = 0.125
+      seven_staple = 0.0026041666666667
+      three_staple = 0.0625
+    }
+    type = fat7
+  }
+  2 = {
+    type = projectU
+  }
+}
+ndim = 4
+numsites = 256
+len = 4 4 4 4
+nsquares = 1 1 1 1
+gauge coeffs: {
+  pgm = 0
+  plaq = 1
+  rect = -0.05
+}
+asqtad_coeffs = {
+  five_staple = 0.015625
+  lepage = -0.125
+  naik = 0
+  one_link = 0.875
+  seven_staple = -0.0026041666666667
+  three_staple = -0.0625
+}
+unitarity deviation avg: 0  max: 0
+new unitarity deviation avg: 0  max: 0
+plaq ss: 1         st: 1         tot: 1
+plaq12:  1	0
+plaq13:  1	0
+plaq14:  1	0
+plaq23:  1	0
+plaq24:  1	0
+plaq34:  1	0
+ploop:  1	0
+meas time: 0.00411105
+Sgq: 0         Sgp: 11.9312   Sfq: 351.332 
+Sgq: 1560.1    Sgp: -1550.27  Sfq: 352.988 
+Sold: 363.2635357   Snew: 362.8228079 
+ACCEPT deltaS = -0.440728  p = 1.55384  r = 0.131821
+unitarity deviation avg: 4.7172e-16  max: 1.00675e-15
+new unitarity deviation avg: 1.28919e-16  max: 4.09442e-16
+traj 1 secs: 2.6375
+GF     secs:    0.234   9%  calls:   40  mflops:  1159  rms: 0.1628  max: 0.3388
+GU     secs:    0.046   2%  calls:   41
+LL     secs:    0.568  22%  calls:   42  mflops:  1167
+FF[01] secs:    1.711  65%  calls:   40  mflops:   838  rms: 0.0125  max: 0.0318
+FFtot  secs:    1.711  65%  calls:   40  mflops:   838
+CG[01] secs:    0.003   0%  calls:    2  mflops:  2759  avgits:    12  max:    19
+CG[02] secs:    0.056   2%  calls:   40  mflops:  3792  avgits:    18  max:    19
+CGtot  secs:    0.059   2%  calls:   42  mflops:  3746  avgits:    17  max:    19
+other  secs:    0.020   1%
+plaq ss: 0.845563  st: 0.851617  tot: 0.84859
+plaq12:  0.849804	-0.000506276
+plaq13:  0.841895	-0.00106215
+plaq14:  0.84593	0.000749671
+plaq23:  0.844988	0.000352474
+plaq24:  0.85341	0.00110043
+plaq34:  0.855511	-0.000890138
+ploop:  0.674139	0.000152623
+meas time: 0.00275993
+Sgq: 1560.1    Sgp: 73.6423   Sfq: 349.907 
+Sgq: 2253.96   Sgp: -619.279  Sfq: 348.955 
+Sold: 1983.649842   Snew: 1983.635723 
+ACCEPT deltaS = -0.014119  p = 1.01422  r = 0.149476
+unitarity deviation avg: 4.94835e-16  max: 1.08106e-15
+new unitarity deviation avg: 1.39753e-16  max: 9.85243e-16
+traj 2 secs: 2.61353
+GF     secs:    0.231   9%  calls:   40  mflops:  1174  rms: 0.1995  max: 0.3853
+GU     secs:    0.045   2%  calls:   41
+LL     secs:    0.551  21%  calls:   41  mflops:  1174
+FF[01] secs:    1.703  65%  calls:   40  mflops:   842  rms: 0.0148  max: 0.0376
+FFtot  secs:    1.703  65%  calls:   40  mflops:   842
+CG[01] secs:    0.003   0%  calls:    2  mflops:  4219  avgits:    20  max:    22
+CG[02] secs:    0.061   2%  calls:   40  mflops:  4115  avgits:    21  max:    22
+CGtot  secs:    0.064   2%  calls:   42  mflops:  4120  avgits:    21  max:    22
+other  secs:    0.019   1%
+plaq ss: 0.775512  st: 0.785938  tot: 0.780725
+plaq12:  0.779225	0.000253724
+plaq13:  0.778852	0.00284077
+plaq14:  0.779337	0.000500377
+plaq23:  0.768459	0.00118778
+plaq24:  0.788174	0.000383725
+plaq34:  0.790303	-0.000951619
+ploop:  0.627927	-0.0126074
+meas time: 0.00275302
+Sgq: 2253.96   Sgp: 121.701   Sfq: 415.346 
+Sgq: 2590.9    Sgp: -208.485  Sfq: 408.57  
+Sold: 2791.006321   Snew: 2790.984324 
+ACCEPT deltaS = -0.0219971  p = 1.02224  r = 0.793631
+unitarity deviation avg: 5.08056e-16  max: 1.29171e-15
+new unitarity deviation avg: 1.41909e-16  max: 9.04137e-16
+traj 3 secs: 2.64739
+GF     secs:    0.238   9%  calls:   40  mflops:  1139  rms: 0.2090  max: 0.3730
+GU     secs:    0.046   2%  calls:   41
+LL     secs:    0.554  21%  calls:   41  mflops:  1167
+FF[01] secs:    1.720  65%  calls:   40  mflops:   833  rms: 0.0167  max: 0.0380
+FFtot  secs:    1.720  65%  calls:   40  mflops:   833
+CG[01] secs:    0.003   0%  calls:    2  mflops:  4400  avgits:    22  max:    23
+CG[02] secs:    0.065   2%  calls:   40  mflops:  4198  avgits:    23  max:    23
+CGtot  secs:    0.068   3%  calls:   42  mflops:  4208  avgits:    23  max:    23
+other  secs:    0.020   1%
+plaq ss: 0.744947  st: 0.752783  tot: 0.748865
+plaq12:  0.739424	0.00267999
+plaq13:  0.751963	0.00241184
+plaq14:  0.742754	-0.0027642
+plaq23:  0.743454	-0.00101079
+plaq24:  0.758092	0.0021557
+plaq34:  0.757502	0.00103776
+ploop:  0.530681	-0.00664944
+meas time: 0.00280595
+Sgq: 2590.9    Sgp: -17.46    Sfq: 428.57  
+Sgq: 2899.82   Sgp: -317.566  Sfq: 419.826 
+Sold: 3002.008956   Snew: 3002.082362 
+ACCEPT deltaS = 0.0734064  p = 0.929223  r = 0.354236
+unitarity deviation avg: 5.04135e-16  max: 1.22765e-15
+new unitarity deviation avg: 1.487e-16  max: 1.66516e-15
+traj 4 secs: 2.63553
+GF     secs:    0.235   9%  calls:   40  mflops:  1158  rms: 0.2116  max: 0.3686
+GU     secs:    0.046   2%  calls:   41
+LL     secs:    0.552  21%  calls:   41  mflops:  1173
+FF[01] secs:    1.716  65%  calls:   40  mflops:   835  rms: 0.0176  max: 0.0406
+FFtot  secs:    1.716  65%  calls:   40  mflops:   835
+CG[01] secs:    0.003   0%  calls:    2  mflops:  4217  avgits:    22  max:    23
+CG[02] secs:    0.064   2%  calls:   40  mflops:  4215  avgits:    22  max:    23
+CGtot  secs:    0.068   3%  calls:   42  mflops:  4215  avgits:    22  max:    23
+other  secs:    0.019   1%
+plaq ss: 0.713756  st: 0.721296  tot: 0.717526
+plaq12:  0.717915	-0.00050798
+plaq13:  0.707335	-0.0019447
+plaq14:  0.720093	-0.00352633
+plaq23:  0.716017	0.00133591
+plaq24:  0.722896	0.0010079
+plaq34:  0.720898	-0.00169743
+ploop:  0.431381	-0.0138325
+meas time: 0.0029161
+Sgq: 2899.82   Sgp: -2.13389  Sfq: 376.809 
+Sgq: 3075.88   Sgp: -177.346  Sfq: 375.972 
+Sold: 3274.497898   Snew: 3274.50863  
+ACCEPT deltaS = 0.0107321  p = 0.989325  r = 0.969977
+unitarity deviation avg: 5.01754e-16  max: 1.13054e-15
+new unitarity deviation avg: 1.40961e-16  max: 9.82799e-16
+traj 5 secs: 2.63089
+GF     secs:    0.234   9%  calls:   40  mflops:  1163  rms: 0.2137  max: 0.3734
+GU     secs:    0.046   2%  calls:   41
+LL     secs:    0.553  21%  calls:   41  mflops:  1170
+FF[01] secs:    1.713  65%  calls:   40  mflops:   837  rms: 0.0164  max: 0.0394
+FFtot  secs:    1.713  65%  calls:   40  mflops:   837
+CG[01] secs:    0.003   0%  calls:    2  mflops:  4210  avgits:    22  max:    22
+CG[02] secs:    0.064   2%  calls:   40  mflops:  4159  avgits:    22  max:    22
+CGtot  secs:    0.067   3%  calls:   42  mflops:  4162  avgits:    22  max:    22
+other  secs:    0.019   1%
+plaq ss: 0.696778  st: 0.705577  tot: 0.701178
+plaq12:  0.706236	0.00374077
+plaq13:  0.69279	0.00219775
+plaq14:  0.705415	-0.000443607
+plaq23:  0.691308	0.00461458
+plaq24:  0.712538	-0.000263416
+plaq34:  0.698778	-0.00231246
+ploop:  0.438808	-0.00171966
+meas time: 0.00278783
+Sgq: 3075.88   Sgp: 19.8708   Sfq: 395.417 
+Sgq: 3200.82   Sgp: -107.452  Sfq: 397.795 
+Sold: 3491.169777   Snew: 3491.159413 
+ACCEPT deltaS = -0.0103642  p = 1.01042  r = 0.0615996
+unitarity deviation avg: 5.0385e-16  max: 1.09222e-15
+new unitarity deviation avg: 1.42385e-16  max: 8.24863e-16
+traj 6 secs: 2.63153
+GF     secs:    0.237   9%  calls:   40  mflops:  1147  rms: 0.2158  max: 0.3830
+GU     secs:    0.046   2%  calls:   41
+LL     secs:    0.552  21%  calls:   41  mflops:  1173
+FF[01] secs:    1.713  65%  calls:   40  mflops:   836  rms: 0.0173  max: 0.0436
+FFtot  secs:    1.713  65%  calls:   40  mflops:   836
+CG[01] secs:    0.003   0%  calls:    2  mflops:  4140  avgits:    20  max:    21
+CG[02] secs:    0.061   2%  calls:   40  mflops:  4092  avgits:    21  max:    21
+CGtot  secs:    0.064   2%  calls:   42  mflops:  4094  avgits:    21  max:    21
+other  secs:    0.019   1%
+plaq ss: 0.689247  st: 0.690311  tot: 0.689779
+plaq12:  0.695704	0.00228293
+plaq13:  0.684945	-0.00141124
+plaq14:  0.691525	-0.0012869
+plaq23:  0.687093	0.00127798
+plaq24:  0.699553	0.00127611
+plaq34:  0.679855	0.000586636
+ploop:  0.438979	0.00395383
+meas time: 0.00294399
+Sgq: 3200.82   Sgp: -30.6816  Sfq: 362.338 
+Sgq: 3242.8    Sgp: -67.9388  Sfq: 357.65  
+Sold: 3532.47344    Snew: 3532.51406  
+ACCEPT deltaS = 0.0406203  p = 0.960194  r = 0.646937
+unitarity deviation avg: 5.09088e-16  max: 1.12391e-15
+new unitarity deviation avg: 1.41471e-16  max: 6.04388e-16
+traj 7 secs: 2.64234
+GF     secs:    0.238   9%  calls:   40  mflops:  1141  rms: 0.2166  max: 0.3825
+GU     secs:    0.046   2%  calls:   41
+LL     secs:    0.554  21%  calls:   41  mflops:  1167
+FF[01] secs:    1.719  65%  calls:   40  mflops:   834  rms: 0.0146  max: 0.0369
+FFtot  secs:    1.719  65%  calls:   40  mflops:   834
+CG[01] secs:    0.003   0%  calls:    2  mflops:  4238  avgits:    21  max:    21
+CG[02] secs:    0.062   2%  calls:   40  mflops:  4108  avgits:    21  max:    21
+CGtot  secs:    0.065   2%  calls:   42  mflops:  4114  avgits:    21  max:    21
+other  secs:    0.020   1%
+plaq ss: 0.680613  st: 0.690692  tot: 0.685652
+plaq12:  0.676666	-0.00210822
+plaq13:  0.684416	-0.000859145
+plaq14:  0.693131	0.00457901
+plaq23:  0.680758	0.00178634
+plaq24:  0.69963	0.00580685
+plaq34:  0.679314	0.0015276
+ploop:  0.456686	0.0155732
+meas time: 0.00283909
+Sgq: 3242.8    Sgp: 85.6081   Sfq: 354.461 
+Sgq: 3339.86   Sgp: -16.4788  Sfq: 359.473 
+Sold: 3682.871295   Snew: 3682.857686 
+ACCEPT deltaS = -0.0136096  p = 1.0137  r = 0.210506
+unitarity deviation avg: 5.0662e-16  max: 2.95828e-15
+new unitarity deviation avg: 2.16132e-16  max: 5.27618e-15
+traj 8 secs: 2.61465
+GF     secs:    0.231   9%  calls:   40  mflops:  1173  rms: 0.2175  max: 0.3775
+GU     secs:    0.045   2%  calls:   41
+LL     secs:    0.549  21%  calls:   41  mflops:  1178
+FF[01] secs:    1.704  65%  calls:   40  mflops:   841  rms: 0.0153  max: 0.0397
+FFtot  secs:    1.704  65%  calls:   40  mflops:   841
+CG[01] secs:    0.003   0%  calls:    2  mflops:  4371  avgits:    22  max:    24
+CG[02] secs:    0.063   2%  calls:   40  mflops:  4226  avgits:    22  max:    24
+CGtot  secs:    0.066   3%  calls:   42  mflops:  4233  avgits:    22  max:    24
+other  secs:    0.019   1%
+plaq ss: 0.672104  st: 0.681214  tot: 0.676659
+plaq12:  0.673491	0.00345727
+plaq13:  0.672514	-0.00236394
+plaq14:  0.690321	-0.000680967
+plaq23:  0.670307	-0.00105736
+plaq24:  0.677879	-0.00440145
+plaq34:  0.675444	-0.00166748
+ploop:  0.394626	-0.0267405
+meas time: 0.00282788
+Sgq: 3339.86   Sgp: 16.9326   Sfq: 370.882 
+Sgq: 3415.14   Sgp: -49.2089  Sfq: 361.754 
+Sold: 3727.678426   Snew: 3727.686399 
+ACCEPT deltaS = 0.00797352  p = 0.992058  r = 0.24241
+unitarity deviation avg: 5.02331e-16  max: 1.52924e-15
+new unitarity deviation avg: 1.47431e-16  max: 1.38665e-15
+traj 9 secs: 2.63394
+GF     secs:    0.235   9%  calls:   40  mflops:  1157  rms: 0.2187  max: 0.3852
+GU     secs:    0.046   2%  calls:   41
+LL     secs:    0.553  21%  calls:   41  mflops:  1171
+FF[01] secs:    1.714  65%  calls:   40  mflops:   836  rms: 0.0159  max: 0.0393
+FFtot  secs:    1.714  65%  calls:   40  mflops:   836
+CG[01] secs:    0.003   0%  calls:    2  mflops:  4460  avgits:    24  max:    24
+CG[02] secs:    0.064   2%  calls:   40  mflops:  4265  avgits:    23  max:    24
+CGtot  secs:    0.068   3%  calls:   42  mflops:  4274  avgits:    23  max:    24
+other  secs:    0.020   1%
+plaq ss: 0.665534  st: 0.672545  tot: 0.669039
+plaq12:  0.673562	-0.00133485
+plaq13:  0.666724	0.00521508
+plaq14:  0.670365	-0.00150967
+plaq23:  0.656314	0.00111375
+plaq24:  0.679121	0.00137808
+plaq34:  0.668148	0.000637688
+ploop:  0.442209	0.00280175
+meas time: 0.00283384
+Sgq: 3415.14   Sgp: 68.2096   Sfq: 387.18  
+Sgq: 3457.08   Sgp: 37.9471   Sfq: 375.525 
+Sold: 3870.530001   Snew: 3870.553922 
+ACCEPT deltaS = 0.0239202  p = 0.976364  r = 0.543426
+unitarity deviation avg: 4.94959e-16  max: 1.31758e-15
+new unitarity deviation avg: 1.47336e-16  max: 1.53439e-15
+traj 10 secs: 2.63727
+GF     secs:    0.237   9%  calls:   40  mflops:  1144  rms: 0.2172  max: 0.3732
+GU     secs:    0.046   2%  calls:   41
+LL     secs:    0.553  21%  calls:   41  mflops:  1171
+FF[01] secs:    1.714  65%  calls:   40  mflops:   836  rms: 0.0158  max: 0.0369
+FFtot  secs:    1.714  65%  calls:   40  mflops:   836
+CG[01] secs:    0.003   0%  calls:    2  mflops:  4392  avgits:    23  max:    23
+CG[02] secs:    0.064   2%  calls:   40  mflops:  4225  avgits:    22  max:    23
+CGtot  secs:    0.068   3%  calls:   42  mflops:  4233  avgits:    23  max:    23
+other  secs:    0.020   1%
+plaq ss: 0.66083   st: 0.668779  tot: 0.664805
+plaq12:  0.678942	0.00163864
+plaq13:  0.657803	-0.000330882
+plaq14:  0.676488	4.16753e-05
+plaq23:  0.645746	-0.0028615
+plaq24:  0.657143	0.00209802
+plaq34:  0.672705	0.00127614
+ploop:  0.336841	-0.0329611
+meas time: 0.00285196
+saving lattice file l44b800f4m1.10
+DML_partition_out times: write 0.00  send 0.00  total 0.00
+ saved in 0.00287294 seconds
+total time: 26.3613 seconds

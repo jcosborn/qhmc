@@ -123,16 +123,14 @@ for j=1,npseudo do
   --printf("ns = %i\n", nfsteps[j])
   fp[1][j+1] = {nsteps=nfsteps[j], intalg=fintalg}
   rhmc1[j] = {GR={},FA={},MD={}}
-  rhmc1[j].GR[1] = {}
-  rhmc1[j].GR[1].resid = grcg.resid
-  rhmc1[j].FA[1] = {}
-  rhmc1[j].FA[1].resid = facg.resid
+  rhmc1[j].GR.resid = grcg.resid
+  rhmc1[j].FA.resid = facg.resid
   rhmc1[j].MD.resid = mdcg.resid
-  rhmc1[j].GR[1].solveopts = {
+  rhmc1[j].GR.solveopts = {
     prec = grcg.prec,
     restart = grcg.restart
   }
-  rhmc1[j].FA[1].solveopts = {
+  rhmc1[j].FA.solveopts = {
     prec = facg.prec,
     restart = facg.restart
   }

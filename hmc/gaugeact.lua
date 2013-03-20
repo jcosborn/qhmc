@@ -200,7 +200,8 @@ end
 
 function gaugemt.plaq(g)
   local ss,st = g.g:action({plaq=1})
-  local s = qopqdp.Nc*g.a.vol
+  local nd = #qopqdp.lattice()
+  local s = 0.25*nd*(nd-1)*g.a.vol
   return ss/s, st/s
 end
 

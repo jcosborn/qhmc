@@ -1,3 +1,4 @@
+package.path = arg[0]:gsub("[^/]*.lua","?.lua") .. ";./hmc/?.lua;" .. package.path
 require 'common'
 require 'gaugeact'
 require 'hisqact'
@@ -146,14 +147,13 @@ for j=1,#rhmc do
   rhmc1[j] = {GR={},FA={},MD={}}
   rhmc1[j].GR[1] = {}
   rhmc1[j].GR[1].resid = 1e-6
-  rhmc1[j].FA[1] = {}
-  rhmc1[j].FA[1].resid = 1e-6
+  rhmc1[j].FA.resid = 1e-6
   rhmc1[j].MD.resid = 1e-5
   rhmc1[j].GR[1].solveopts = {
     prec = 1,
     restart = 500
   }
-  rhmc1[j].FA[1].solveopts = {
+  rhmc1[j].FA.solveopts = {
     prec = 1,
     restart = 500
   }
@@ -171,7 +171,7 @@ copyto(rhmc, rhmc1)
 function measure(G)
   local t0 = clock()
   local ps,pt = G:plaq()
-  printf("plaq ss: %g  st: %g  tot: %g\n", ps, pt, 0.5*(ps+pt))
+  printf("plaq ss: %-8g  st: %-8g  tot: %-8g\n", ps, pt, 0.5*(ps+pt))
 
   local nd = #G.a.latsize
   for i=1,nd do

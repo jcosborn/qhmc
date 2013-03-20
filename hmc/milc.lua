@@ -76,21 +76,20 @@ for i,v in ipairs(mi.runs) do
     rhmc1[j] = {GR={},FA={},MD={}}
     rhmc1[j].GR[1] = {}
     rhmc1[j].GR[1].resid = v.cgresid_md_fa_gr[3*(j-1)+3]
-    rhmc1[j].FA[1] = {}
-    rhmc1[j].FA[1].resid = v.cgresid_md_fa_gr[3*(j-1)+2]
+    rhmc1[j].FA.resid = v.cgresid_md_fa_gr[3*(j-1)+2]
     rhmc1[j].MD.resid = v.cgresid_md_fa_gr[3*(j-1)+1]
     rhmc1[j].GR[1].solveopts = {
       prec = v.cgprec_md_fa_gr[3*(j-1)+3],
       restart = v.max_multicg_md_fa_gr[3*(j-1)+3]
     }
-    rhmc1[j].FA[1].solveopts = {
+    rhmc1[j].FA.solveopts = {
       prec = v.cgprec_md_fa_gr[3*(j-1)+2],
       restart = v.max_multicg_md_fa_gr[3*(j-1)+2]
     }
     rhmc1[j].MD.solveopts = {
       prec = v.cgprec_md_fa_gr[3*(j-1)+1],
       restart = v.max_multicg_md_fa_gr[3*(j-1)+1],
-      --use_prev_soln = 1
+      use_prev_soln = use_prev_soln
     }
     rhmc1[j].MD.ffprec = v.prec_ff[1]
   end

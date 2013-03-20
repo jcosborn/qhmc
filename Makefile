@@ -1,6 +1,10 @@
 include make.inc
 
 DIRS =
+ifneq ($(strip $(LFSDIR)),)
+  DIRS += $(LFSDIR)
+  include $(LFSDIR)/make-lfs.inc
+endif
 ifneq ($(strip $(HAVE_QOPQDP)),)
   DIRS += qopqdp
   include qopqdp/make-qopqdp.inc
@@ -11,6 +15,7 @@ SUBDIRS = $(DIRS) main
 .PHONY: all subdirs clean realclean lua luaclean $(SUBDIRS)
 
 all: lua subdirs
+main: lua $(DIRS)
 
 subdirs: $(SUBDIRS)
 

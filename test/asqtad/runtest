@@ -1,0 +1,20 @@
+#!/bin/sh
+
+qhmc="../../main/qhmc"
+hmc="../../hmc"
+t="test.out"
+
+opts="-e seed=987654321"
+#opts="$opts;doTrace=true"
+#opts="$opts;nx=8;nt=8"
+#opts="$opts;beta=8"
+opts="$opts;beta=10"
+opts="$opts;mass=1"
+opts="$opts;nsteps=160"
+opts="$opts;prec=2"
+
+export OMP_NUM_THREADS=2
+run="mpirun -np 2"
+
+#$run $qhmc $opts $hmc/hisq.lua
+$run $qhmc $opts $hmc/asqtad.lua

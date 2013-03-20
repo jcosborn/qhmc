@@ -43,10 +43,16 @@
 #define QLA_ColorVector(x)  QLA_FN_ColorVector (QLA_Nc,PARENIFNOTEMPTY(x))
 #define QLA_ColorMatrix(x)  QLA_FN_ColorMatrix (QLA_Nc,PARENIFNOTEMPTY(x))
 #define QLA_DiracFermion(x) QLA_FN_DiracFermion(QLA_Nc,PARENIFNOTEMPTY(x))
+#define QLA_N_ColorVector(n,x)  QLA_FN_ColorVector (n,x)
+#define QLA_N_ColorMatrix(n,x)  QLA_FN_ColorMatrix (n,x)
+#define QLA_N_DiracFermion(n,x) QLA_FN_DiracFermion(n,x)
 #else
 #define QLA_ColorVector(x)  QLA_DN_ColorVector (QLA_Nc,PARENIFNOTEMPTY(x))
 #define QLA_ColorMatrix(x)  QLA_DN_ColorMatrix (QLA_Nc,PARENIFNOTEMPTY(x))
 #define QLA_DiracFermion(x) QLA_DN_DiracFermion(QLA_Nc,PARENIFNOTEMPTY(x))
+#define QLA_N_ColorVector(n,x)  QLA_DN_ColorVector (n,x)
+#define QLA_N_ColorMatrix(n,x)  QLA_DN_ColorMatrix (n,x)
+#define QLA_N_DiracFermion(n,x) QLA_DN_DiracFermion(n,x)
 #endif
 #define QLA_F_ColorVector(x)  QLA_FN_ColorVector (QLA_Nc,PARENIFNOTEMPTY(x))
 #define QLA_F_ColorMatrix(x)  QLA_FN_ColorMatrix (QLA_Nc,PARENIFNOTEMPTY(x))
@@ -56,7 +62,8 @@
 #define QLA_D_DiracFermion(x) QLA_DN_DiracFermion(QLA_Nc,PARENIFNOTEMPTY(x))
 #endif
 
-#else
+#else //#if QOP_Colors == 'N'
+
 
 #define NCPROT
 #define NCPROTVOID void
@@ -68,6 +75,24 @@
 #define QLA_D_ColorMatrix(x) QLA_D_ColorMatrix x
 #endif
 
+#endif //#if QOP_Colors == 'N'
+
+#ifndef QLA_N_ColorMatrix
+#if QOP_Precision == 'F'
+#define QLA_N_ColorVector(n,x)  QLA_FN_ColorVector (n,x)
+#define QLA_N_ColorMatrix(n,x)  QLA_FN_ColorMatrix (n,x)
+#define QLA_N_DiracFermion(n,x) QLA_FN_DiracFermion(n,x)
+#else
+#define QLA_N_ColorVector(n,x)  QLA_DN_ColorVector (n,x)
+#define QLA_N_ColorMatrix(n,x)  QLA_DN_ColorMatrix (n,x)
+#define QLA_N_DiracFermion(n,x) QLA_DN_DiracFermion(n,x)
+#endif
+#endif
+
+#if QOP_Precision == 'F'
+#define get_real_array get_float_array
+#else
+#define get_real_array get_double_array
 #endif
 
 
@@ -103,6 +128,7 @@
     lua_pop(L, 2); \
   }
 #define tableGetField(L, idx, key) lua_getfield(L, idx, key)
+#define tableGetIndex(L, idx, key) lua_rawgeti(L, idx, key)
 
 
 extern QLA_RandomState qopqdp_nrs;
@@ -111,6 +137,7 @@ extern QDP_RandomState *qopqdp_srs;
 void get_bool_array(lua_State *L, int idx, int n, int *a);
 void get_int_array(lua_State *L, int idx, int n, int *a);
 void push_int_array(lua_State *L, int n, int *a);
+void get_float_array(lua_State *L, int idx, int n, float *a);
 void get_double_array(lua_State *L, int idx, int n, double *a);
 void push_double_array(lua_State *L, int n, double *a);
 const char *tableGetString(lua_State *L, int idx, char *key);
@@ -120,6 +147,12 @@ QDP_Subset *qhmcqdp_get_timeslices(void);
 
 QLA_Real infnorm_M(QDP_ColorMatrix *m, QDP_Subset s);
 int check_uniform_M(QDP_ColorMatrix *m, QDP_Subset s);
+void sqrt_deriv(QDP_ColorMatrix *deriv, QDP_ColorMatrix *sqrtM,
+		QDP_ColorMatrix *M, QDP_ColorMatrix *chain, QDP_Subset sub);
+void projectU_deriv(QDP_ColorMatrix *deriv, QDP_ColorMatrix *proj,
+		    QDP_ColorMatrix *mat, QDP_ColorMatrix *chain, QDP_Subset sub);
+void sylsolve_site(NCPROT QLA_ColorMatrix(*x), QLA_ColorMatrix(*a),
+		   QLA_ColorMatrix(*b), QLA_ColorMatrix(*c));
 
 
 typedef struct {
@@ -159,6 +192,23 @@ typedef struct {
   double time;
   double flops;
   int its;
+  int nd;
+  int *r0;
+  QOP_bc_t bc;
+  QOP_staggered_sign_t ssign;
+  QOP_asqtad_coeffs_t coeffs;
+  QOP_FermionLinksAsqtad *fl;
+  QOP_F_FermionLinksAsqtad *ffl;
+  gauge_t *g;
+  QDP_Complex **fatphase, **longphase;
+} asqtad_t;
+asqtad_t *qopqdp_asqtad_create(lua_State *L);
+asqtad_t *qopqdp_asqtad_check(lua_State *L, int idx);
+
+typedef struct {
+  double time;
+  double flops;
+  int its;
   QOP_hisq_coeffs_t coeffs;
   QOP_FermionLinksHisq *fl;
   QOP_F_FermionLinksHisq *ffl;
@@ -167,21 +217,20 @@ typedef struct {
   double f7lf;
   QDP_Complex **fatphase, **longphase;
 } hisq_t;
-
 hisq_t *qopqdp_hisq_create(lua_State *L);
 hisq_t *qopqdp_hisq_check(lua_State *L, int idx);
-void hisqInvert(QOP_info_t *info, QOP_FermionLinksAsqtad *fla,
-		QOP_invert_arg_t *invarg, QOP_resid_arg_t *residarg[],
-		QLA_Real *masses, int nm, QDP_ColorVector *prop[],
-		QDP_ColorVector *source);
 
 typedef struct {
   QDP_ColorVector *cv;
 } squark_t;
-
 squark_t *qopqdp_squark_create(lua_State *L);
 squark_t *qopqdp_squark_check(lua_State *L, int idx);
 void qopqdp_squark_array_check(lua_State *L, int idx, int n, squark_t *q[n]);
+
+void asqtadInvert(QOP_info_t *info, QOP_FermionLinksAsqtad *fla,
+		  QOP_invert_arg_t *invarg, QOP_resid_arg_t *residarg[],
+		  QLA_Real *masses, int nm, QDP_ColorVector *prop[],
+		  QDP_ColorVector *source);
 
 
 typedef struct {
@@ -193,14 +242,12 @@ typedef struct {
   QOP_F_FermionLinksWilson *ffl;
   gauge_t *g;
 } wilson_t;
-
 wilson_t *qopqdp_wilson_create(lua_State *L);
 wilson_t *qopqdp_wilson_check(lua_State *L, int idx);
 
 typedef struct {
   QDP_DiracFermion *df;
 } wquark_t;
-
 wquark_t *qopqdp_wquark_create(lua_State *L);
 wquark_t *qopqdp_wquark_check(lua_State *L, int idx);
 void qopqdp_wquark_array_check(lua_State *L, int idx, int n, wquark_t *q[n]);
@@ -216,7 +263,6 @@ typedef struct {
   QOP_F_FermionLinksDW *ffl;
   gauge_t *g;
 } dw_t;
-
 dw_t *qopqdp_dw_create(lua_State *L);
 dw_t *qopqdp_dw_check(lua_State *L, int idx);
 
@@ -224,7 +270,6 @@ typedef struct {
   QDP_DiracFermion **df;
   int ls;
 } dwquark_t;
-
 dwquark_t *qopqdp_dwquark_create(lua_State *L, int ls);
 dwquark_t *qopqdp_dwquark_check(lua_State *L, int idx);
 void qopqdp_dwquark_array_check(lua_State *L, int idx, int n, dwquark_t *q[n]);

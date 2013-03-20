@@ -54,6 +54,18 @@ push_int_array(lua_State *L, int n, int *a)
 }
 
 void
+get_float_array(lua_State *L, int idx, int n, float *a)
+{
+  luaL_checktype(L, idx, LUA_TTABLE);
+  qassert(n==lua_objlen(L, idx));
+  for(int i=0; i<n; i++) {
+    lua_rawgeti(L, idx, i+1);
+    a[i] = lua_tonumber(L, -1);
+    lua_pop(L, 1);
+  }
+}
+
+void
 get_double_array(lua_State *L, int idx, int n, double *a)
 {
   luaL_checktype(L, idx, LUA_TTABLE);
@@ -263,6 +275,14 @@ qopqdp_force(lua_State* L)
 }
 
 static int
+qopqdp_asqtad(lua_State* L)
+{
+  qassert(lua_gettop(L)==0);
+  qopqdp_asqtad_create(L);
+  return 1;
+}
+
+static int
 qopqdp_hisq(lua_State* L)
 {
   qassert(lua_gettop(L)==0);
@@ -312,6 +332,7 @@ static struct luaL_Reg qopqdp_reg[] = {
   { "random",    qopqdp_random },
   { "gauge",     qopqdp_gauge },
   { "force",     qopqdp_force },
+  { "asqtad",    qopqdp_asqtad },
   { "hisq",      qopqdp_hisq },
   { "wilson",    qopqdp_wilson },
   { "dw",        qopqdp_dw },

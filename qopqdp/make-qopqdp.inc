@@ -1,6 +1,6 @@
 CC = mpicc
 #COPT = -O3 -std=gnu99 -Wall -Wno-strict-aliasing -fopenmp
-COPT = -O3 -std=gnu99 -Wall -fopenmp
+COPT = -O3 -g -std=gnu99 -Wall -fopenmp
 
 COLORLIB = 3
 NC = 3
@@ -17,7 +17,7 @@ TAG =
 SCIDAC = $(HOME)/lqcd/install
 QMPDIR = $(SCIDAC)/qmp$(TAG)
 QIODIR = $(SCIDAC)/qio$(TAG)
-QLADIR = $(SCIDAC)/qla$(TAG)
+QLADIR = $(SCIDAC)/qla-cvs$(TAG)
 QDPDIR = $(SCIDAC)/qdp$(TAG)
 QOPDIR = $(SCIDAC)/qopqdp-cvs$(TAG)
 
@@ -29,7 +29,7 @@ LQIO = -L$(QIODIR)/lib -lqio -llime
 
 IQLA = -I$(QLADIR)/include -DQLA_Colors=$(COLORS) -DQLA_Nc=$(NC)
 LQLA = -L$(QLADIR)/lib -lqla_f -lqla_d -lqla_q -lqla_df -lqla_dq \
- -lqla_f$(COLORLIB) -lqla_d$(COLORLIB) -lqla_q$(COLORLIB) \
+ -lqla_f$(COLORLIB) -lqla_d$(COLORLIB) -lqla_q$(COLORLIB) -lqla_dn \
  -lqla_df$(COLORLIB) -lqla_dq$(COLORLIB) -lqla_int -lqla_random -lqla_cmath
 
 IQDP = -I$(QDPDIR)/include -DQDP_PROFILE -DQDP_Colors=$(COLORS) -DQDP_Nc=$(NC)

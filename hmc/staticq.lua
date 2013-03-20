@@ -63,30 +63,63 @@ function stats(U)
   plpr,plpi = U:loop(plpath)
   printf(" ploop:  %g\t%g\n", plpr, plpi)
 
+  --[[
   for r=1,nx/2 do
     local wr0,wi0 = rtloop(U,r,0)
     local wr1,wi1 = rtloop(U,r,1)
     local wl = wr1/wr0
     printf(" wl%i%i: %12g   %g\n", r, 1, wl, -math.log(wl))
   end
+  --]]
 end
 
 
 printf("plain\n")
 stats(U)
 
+function ape4d(alpha)
+  local c = {}
+  for mu = 1,4 do
+    c[mu] = { [0] = 1-alpha }
+    for nu = 1,4 do
+      if nu ~= mu then
+	c[mu][nu] = alpha/6
+	c[mu][-nu] = alpha/6
+      end
+    end
+  end
+  return c
+end
+function ape3d(alpha)
+  local c = {}
+  for mu = 1,3 do
+    c[mu] = { [0] = 1-alpha }
+    for nu = 1,3 do
+      if nu ~= mu then
+	c[mu][nu] = alpha/4
+	c[mu][-nu] = alpha/4
+      end
+    end
+  end
+  c[4] = { [0] = 1 }
+  return c
+end
+
 --smear = { type="fat7", coeffs={one_link=1} }
 --smear = { type="fat7", coeffs={one_link=0.5} }
 --smear[#smear+1] = { type="fat7", coeffs={one_link=2} }
 --smear[#smear+1] = { type="fat7", coeffs={three_staple=0.01} }
-smear = { type="fat7", coeffs={one_link=1,three_staple=0.01} }
+--smear = { type="fat7", coeffs={one_link=0.9,three_staple=0.1/6} }
+--smear = { type="staples", coeffs=ape4d(0.1) }
 --smear[#smear+1] = { type="stout", rho=0.01 }
 --smear[#smear+1] = { type="stout", rho=0.14 }
+smear = { type="hyp", alpha={0.7,0.5,0.3} }
 
 g = {U}
 s = U
 for i=1,5 do
   s = smearGauge({g=s}, {smear})
+  smear.sg = nil
   printf("smeared %i\n", i)
   stats(s)
 end

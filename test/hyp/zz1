@@ -1,0 +1,290 @@
+smear = {
+  1 = {
+    alpha = { 0.5, 0.5, 0.4 }
+    type = hyp
+  }
+}
+latsize = 4 4 4 8
+seed = 1411
+beta = 5
+u0 = 1
+nf = 4
+ndim = 4
+numsites = 512
+len = 4 4 4 8
+nsquares = 1 1 1 1
+gauge coeffs: {
+  pgm = 0
+  plaq = 1
+  rect = 0
+}
+asqtad_coeffs = {
+  five_staple = 0
+  lepage = 0
+  naik = 0
+  one_link = 1
+  seven_staple = 0
+  three_staple = 0
+}
+1 1 : nil
+1 2 : nil
+2 1 : nil
+rhmc1 = {
+  1 = {
+    FA = {
+      resid = 1e-07
+      1 = {
+        solveopts = {
+          prec = 2
+          restart = 2000
+        }
+      }
+    }
+    GR = {
+      1 = {
+        resid = 1e-07
+        solveopts = {
+          prec = 2
+          restart = 2000
+        }
+      }
+    }
+    MD = {
+      ffprec = 2
+      resid = 1e-07
+      solveopts = {
+        prec = 2
+        restart = 2000
+        use_prev_soln = 1
+      }
+    }
+  }
+  2 = {
+    FA = {
+      resid = 1e-07
+      1 = {
+        solveopts = {
+          prec = 2
+          restart = 2000
+        }
+      }
+    }
+    GR = {
+      1 = {
+        resid = 1e-07
+        solveopts = {
+          prec = 2
+          restart = 2000
+        }
+      }
+    }
+    MD = {
+      ffprec = 2
+      resid = 1e-07
+      solveopts = {
+        prec = 2
+        restart = 2000
+        use_prev_soln = 1
+      }
+    }
+  }
+}
+rhmc = {
+  1 = {
+    FA = {
+      cgnum = 2
+      masses = { 0.01 }
+      pt = { userdata: 0x16d07a8 }
+      resid = 1e-07
+      1 = {
+        coeffs = { 1 }
+        pt0 = { userdata: 0x16f0618 }
+        qt = userdata: 0x16d7a38
+        solveopts = {
+          prec = 2
+          restart = 2000
+        }
+        1 = { 1 }
+      }
+      2 = {
+        allfaceven = 0.02
+        allfacodd = 1
+        allmass = 0.01
+        coeffs = { 3.8729833462074 }
+        pt0 = { userdata: 0x16d07a8 }
+        qt = userdata: 0x16d0608
+        qt2 = userdata: 0x16feef8
+        1 = { 0.077459666924148, 0.0004 }
+      }
+    }
+    GR = {
+      coeffs = { 25 }
+      pt0 = { userdata: 0x16d0608 }
+      1 = {
+        allfaceven = -0.02
+        allfacodd = 1
+        allmass = -0.01
+        allmass2 = -0.04
+        cgnum = 1
+        masses = { 0.04 }
+        pt = { userdata: 0x16d0608 }
+        qt = userdata: 0x16feef8
+        qt2 = userdata: 0x16d7a38
+        resid = 1e-07
+        solveopts = {
+          prec = 2
+          restart = 2000
+        }
+        1 = { 2, 0.0064 }
+      }
+    }
+    MD = {
+      cgnum = 4
+      coeffs = { 7.5 }
+      ff = {
+        a = {
+          GFflops = 0
+          GFmax = 0
+          GFn = 0
+          GFnorm2 = 0
+          GFtime = 0
+          GUn = 0
+          GUtime = 0
+          act0 = 3072
+          beta = 5
+          coeffs = {
+            pgm = 0
+            plaq = 1
+            rect = 0
+          }
+          gf = {
+            a = <loop>
+            f = userdata: 0x16f9248
+          }
+          latsize = { 4, 4, 4, 8 }
+          params = {
+            type = plaquette
+          }
+          vol = 512
+        }
+        f = userdata: 0x16d6c28
+      }
+      ffprec = 2
+      masses = { 0.01 }
+      pt = { userdata: 0x16d7a38 }
+      resid = 1e-07
+      solveopts = {
+        prec = 2
+        restart = 2000
+        use_prev_soln = 1
+      }
+      1 = { 0.006, 0.0004 }
+    }
+  }
+  2 = {
+    FA = {
+      cgnum = 3
+      masses = { 0.04 }
+      pt = { userdata: 0x16ca1a8 }
+      resid = 1e-07
+      1 = {
+        allfaceven = 0.08
+        allfacodd = 1
+        allmass = 0.04
+        coeffs = { 12.5 }
+        pt0 = { userdata: 0x16ca1a8 }
+        qt = userdata: 0x16c6328
+        qt2 = userdata: 0x16c6198
+        solveopts = {
+          prec = 2
+          restart = 2000
+        }
+        1 = { 1, 0.0064 }
+      }
+    }
+    GR = {
+      coeffs = { -2 }
+      pt0 = { userdata: 0x16c6198 }
+      1 = {
+        allfaceven = 0.08
+        allfacodd = -1
+        allmass = -0.04
+        qt = userdata: 0x16c6198
+        qt2 = userdata: 0x16d07a8
+        resid = 1e-07
+        solveopts = {
+          prec = 2
+          restart = 2000
+        }
+        1 = { 1 }
+      }
+    }
+    MD = {
+      cgnum = 5
+      coeffs = { 78.125 }
+      ff = {
+        a = {
+          GFflops = 0
+          GFmax = 0
+          GFn = 0
+    ../../main/qhmc: ../../hmc/smear.lua:399: attempt to index field '?' (a nil value)
+stack traceback:
+	../../hmc/smear.lua:399: in function '?'
+	../../hmc/smear.lua:24: in function 'smearForce'
+	../../hmc/asqtadact.lua:318: in function 'updateMomentum'
+	../../hmc/fields.lua:83: in function 'updateMomentum'
+	../../hmc/hmc.lua:144: in function 'integrate'
+	../../hmc/hmc.lua:8: in function 'hmcstep'
+	../../hmc/run.lua:97: in function 'run'
+	../../hmc/bsm.lua:177: in main chunk
+	[C]: in ?
+      GFnorm2 = 0
+          GFtime = 0
+          GUn = 0
+          GUtime = 0
+          act0 = 3072
+          beta = 5
+          coeffs = {
+            pgm = 0
+            plaq = 1
+            rect = 0
+          }
+          gf = {
+            a = <loop>
+            f = userdata: 0x16f9248
+          }
+          latsize = { 4, 4, 4, 8 }
+          params = {
+            type = plaquette
+          }
+          vol = 512
+        }
+        f = userdata: 0x16d6c28
+      }
+      ffprec = 2
+      masses = { 0.04 }
+      pt = { userdata: 0x16feef8 }
+      resid = 1e-07
+      solveopts = {
+        prec = 2
+        restart = 2000
+        use_prev_soln = 1
+      }
+      1 = { 1, 0.0064 }
+    }
+  }
+}
+plaq ss: 1  st: 1  tot: 1
+its: 0  resid[0]/in = 1
+its: 9  resid[0]/in = 2.2765e-07
+its: 11  resid[0]/in = 5.13944e-08
+its: 0  resid[0]/in = 1
+its: 9  resid[0]/in = 2.91244e-07
+its: 12  resid[0]/in = 4.43165e-08
+its: 0  resid[0]/in = 1
+its: 9  resid[0]/in = 2.22478e-07
+its: 11  resid[0]/in = 6.24633e-08
+Sgq: 0             Sgp: 27.68859002   Sfq: 1565.390242 
+its: 0  resid[0]/in = 0.999926
+its: 10  resid[0]/in = 9.19147e-05
+its: 21  resid[0]/in = 3.84329e-08

@@ -7,9 +7,9 @@ t="test.out"
 #$qhmc $hmc/milc.lua su3_rhmc_hisq.1.sample-in0 -qmp-geom 1 1 1 1 >$t"0"
 
 #OMP_NUM_THREADS=1 mpirun -np 2 $qhmc $hmc/milc.lua su3_rhmc_hisq.1.sample-in0 -qmp-geom 1 1 1 2 >$t"0"
-#OMP_NUM_THREADS=1 mpirun -np 2 $qhmc $hmc/milc.lua su3_rhmc_hisq.1.sample-in1 -qmp-geom 1 1 1 2 >$t"1"
+OMP_NUM_THREADS=1 mpirun -np 2 $qhmc $hmc/milc.lua su3_rhmc_hisq.1.sample-in1 -qmp-geom 1 1 1 2 >$t"1"
 #diff -I sec $t"0" su3_rhmc_hisq.1.sample-out0
-#diff -I sec $t"1" su3_rhmc_hisq.1.sample-out1
+diff -I sec $t"1" su3_rhmc_hisq.1.sample-out1
 
 #$qhmc -e 'force_filter=1' $hmc/milc.lua su3_rhmc_hisq.1.sample-in >$t
 
@@ -18,6 +18,6 @@ t="test.out"
 
 #OMP_NUM_THREADS=1 mpirun -np 2 $qhmc -e "stdoutfile=\"$t.%job\"" $hmc/milc.lua su3_rhmc_hisq.1.sample-in%job -qmp-geom 1 1 1 2 -qmp-job 1 1 1 2
 
-OMP_NUM_THREADS=1 mpirun -np 4 $qhmc -e "stdoutfile=\"$t%job\"" $hmc/milc.lua su3_rhmc_hisq.1.sample-in%job -qmp-geom 1 1 2 2 -qmp-job 1 1 2 1
-diff -I sec $t"0" su3_rhmc_hisq.1.sample-out0
-diff -I sec $t"1" su3_rhmc_hisq.1.sample-out1
+#OMP_NUM_THREADS=1 mpirun -np 4 $qhmc -e "stdoutfile=\"$t%job\"" $hmc/milc.lua su3_rhmc_hisq.1.sample-in%job -qmp-geom 1 1 2 2 -qmp-job 1 1 2 1
+#diff -I sec $t"0" su3_rhmc_hisq.1.sample-out0
+#diff -I sec $t"1" su3_rhmc_hisq.1.sample-out1
