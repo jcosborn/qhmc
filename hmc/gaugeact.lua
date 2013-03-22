@@ -35,6 +35,9 @@ local gaugecoeffs={}
 function gaugecoeffs.plaquette(p)
   return { plaq=1, rect=0, pgm=0 }
 end
+function gaugecoeffs.plaquette_adjoint(p)
+  return { plaq=1, rect=0, pgm=0, adjplaq=p.adjFac }
+end
 function gaugecoeffs.symanzik_tree(p)
   local u0 = p.u0 or 1
   local u2 = u0*u0
@@ -94,13 +97,13 @@ function gaugeact(p)
   end
   a.coeffs = gcfunc(a.params)
   qopqdp.lattice(a.latsize)
-  qopqdp.profile(0)
+  qopqdp.profile(profile or 0)
   qopqdp.verbosity(0)
   qopqdp.seed(p.seed)
   --printf("gauge coeffs: ")
   --for k,v in pairs(a.coeffs) do printf(" %-5s = % g\n", k, v) end
   myprint("gauge coeffs: ", a.coeffs, "\n")
-  a.act0 = a.vol*(6*a.coeffs.plaq + 12*a.coeffs.rect + 16*a.coeffs.pgm)
+  a.act0 = a.vol*(6*a.coeffs.plaq + 12*a.coeffs.rect + 16*a.coeffs.pgm + 6*a.coeffs.adjplaq)
   a.gf = actmt.forceNew(a)
   actmt.clearStats(a)
   return setmetatable(a, actmt)

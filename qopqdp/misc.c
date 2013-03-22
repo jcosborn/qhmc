@@ -13,6 +13,16 @@ typedef long long timebase_t;
 #include <mach/mach_time.h>
 typedef uint64_t timebase_t;
 #define timer() mach_absolute_time()
+double timebaseSeconds(timebase_t tb)
+{
+  static double s = 0;
+  if(s==0) {
+    mach_timebase_info_data_t info;
+    mach_timebase_info(&info);
+    s = 1e-9*((double)info.numer)/((double)info.denom);
+  }
+  return s*tb;
+}
 #endif
 #endif
 
@@ -146,6 +156,7 @@ projectU_deriv(QDP_ColorMatrix *deriv, QDP_ColorMatrix *proj,
   //tb0 = 0;
   //tb1 = 0;
   //tb2 = 0;
+  //timebase_t tb3 = timer();
   int i;
   QDP_loop_sites(i, sub, {
       // F = C z - z (Cd U + Ud C) z (dy/du)
@@ -175,4 +186,6 @@ projectU_deriv(QDP_ColorMatrix *deriv, QDP_ColorMatrix *proj,
       QLA_M_meq_M(d, &t2);
     });
   //printf("%i  %i  %i\n", (int)tb0, (int)tb1, (int)tb2);
+  //tb3 = timer() - tb3;
+  //printf("projU: %g\n", timebaseSeconds(tb3));
 }

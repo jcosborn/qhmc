@@ -13,6 +13,6 @@ all: sqrt
 sqrt: $(OBJS)
 
 clean:
-	-rm -f sqrt$(OBJS)
+	-rm -f sqrt $(OBJS)
 
 realclean: clean

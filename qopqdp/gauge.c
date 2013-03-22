@@ -465,9 +465,7 @@ static void
 get_gauge_coeffs(lua_State *L, QOP_gauge_coeffs_t *coeffs, int idx)
 {
   qassert(lua_type(L,idx)==LUA_TTABLE);
-  coeffs->plaquette = 0;
-  coeffs->rectangle = 0;
-  coeffs->parallelogram = 0;
+  *coeffs = QOP_GAUGE_COEFFS_ZERO;
   lua_pushnil(L);
   while(lua_next(L,idx)) {
     lua_pushvalue(L, -2);
@@ -475,6 +473,7 @@ get_gauge_coeffs(lua_State *L, QOP_gauge_coeffs_t *coeffs, int idx)
     if(strcmp(s,"plaq")==0) coeffs->plaquette = lua_tonumber(L,-2);
     if(strcmp(s,"rect")==0) coeffs->rectangle = lua_tonumber(L,-2);
     if(strcmp(s,"pgm")==0) coeffs->parallelogram = lua_tonumber(L,-2);
+    if(strcmp(s,"adjplaq")==0) coeffs->adjoint_plaquette = lua_tonumber(L,-2);
     lua_pop(L, 2);
   }
 }

@@ -22,12 +22,15 @@ void
 open_qhmc(lua_State* L) {
   luaopen_lfs(L);
   open_qopqdp(L);
+#if 1  // avoid loading 'lfs' since it is statically linked
   int rc = luaL_dostring(L, "table.insert(package.searchers,1, \
-    function(m) return function(m) return _ENV[m] end end)");
+    function(m) local function ldr(x) return _ENV[x] end \
+    if(m=='lfs') then return ldr else return nil end end)");
   if(rc!=0) {
     printf("error: %s: luaL_dostring failed\n", __func__);
     exit(1);
   }
+#endif
 }
 
 int

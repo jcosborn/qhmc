@@ -407,8 +407,7 @@ function setupSmear.hyp(t, isg, ig, p)
     for j=1,#allowedDirs[1] do
       ng = ng + 1
       sout[j] = ng
-      --if false then
-      if true then
+      if not p.projectCH then
 	rsteps[#rsteps+1] = {type="projectU",inn={ng},out={pout[j]}}
       else
 	local tt = { ng=ng, steps={} }

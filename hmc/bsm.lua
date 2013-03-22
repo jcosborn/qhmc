@@ -2,9 +2,12 @@ package.path = arg[0]:gsub("[^/]*.lua","?.lua") .. ";./hmc/?.lua;" .. package.pa
 require 'common'
 require 'run'
 
+--profile = 1
+
 local nx = nx or 8
 local nt = nt or 4
 local beta = beta or 6
+local beta_a = beta_a or 0
 local u0 = u0 or 1
 local nf = nf or 4
 local mass = mass or 0.01
@@ -113,7 +116,8 @@ p.seed = seed or os.time()
 p.beta = beta
 p.nf = nf
 p.u0 = u0
-p.gaugeact = {type="plaquette"}
+--p.gaugeact = {type="plaquette"}
+p.gaugeact = {type="plaquette_adjoint", adjFac=beta_a}
 --p.gaugeact = {type="symanzik_1loop_hisq", u0=p.u0, nf=p.nf}
 p.npseudo = npseudo
 
@@ -150,8 +154,8 @@ local smear = {}
 --smear[#smear+1] = { type="staples", coeffs=ape4d(0.5) }
 --smear[#smear+1] = { type="hyp", alpha={0.,0.,0.} }
 --smear[#smear+1] = { type="hyp", alpha={0.0,0.5,0.5} }
---smear[#smear+1] = { type="hyp", alpha={0.4,0.5,0.5} }
-smear[#smear+1] = { type="hyp", alpha={0.5,0.6,0.6} }
+smear[#smear+1] = { type="hyp", alpha={0.4,0.5,0.5} }
+--smear[#smear+1] = { type="hyp", alpha={0.5,0.6,0.6} }
 myprint("smear = ", smear, "\n")
 coeffs = { one_link=1 }
 p.fermact = {type="asqtad", smear=smear, coeffs=coeffs, rhmc=rhmc}
