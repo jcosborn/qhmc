@@ -36,7 +36,7 @@ qopqdp_smear(lua_State *L)
   gauge_t *g[ng]; qopqdp_gauge_array_check(L, 2, ng, g);
   const char *type = tableGetString(L, 3, "type");
   QOP_info_t info;
-  // sum
+  // sum over two gauge fields, needed for smearing
   if(strcmp(type,"sum")==0) {
     qassert(nsg==1 && ng==2);
     tableGetField(L, 3, "coeffs");
@@ -50,7 +50,7 @@ qopqdp_smear(lua_State *L)
       QDP_M_peq_r_times_M(sg[0]->links[mu], &coeffs[1], g[1]->links[mu], QDP_all);
     }
   } else
-  // product
+  // product of two gauge fields; needed for smearing
   if(strcmp(type,"product")==0) {
     qassert(nsg==1 && ng==2);
     tableGetField(L, 3, "adj");
@@ -154,7 +154,8 @@ qopqdp_smear(lua_State *L)
   if(strcmp(type,"exp")==0) {
     qassert(nsg==1 && ng==1);
     tableGetField(L, 3, "rho");
-    int ns; get_table_len(L, -1, &ns);
+    //ns: no. directions to apply smearing
+    int ns; get_table_len(L, -1, &ns); 
     double rho[ns]; get_double_array(L, -1, ns, rho);
     lua_pop(L, 1);
     QDP_ColorMatrix *cm = QDP_create_M();

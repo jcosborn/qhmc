@@ -268,12 +268,17 @@ function dosmear.projectCH(sg, g, p)
   end
 end
 
-
+--sg: smeared gauge field
+--g : original gauge field
+--p : smearing parameters
 function dosmear.stout(sg, g, p)
+--if fat7 is not nil
   if not p.fat7 then
     p.fat7 = {type="fat7",coeffs={three_staple=1}}
     p.fat7g = qopqdp.gauge()
   end
+--if plaq is not nil
+--what's type "product"?
   if not p.plaq then
     p.plaq = {type="product",adj={false,true}}
     p.plaqg = qopqdp.gauge()

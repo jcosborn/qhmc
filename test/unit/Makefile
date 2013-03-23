@@ -1,6 +1,7 @@
 include ../../make.inc
 include ../../qopqdp/make-qopqdp.inc
 
+LUAINC = -I../../$(LUADIR)/src -DLUA_COMPAT_ALL
 CFLAGS = $(COPT) $(QOPQDPINC) $(LUAINC) -I../../qopqdp
 LDFLAGS = $(COPT)
 LDLIBS = $(LQOP) $(LQDP) $(LQLA) $(LQIO) $(LQMP) -lm
