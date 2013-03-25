@@ -1,3 +1,8 @@
+main/qhmc
+test/unit/sqrt
+lua-5.2.1
+lua-5.2.0
+*.swp
 *~
 *.o
 *.a

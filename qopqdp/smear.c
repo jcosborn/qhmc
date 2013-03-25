@@ -29,30 +29,48 @@ get_asqtad_coeffs(lua_State *L, int idx, QOP_asqtad_coeffs_t *coeffs)
 static int
 qopqdp_smear(lua_State *L)
 {
+
+  // take the first 3 elements of the lua_State stack
   qassert(lua_gettop(L)==3);
+
+  // number of smeared gauge fields; 
+  // In the Lua binding, 
+  // this should be the first argument/table of the lua script
   int nsg; get_table_len(L, 1, &nsg);
   gauge_t *sg[nsg]; qopqdp_gauge_array_check(L, 1, nsg, sg);
+
+  // number of input gauge fields 
   int ng; get_table_len(L, 2, &ng);
   gauge_t *g[ng]; qopqdp_gauge_array_check(L, 2, ng, g);
+
+  // smearing parameters;
+  // input is an associative table: 
+  // 	first element - type,
+  //	second element - coeffs 
   const char *type = tableGetString(L, 3, "type");
   QOP_info_t info;
+
   // sum over two gauge fields, needed for smearing
   if(strcmp(type,"sum")==0) {
     qassert(nsg==1 && ng==2);
     tableGetField(L, 3, "coeffs");
+    // nc: number of coeffs.
     int nc; get_table_len(L, -1, &nc);
     QLA_Real coeffs[nc]; get_real_array(L, -1, nc, coeffs);
     lua_pop(L, 1);
     qassert(nc==ng);
     int nd = sg[0]->nd;
     for(int mu=0; mu<nd; mu++) {
-      QDP_M_eq_r_times_M(sg[0]->links[mu], &coeffs[0], g[0]->links[mu], QDP_all);
-      QDP_M_peq_r_times_M(sg[0]->links[mu], &coeffs[1], g[1]->links[mu], QDP_all);
+      QDP_M_eq_r_times_M(sg[0]->links[mu], &coeffs[0], g[0]->links[mu], QDP_all); // U'_\mu(x) = c[0] U0_\mu(x)
+      QDP_M_peq_r_times_M(sg[0]->links[mu], &coeffs[1], g[1]->links[mu], QDP_all); // U'_\mu(x) += c[1] U1_\mu(x)
     }
   } else
   // product of two gauge fields; needed for smearing
   if(strcmp(type,"product")==0) {
     qassert(nsg==1 && ng==2);
+
+    // adj: table of boolean variables, 
+    // to indicate whether the gauge field needs a dagger or not
     tableGetField(L, 3, "adj");
     int na; get_table_len(L, -1, &na);
     int adj[na]; get_bool_array(L, -1, na, adj);
@@ -81,7 +99,7 @@ qopqdp_smear(lua_State *L)
       }
     }
   } else
-  // antiherm
+  // antiherm: U'_\mu(x) = (U_\mu(x) - U_\mu(x)^+)/2
   if(strcmp(type,"antiherm")==0) {
     qassert(nsg==1 && ng==1);
     int nd = sg[0]->nd;
@@ -92,7 +110,8 @@ qopqdp_smear(lua_State *L)
       QDP_M_eq_r_times_M(sg[0]->links[mu], &half, sg[0]->links[mu], QDP_all);
     }
   } else
-  // tracelessAntiherm
+  // tracelessAntiherm: 
+  // U'_\mu(x) = (U_\mu(x) - U_\mu(x)^+)/2 - 1/2N * Tr(U-U^+)
   if(strcmp(type,"tracelessAntiherm")==0) {
     qassert(nsg==1 && ng==1);
     int nd = sg[0]->nd;
@@ -150,7 +169,7 @@ qopqdp_smear(lua_State *L)
     }
 #endif
   } else
-  // exp
+  // exp -- U' = exp(r U)
   if(strcmp(type,"exp")==0) {
     qassert(nsg==1 && ng==1);
     tableGetField(L, 3, "rho");

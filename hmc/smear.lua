@@ -272,36 +272,44 @@ end
 --g : original gauge field
 --p : smearing parameters
 function dosmear.stout(sg, g, p)
---if fat7 is not nil
+--if fat7 is not set
   if not p.fat7 then
+--just include the staples in the fat7 construction
     p.fat7 = {type="fat7",coeffs={three_staple=1}}
     p.fat7g = qopqdp.gauge()
   end
---if plaq is not nil
---what's type "product"?
+--if plaq is not set
   if not p.plaq then
+-- U U^+
     p.plaq = {type="product",adj={false,true}}
     p.plaqg = qopqdp.gauge()
   end
+-- if ah is not set
   if not p.ah then
+--P_{taH}
     p.ah = {type="tracelessAntiherm"}
     --p.ah = {type="mobius",coeffs={0,1,1,0}}
     p.ahg = qopqdp.gauge()
   end
+-- if exp is not set
   if not p.exp then
+-- exponentiate
     p.exp = {type="exp",rho={p.rho,p.rho,p.rho,p.rho}}
     --p.exp = {type="mobius",coeffs={1,0.5*p.rho,1,-0.5*p.rho}}
     --p.exp = {type="mobius",coeffs={0.1,p.rho,1,0}}
     p.expg = qopqdp.gauge()
   end
+-- if stout is not set
   if not p.stout then
+-- U U
     p.stout = {type="product",adj={false,false}}
   end
-  qopqdp.smear({p.fat7g}, {g}, p.fat7)
-  qopqdp.smear({p.plaqg}, {p.fat7g, g}, p.plaq)
-  qopqdp.smear({p.ahg}, {p.plaqg}, p.ah)
-  qopqdp.smear({p.expg}, {p.ahg}, p.exp)
-  qopqdp.smear({sg}, {p.expg, g}, p.stout)
+-- do the stout smearing. follows the convention in Morningstar&Peardon 2004.
+  qopqdp.smear({p.fat7g}, {g}, p.fat7) -- C_\mu(x)
+  qopqdp.smear({p.plaqg}, {p.fat7g, g}, p.plaq) -- \Omega = C_\mu(x) U_\mu^+(x) 
+  qopqdp.smear({p.ahg}, {p.plaqg}, p.ah) -- i Q_\mu(x) 
+  qopqdp.smear({p.expg}, {p.ahg}, p.exp) -- exp(iQ)
+  qopqdp.smear({sg}, {p.expg, g}, p.stout) -- exp(iQ) U
 end
 
 function dochain.stout(f, sg, g, p)
