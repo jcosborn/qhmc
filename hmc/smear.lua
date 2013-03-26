@@ -305,11 +305,16 @@ function dosmear.stout(sg, g, p)
     p.stout = {type="product",adj={false,false}}
   end
 -- do the stout smearing. follows the convention in Morningstar&Peardon 2004.
-  qopqdp.smear({p.fat7g}, {g}, p.fat7) -- C_\mu(x)
-  qopqdp.smear({p.plaqg}, {p.fat7g, g}, p.plaq) -- \Omega = C_\mu(x) U_\mu^+(x) 
-  qopqdp.smear({p.ahg}, {p.plaqg}, p.ah) -- i Q_\mu(x) 
-  qopqdp.smear({p.expg}, {p.ahg}, p.exp) -- exp(iQ)
-  qopqdp.smear({sg}, {p.expg, g}, p.stout) -- exp(iQ) U
+-- C_\mu(x)
+  qopqdp.smear({p.fat7g}, {g}, p.fat7) 
+-- \Omega = C_\mu(x) U_\mu^+(x) 
+  qopqdp.smear({p.plaqg}, {p.fat7g, g}, p.plaq) 
+-- i Q_\mu(x) 
+  qopqdp.smear({p.ahg}, {p.plaqg}, p.ah) 
+-- exp(iQ)
+  qopqdp.smear({p.expg}, {p.ahg}, p.exp) 
+-- exp(iQ) U
+  qopqdp.smear({sg}, {p.expg, g}, p.stout) 
 end
 
 function dochain.stout(f, sg, g, p)
