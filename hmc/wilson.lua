@@ -7,6 +7,7 @@ trace(doTrace)
 local nx = nx or 4
 local nt = nt or 8
 local beta = beta or 4
+local beta_a = beta_a or 0
 local u0 = u0 or 1
 local nf = nf or 2
 local mass = mass or 0.0
@@ -101,7 +102,7 @@ p.beta = beta
 p.nf = nf
 p.u0 = u0
 --p.gaugeact = {type="symanzik_1loop_hisq", u0=p.u0, nf=p.nf}
-p.gaugeact = {type="plaquette"}
+p.gaugeact = {type="plaquette_adjoint",adjFac=beta_a}
 p.npseudo = npseudo
 p.fermact = {type="wilson", rhmc=rhmc}
 p.fermact.smear = smear
