@@ -173,7 +173,7 @@ qopqdp_smear(lua_State *L)
   if(strcmp(type,"exp")==0) {
     qassert(nsg==1 && ng==1);
     tableGetField(L, 3, "rho");
-    //ns: no. directions to apply smearing
+    //ns: number of directions to apply smearing
     int ns; get_table_len(L, -1, &ns); 
     double rho[ns]; get_double_array(L, -1, ns, rho);
     lua_pop(L, 1);
