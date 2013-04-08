@@ -1,4 +1,6 @@
 #include <qhmc_qopqdp_common.h>
+#include <complex.h>
+#include <math.h>
 
 void
 printm(QLA_ColorMatrix *m)
@@ -12,18 +14,49 @@ printm(QLA_ColorMatrix *m)
   }
 }
 
-
+static void
+getfs(double _Complex *f0, double _Complex *f1, double _Complex *f2,
+      double c0, double c1)
+{
+  double _Complex h0, h1, h2, e2iu, emiu;
+  double c0m, t, u, w, u2, w2, cw, xi0, di;
+  int sign=0;
+  if(c0<0) { sign=1; c0=-c0; }
+  c0m = 2.*pow(c1/3.,1.5);
+  t = acos(c0/c0m);
+  u = sqrt(c1/3.)*cos(t/3.);
+  w = sqrt(c1)*sin(t/3.);
+  u2 = u*u;
+  w2 = w*w;
+  cw = cos(w);
+  if(w2>0.0025) xi0 = sin(w)/w;
+  else xi0 = 1 - w2/6.*(1 - w2/20.*(1 - w2/42.));
+  e2iu = cexp(2*I*u);
+  emiu = cexp(-I*u);
+  h0 = (u2-w2)*e2iu + emiu*(8*u2*cw+2*I*u*(3*u2+w2)*xi0);
+  h1 = 2*u*e2iu - emiu*(2*u*cw-I*(3*u2-w2)*xi0);
+  h2 = e2iu - emiu*(cw+3*I*u*xi0);
+  di = 1/(9*u2-w2);
+  *f0 = di*h0;
+  *f1 = di*h1;
+  *f2 = di*h2;
+  if(sign) {
+    *f0 = conj(*f0);
+    *f1 = -conj(*f1);
+    *f2 = conj(*f2);
+  }
+}
 
 int
 main(void)
 {
-  QLA_ColorMatrix O, iQ, tmp, I;
-  QLA_M_eq_zero(&I);
+  QLA_ColorMatrix O, iQ, tmp, matI;
+  QLA_M_eq_zero(&matI);
 
   for(int i=0; i<QLA_Nc; i++) {
-    QLA_c_eq_r_plus_ir(QLA_elem_M(I,i,i), 1.0, 0.0);
+    QLA_c_eq_r_plus_ir(QLA_elem_M(matI,i,i), 1.0, 0.0);
   }
-  printm(&I);
+  printm(&matI);
 
   QLA_Complex tr;
   QLA_Real half = 0.5;
@@ -45,7 +78,7 @@ main(void)
   printf("%f\n", r);
   printf("%f %f i\n", QLA_real(tr), QLA_imag(tr));
   
-  QLA_M_meq_c_times_M(&iQ, &tr, &I); //final iQ
+  QLA_M_meq_c_times_M(&iQ, &tr, &matI); //final iQ
 
   //use the QLA exp function
   QLA_ColorMatrix qla_exp;
@@ -54,8 +87,6 @@ main(void)
   //use my own implementation
   QLA_ColorMatrix expiQ;
   
-  
-
   printm(&O);
   printf("iQ = \n");
   printm(&iQ);
