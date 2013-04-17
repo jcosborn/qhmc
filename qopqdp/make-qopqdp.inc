@@ -39,8 +39,10 @@ LQDP = -L$(QDPDIR)/lib -lqdp_d$(COLORLIB) -lqdp_d -lqdp_f$(COLORLIB) -lqdp_f \
 IQOP = -I$(QOPDIR)/include -DQOP_Colors=$(COLORS) -DQOP_Nc=$(NC)
 LQOP = -L$(QOPDIR)/lib -lqopqdp
 
+LMG = -lqdp_dfn -lqdp_dn -lqdp_fn -lqla_dfn -lqla_dn -lqla_fn
+
 QHMCQOPQDP = ../qopqdp/libqhmc_qopqdp.a
 
 QOPQDPINC = $(IQOP) $(IQDP) $(IQLA) $(IQIO) $(IQMP) $(DEFINES)
-QOPQDPLIBS = $(QHMCQOPQDP) $(LQOP) $(LQDP) $(LQLA) $(LQIO) $(LQMP) -lm
+QOPQDPLIBS = $(QHMCQOPQDP) $(LQOP) $(LMG) $(LQDP) $(LQLA) $(LQIO) $(LQMP) -lm
 QOPQDPDEPS = $(QHMCQOPQDP)

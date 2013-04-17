@@ -211,8 +211,15 @@ end
 local ps,pt = acts.fields.G:plaq()
 printf("plaq ss: %g  st: %g  tot: %g\n", ps, pt, 0.5*(ps+pt))
 
-acts:run(r)
-
-if outlat then
-  acts:save(outlat)
+local nlats = nlats or 1
+local traj = traj or 0
+for nl=1,nlats do
+  acts:run(r)
+  traj = traj + ntraj
+  if outpat then
+    outlat = string.format(outpat, traj)
+  end
+  if outlat then
+    acts:save(outlat)
+  end
 end

@@ -240,6 +240,7 @@ typedef struct {
   QOP_wilson_coeffs_t coeffs;
   QOP_FermionLinksWilson *fl;
   QOP_F_FermionLinksWilson *ffl;
+  QOP_WilsonMg *mg;
   gauge_t *g;
 } wilson_t;
 wilson_t *qopqdp_wilson_create(lua_State *L);

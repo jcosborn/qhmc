@@ -1,6 +1,7 @@
 package.path = arg[0]:gsub("[^/]*.lua","?.lua") .. ";./hmc/?.lua;" .. package.path
 require 'common'
 require 'run'
+require 'mg'
 
 trace(doTrace)
 
@@ -10,6 +11,7 @@ local beta = beta or 4
 local u0 = u0 or 1
 local nf = nf or 2
 local mass = mass or 0.0
+_G.mass = mass
 
 local rhmc = {}
 local hmcmasses = { mass }
@@ -96,6 +98,7 @@ local npseudo = #rhmc
 
 local p = {}
 p.latsize = { nx, nx, nx, nt }
+latsize = p.latsize
 p.seed = seed or os.time()
 p.beta = beta
 p.nf = nf

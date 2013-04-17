@@ -33,7 +33,7 @@ forcemt.__index = forcemt
 
 local gaugecoeffs={}
 function gaugecoeffs.plaquette(p)
-  return { plaq=1, rect=0, pgm=0 }
+  return { plaq=1, rect=0, pgm=0, adjplaq=0 }
 end
 function gaugecoeffs.plaquette_adjoint(p)
   return { plaq=1, rect=0, pgm=0, adjplaq=p.adjFac }
@@ -41,7 +41,7 @@ end
 function gaugecoeffs.symanzik_tree(p)
   local u0 = p.u0 or 1
   local u2 = u0*u0
-  local c = { plaq=1, pgm=0 }
+  local c = { plaq=1, pgm=0, adjplaq=0 }
   c.rect = -1/(20*u2)
   return c
 end
@@ -49,7 +49,7 @@ function gaugecoeffs.iwasaki(p)
   local u0 = p.u0 or 1
   local u2 = u0*u0
   local c1 = -0.331
-  local c = { pgm=0 }
+  local c = { pgm=0, adjplaq=0 }
   c.plaq = 1 - 8*c1
   c.rect = c1/u2
   return c
@@ -58,7 +58,7 @@ function gaugecoeffs.dbw2(p)
   local u0 = p.u0 or 1
   local u2 = u0*u0
   local c1 = -1.4067
-  local c = { pgm=0 }
+  local c = { pgm=0, adjplaq=0 }
   c.plaq = 1 - 8*c1
   c.rect = c1/u2
   return c
@@ -68,7 +68,7 @@ function gaugecoeffs.symanzik_1loop(p)
   local nf = p.nf or 0
   local u2 = u0*u0
   local lu0 = math.log(u0)
-  local c = { plaq=1 }
+  local c = { plaq=1, adjplaq=0 }
   c.rect = -(1 - (0.6264-0.4742*nf)*lu0 ) / (20*u2)
   c.pgm = (0.0433-0.012*nf)*lu0 / u2
   return c
@@ -78,7 +78,7 @@ function gaugecoeffs.symanzik_1loop_hisq(p)
   local nf = p.nf or 0
   local u2 = u0*u0
   local lu0 = math.log(u0)
-  local c = { plaq=1 }
+  local c = { plaq=1, adjplaq=0 }
   c.rect = -(1 - (0.6264-1.1746*nf)*lu0 ) / (20*u2)
   c.pgm = (0.0433-0.0156*nf)*lu0 / u2
   return c
