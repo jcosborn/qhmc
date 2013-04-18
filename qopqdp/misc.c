@@ -139,6 +139,7 @@ void
 sqrt_deriv(QDP_ColorMatrix *deriv, QDP_ColorMatrix *sqrtM,
 	   QDP_ColorMatrix *M, QDP_ColorMatrix *chain, QDP_Subset sub)
 {
+#define NC QDP_get_nc(deriv)
   int i;
   QDP_loop_sites(i, sub, {
       sylsolve_site(NCARG
@@ -147,12 +148,14 @@ sqrt_deriv(QDP_ColorMatrix *deriv, QDP_ColorMatrix *sqrtM,
 		    (QLA_ColorMatrix(*))QDP_site_ptr_readonly_M(sqrtM,i),
 		    (QLA_ColorMatrix(*))QDP_site_ptr_readonly_M(chain,i));
     });
+#undef NC
 }
 
 void
 projectU_deriv(QDP_ColorMatrix *deriv, QDP_ColorMatrix *proj,
 	       QDP_ColorMatrix *mat, QDP_ColorMatrix *chain, QDP_Subset sub)
 {
+#define NC QDP_get_nc(deriv)
   //tb0 = 0;
   //tb1 = 0;
   //tb2 = 0;
@@ -179,7 +182,7 @@ projectU_deriv(QDP_ColorMatrix *deriv, QDP_ColorMatrix *proj,
       //QLA_M_eq_Ma_times_M(&t1, p, &cz);
       QLA_M_eq_M_times_M(d, c, &z);
       QLA_M_eq_Ma_times_M(&t1, p, d);
-      sylsolve_site(&t2, &y, &y, &t1);
+      sylsolve_site(NCARG &t2, &y, &y, &t1);
       QLA_M_eq_M(&t1, &t2);
       QLA_M_peq_Ma(&t1, &t2);
       QLA_M_eq_M_times_M(&t2, m, &t1);
@@ -188,4 +191,5 @@ projectU_deriv(QDP_ColorMatrix *deriv, QDP_ColorMatrix *proj,
   //printf("%i  %i  %i\n", (int)tb0, (int)tb1, (int)tb2);
   //tb3 = timer() - tb3;
   //printf("projU: %g\n", timebaseSeconds(tb3));
+#undef NC
 }

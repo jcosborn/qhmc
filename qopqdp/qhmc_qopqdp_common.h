@@ -7,7 +7,6 @@
 #define QDP_Precision 'D'
 #define QOP_Precision 'D'
 #include <qop.h>
-#include <qop_qdp.h>
 #include "qhmc_qopqdp.h"
 
 #if 0
@@ -95,6 +94,15 @@
 #define get_real_array get_double_array
 #endif
 
+#if QOP_Colors != 3
+#define QOP_WilsonMg void
+#define QOP_wilsonMgNew(...) NULL
+#define QOP_wilsonMgSet(...) ((void)0)
+#define QOP_wilsonMgSetArray(...) ((void)0)
+#define QOP_wilsonMgSetLinks(...) ((void)0)
+#define QOP_wilsonMgSetup(...) ((void)0)
+#define QOP_D3_wilsonMgSolve(...) ((void)0)
+#endif
 
 #define printf0 if(QDP_this_node==0) printf
 #define printerr(...) fprintf(stderr, __VA_ARGS__)

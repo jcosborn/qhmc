@@ -2,8 +2,8 @@ CC = mpicc
 #COPT = -O3 -std=gnu99 -Wall -Wno-strict-aliasing -fopenmp
 COPT = -O3 -g -std=gnu99 -Wall -fopenmp
 
-COLORLIB = 3
-NC = 3
+COLORLIB = n
+NC = 4
 
 ifeq ($(COLORLIB),n)
   COLORS = \'N\'
