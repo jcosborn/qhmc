@@ -322,24 +322,24 @@ qopqdp_smearChain(lua_State *L)
 	for(int mu=0; mu<nd; mu++) {
 	  QDP_M_peq_Ma_times_Ma(f[0]->force[mu], g[1]->links[mu], fc[0]->force[mu],QDP_all);
 	  QDP_M_peq_Ma_times_Ma(f[1]->force[mu], fc[0]->force[mu], g[0]->links[mu],QDP_all);
-	}
+	} // X^+ Y^+
       } else {
 	for(int mu=0; mu<nd; mu++) {
 	  QDP_M_peq_M_times_Ma(f[0]->force[mu], g[1]->links[mu], fc[0]->force[mu], QDP_all);
 	  QDP_M_peq_M_times_M(f[1]->force[mu], g[0]->links[mu], fc[0]->force[mu], QDP_all);
 	}
-      }
+      } // X Y^+
     } else {
       if(adj[1]) {
 	for(int mu=0; mu<nd; mu++) {
 	  QDP_M_peq_M_times_M(f[0]->force[mu], fc[0]->force[mu], g[1]->links[mu], QDP_all);
 	  QDP_M_peq_Ma_times_M(f[1]->force[mu], fc[0]->force[mu], g[0]->links[mu], QDP_all);
-	}
+	} // X^+ Y
       } else {
 	for(int mu=0; mu<nd; mu++) {
 	  QDP_M_peq_M_times_Ma(f[0]->force[mu], fc[0]->force[mu], g[1]->links[mu], QDP_all);
 	  QDP_M_peq_Ma_times_M(f[1]->force[mu], g[0]->links[mu], fc[0]->force[mu], QDP_all);
-	}
+	} // X Y
       }
     }
   } else
@@ -442,8 +442,11 @@ qopqdp_smearChain(lua_State *L)
     lua_pop(L, 1);
     int nd = sg[0]->nd;
     for(int mu=0; mu<nd; mu++) {
-      QLA_Real r = rho[mu];
-      QDP_M_peq_r_times_M(f[0]->force[mu], &r, fc[0]->force[mu], QDP_all);
+     QLA_Real r = rho[mu];
+     // QDP_M_peq_r_times_M(f[0]->force[mu], &r, fc[0]->force[mu], QDP_all);
+     exp_deriv(f[0]->force[mu], sg[0]->links[mu], g[0]->links[mu], fc[0]->force[mu], QDP_all);
+     QDP_M_eq_r_times_M(f[0]->force[mu], &r, f[0]->force[mu],QDP_all);
+
     }
   } else
   // fat7

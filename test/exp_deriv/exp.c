@@ -223,7 +223,9 @@ main(void) {
 
   printm(&deriv);
 
-  
+  exp_deriv_site(&deriv, &expO, &O, &B);
+  printm(&deriv);
+
 #endif
 
   return 0;

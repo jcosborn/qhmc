@@ -311,9 +311,9 @@ function dosmear.stout(sg, g, p)
   qopqdp.smear({p.plaqg}, {p.fat7g, g}, p.plaq) 
 -- i Q_\mu(x) 
   qopqdp.smear({p.ahg}, {p.plaqg}, p.ah) 
--- exp(iQ)
+-- exp(i\rho_\mu Q_\mu)
   qopqdp.smear({p.expg}, {p.ahg}, p.exp) 
--- exp(iQ) U
+-- exp(i\rho Q) U
   qopqdp.smear({sg}, {p.expg, g}, p.stout) 
 end
 
@@ -323,7 +323,8 @@ function dochain.stout(f, sg, g, p)
     p.fc = qopqdp.force()
   end
   p.f:zero()
-  p.fc:zero()
+  p.fc:zero() 
+  -- same as "product": exp(iQ) U
   qopqdp.smearChain({p.fc, p.f}, {f}, {sg}, {p.expg, g}, p.stout)
   f:set(p.f)
   p.f:zero()

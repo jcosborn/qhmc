@@ -54,7 +54,7 @@ local smear = {}
 --smear[#smear+1] = { type="fat7", coeffs={three_staple=0.2} }
 --smear[#smear+1] = { type="fat7", coeffs={one_link=0.4,three_staple=0.1} }
 --smear[#smear+1] = { type="stout", rho=0.01 }
-smear[#smear+1] = { type="stout", rho=0.14 }
+smear[#smear+1] = { type="stout", rho=0.01 }
 
 --- end of parameters
 
