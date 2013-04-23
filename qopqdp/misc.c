@@ -279,7 +279,7 @@ exp_deriv_site(QLA_ColorMatrix *deriv, QLA_ColorMatrix *expM,
   QLA_c_eq_r_plus_ir(qc, creal(coeff),cimag(coeff));
 
   QLA_M_peq_c_times_M(deriv, &qc, M); // final result
-  //  QLA_M_peq_Ma(deriv, deriv);
+  QLA_M_peq_Ma(deriv, deriv);
 
 #else
   printerr("Not implemented\n");
