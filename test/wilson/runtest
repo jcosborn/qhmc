@@ -13,7 +13,6 @@ nt=16
 #$qhmc -e "ngsteps=150;nfsteps={50}" $hmc/wilson.lua
 mpirun -np 2 $qhmc -e "nx=$nx;nt=$nt;tau=$tau;beta=5.6;mass=0.2;ngsteps=50;nfsteps={50};ntraj=30;rho=$rho" \
 	$hmc/wilson.lua | tee 2stout_nx${nx}nt${nt}_tau${tau}_rho$rho.out
->>>>>>> 840a85c3e1261c22b006b36db2e74638a359c5ca
 #$qhmc -e "beta=5.6;mass=0.2;ngsteps=100;nfsteps={100}" $hmc/wilson.lua
 #$qhmc -e "ngsteps=600;nfsteps={200}" $hmc/wilson.lua
 #$qhmc -e "doTrace=false;tau=1;ntraj=20;beta=4;mass=0.5" $hmc/wilson.lua
