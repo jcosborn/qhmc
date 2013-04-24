@@ -35,12 +35,12 @@ local grcg = { prec=2, resid=1e-10, restart=500 }
 local facg = { prec=2, resid=1e-10, restart=500 }
 local mdcg = { prec=2, resid=1e-10, restart=500 }
 local ffprec = 2
---local gintalg = {type="leapfrog"}
+local gintalg = {type="leapfrog"}
 --local gintalg = {type="omelyan"}
 --local gintalg = {type="omelyan", lambda=0.2}
-local gintalg = {type="omelyan", lambda=0.33}
---local fintalg = {type="omelyan", lambda=0.2}
-local fintalg = {type="omelyan", lambda=0.33}
+--local gintalg = {type="omelyan", lambda=0.33}
+local fintalg = {type="leapfrog"}
+--local fintalg = {type="omelyan", lambda=0.33}
 
 local pbp = {}
 pbp[1] = { reps=1 }
@@ -55,6 +55,7 @@ local smear = {}
 --smear[#smear+1] = { type="fat7", coeffs={three_staple=0.2} }
 --smear[#smear+1] = { type="fat7", coeffs={one_link=0.4,three_staple=0.1} }
 --smear[#smear+1] = { type="stout", rho=0.01 }
+smear[#smear+1] = { type="stout", rho=rho}
 smear[#smear+1] = { type="stout", rho=rho}
 
 --- end of parameters
