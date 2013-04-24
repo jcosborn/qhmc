@@ -157,6 +157,7 @@ function actmt.set(a, g, prec)
     local t0 = clock()
     local sg = smearGauge(g, a.smear)
     a.w:set(sg, prec)
+    if mgSetup then mgSetup(a.w) end
     a.LLtime = a.LLtime + clock() - t0
     a.LLflops = a.LLflops + a.w:flops()
     a.LLn = a.LLn + 1

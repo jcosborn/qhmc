@@ -200,6 +200,66 @@ qopqdp_wilson_set(lua_State *L)
   return 0;
 }
 
+// args: wilson, table{ level=table{ key=value, ... } }
+static int
+qopqdp_wilson_mg_set(lua_State *L)
+{
+  int nargs = lua_gettop(L);
+  qassert(nargs==2);
+  wilson_t *w = qopqdp_wilson_check(L, 1);
+  if(!w->mg) w->mg = QOP_wilsonMgNew();
+
+  luaL_checktype(L, 2, LUA_TTABLE);
+  for(int l=-2; l<10; l++) { // mg setup levels
+    lua_pushnumber(L, l);
+    lua_gettable(L, 2);
+    if(!lua_isnil(L, -1)) { // have option table at this level
+      lua_pushnil(L);  /* first key */
+      while (lua_next(L, -2) != 0) {
+	/* uses 'key' (at index -2) and 'value' (at index -1) */
+	lua_pushvalue(L, -2);
+	const char *key = luaL_checkstring(L, -1);
+	printf("%i  %s", l, key);
+	lua_pop(L, 1);
+	if(lua_istable(L, -1)) {
+	  int n = lua_objlen(L, -1);
+	  double val[n];
+	  for(int i=0; i<n; i++) {
+	    lua_pushnumber(L, i+1);
+	    lua_gettable(L, -2);
+	    val[i] = luaL_checknumber(L, -1);
+	    printf("  %g", val[i]);
+	    lua_pop(L, 1);
+	  }
+	  QOP_wilsonMgSetArray(w->mg, l, (char*)key, val, n);
+	} else {
+	  double val = luaL_checknumber(L, -1);
+	  printf0("  %g", val);
+	  QOP_wilsonMgSet(w->mg, l, (char*)key, val);
+	}
+	printf("\n");
+	/* removes 'value'; keeps 'key' for next iteration */
+	lua_pop(L, 1);
+      }
+    }
+    lua_pop(L, 1);
+  }
+  return 0;
+}
+
+// args: wilson
+static int
+qopqdp_wilson_mg_setup(lua_State *L)
+{
+  int nargs = lua_gettop(L);
+  qassert(nargs==1);
+  wilson_t *w = qopqdp_wilson_check(L, 1);
+  wilson_set(w, 1);
+  QOP_wilsonMgSetLinks(w->mg, w->ffl);
+  QOP_wilsonMgSetup(w->mg);
+  return 0;
+}
+
 static int
 qopqdp_wilson_D(lua_State *L)
 {
@@ -357,17 +417,65 @@ qopqdp_wilson_solve(lua_State *L)
   QOP_info_t info;
   double k = kappa(mass);
   if(precNE==1) {
-    QDP_D_eq_gamma_times_D(qs->df, qs->df, 15, QDP_even);
-    QOP_D_wilson_invert_ne_qdp(&info, w->fl, &invarg, &resarg, k, qd->df, qs->df);
-    QDP_D_eq_gamma_times_D(qs->df, qs->df, 15, QDP_even);
-    QDP_D_eq_gamma_times_D(qd->df, qd->df, 15, QDP_even);
-  } else if(precNE==2) {
-    QOP_D_wilson_invert_qdp(&info, w->fl, &invarg, &resarg, k, qd->df, qs->df);
-    QLA_Real s = 0.5/k;
-    QDP_D_eq_r_times_D(qd->df, &s, qd->df, QDP_even);
+    if(w->mg) {
+      wilson_set(w, 1);
+      QOP_wilsonMgSetLinks(w->mg, w->ffl);
+      QDP_DiracFermion *ts = QDP_create_D();
+      QDP_DiracFermion *td = QDP_create_D();
+      // scale by 1/4kappa^2 and solve D
+      QLA_Real s = 0.25/(k*k);
+      QDP_D_eq_r_times_D(ts, &s, qs->df, QDP_even);
+      QDP_D_eq_zero(ts, QDP_odd);
+      QDP_D_eq_zero(td, QDP_all);
+      QOP_D3_wilsonMgSolve(&info, w->mg, w->fl, &invarg, &resarg, k, td, ts);
+      // solve D^dag
+      QDP_D_eq_gamma_times_D(ts, td, 15, QDP_even);
+      QDP_D_eq_zero(ts, QDP_odd);
+      QDP_D_eq_zero(td, QDP_all);
+      QOP_D3_wilsonMgSolve(&info, w->mg, w->fl, &invarg, &resarg, k, td, ts);
+      QDP_D_eq_gamma_times_D(qd->df, td, 15, QDP_even);
+      QDP_destroy_D(td);
+      QDP_destroy_D(ts);
+    } else {
+      QDP_D_eq_gamma_times_D(qs->df, qs->df, 15, QDP_even);
+      QOP_D_wilson_invert_ne_qdp(&info, w->fl, &invarg, &resarg, k, qd->df, qs->df);
+      QDP_D_eq_gamma_times_D(qs->df, qs->df, 15, QDP_even);
+      QDP_D_eq_gamma_times_D(qd->df, qd->df, 15, QDP_even);
+    }
   } else {
-    //wilsonInvert(&info, fla, &invarg, rap, mass, nm, qqd, qs->df);
-    QOP_D_wilson_invert_qdp(&info, w->fl, &invarg, &resarg, k, qd->df, qs->df);
+    if(w->mg) {
+      wilson_set(w, 1);
+      QOP_wilsonMgSetLinks(w->mg, w->ffl);
+      if(invarg.evenodd!=QOP_EVENODD) {
+	QDP_DiracFermion *ts = QDP_create_D();
+	QDP_DiracFermion *td = QDP_create_D();
+	QDP_D_eq_zero(td, QDP_all);
+	if(invarg.evenodd==QOP_EVEN) {
+	  QDP_D_eq_zero(ts, QDP_odd);
+	  QDP_D_eq_D(ts, qs->df, QDP_even);
+	} else {
+	  QDP_D_eq_zero(ts, QDP_even);
+	  QDP_D_eq_D(ts, qs->df, QDP_odd);
+	}
+	QOP_D3_wilsonMgSolve(&info,w->mg,w->fl,&invarg,&resarg,k,td,ts);
+	if(invarg.evenodd==QOP_EVEN) {
+	  QDP_D_eq_D(qd->df, td, QDP_even);
+	} else {
+	  QDP_D_eq_D(qd->df, td, QDP_odd);
+	}
+	QDP_destroy_D(td);
+	QDP_destroy_D(ts);
+      } else {
+	QOP_D3_wilsonMgSolve(&info,w->mg,w->fl,&invarg,&resarg,k,qd->df,qs->df);
+      }
+    } else {
+      //wilsonInvert(&info, fla, &invarg, rap, mass, nm, qqd, qs->df);
+      QOP_D_wilson_invert_qdp(&info, w->fl, &invarg, &resarg,k,qd->df,qs->df);
+    }
+    if(precNE==2) {
+      QLA_Real s = 0.5/k;
+      QDP_D_eq_r_times_D(qd->df, &s, qd->df, QDP_even);
+    }
   }
 #if 0
   {
@@ -528,6 +636,8 @@ qopqdp_wilson_printcoeffs(lua_State *L)
 static struct luaL_Reg wilson_reg[] = {
   { "__gc",     qopqdp_wilson_gc },
   { "set",      qopqdp_wilson_set },
+  { "mgSet",    qopqdp_wilson_mg_set },
+  { "mgSetup",  qopqdp_wilson_mg_setup },
   { "quark",    qopqdp_wilson_quark },
   { "D",        qopqdp_wilson_D },
   { "Ddag",     qopqdp_wilson_Ddag },
@@ -548,6 +658,7 @@ qopqdp_wilson_create(lua_State* L)
   wilson_t *w = lua_newuserdata(L, sizeof(wilson_t));
   w->fl = NULL;
   w->ffl = NULL;
+  w->mg = NULL;
   w->g = NULL;
   if(luaL_newmetatable(L, mtname)) {
     lua_pushvalue(L, -1);

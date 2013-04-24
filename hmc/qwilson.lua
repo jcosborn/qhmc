@@ -1,22 +1,21 @@
 package.path = arg[0]:gsub("[^/]*.lua","?.lua") .. ";./hmc/?.lua;" .. package.path
 require 'common'
 require 'run'
-require 'mg'
+--require 'mg'
 
 trace(doTrace)
 
 local nx = nx or 4
 local nt = nt or 8
 local beta = beta or 4
-local beta_a = beta_a or 0
 local u0 = u0 or 1
-local nf = nf or 2
+local nf = nf or 0
 local mass = mass or 0.0
-local rho = rho or 0.02
 _G.mass = mass
 
 local rhmc = {}
-local hmcmasses = { mass }
+local hmcmasses = { }
+--local hmcmasses = { mass }
 --local hmcmasses = { mass, 20*mass }
 local seed = 1316844761
 
@@ -37,12 +36,12 @@ local grcg = { prec=2, resid=1e-10, restart=500 }
 local facg = { prec=2, resid=1e-10, restart=500 }
 local mdcg = { prec=2, resid=1e-10, restart=500 }
 local ffprec = 2
-local gintalg = {type="leapfrog"}
+--local gintalg = {type="leapfrog"}
 --local gintalg = {type="omelyan"}
 --local gintalg = {type="omelyan", lambda=0.2}
---local gintalg = {type="omelyan", lambda=0.33}
-local fintalg = {type="leapfrog"}
---local fintalg = {type="omelyan", lambda=0.33}
+local gintalg = {type="omelyan", lambda=0.33}
+--local fintalg = {type="omelyan", lambda=0.2}
+local fintalg = {type="omelyan", lambda=0.33}
 
 local pbp = {}
 pbp[1] = { reps=1 }
@@ -57,8 +56,7 @@ local smear = {}
 --smear[#smear+1] = { type="fat7", coeffs={three_staple=0.2} }
 --smear[#smear+1] = { type="fat7", coeffs={one_link=0.4,three_staple=0.1} }
 --smear[#smear+1] = { type="stout", rho=0.01 }
-smear[#smear+1] = { type="stout", rho=rho}
-smear[#smear+1] = { type="stout", rho=rho}
+--smear[#smear+1] = { type="stout", rho=0.14 }
 
 --- end of parameters
 
@@ -107,7 +105,7 @@ p.beta = beta
 p.nf = nf
 p.u0 = u0
 --p.gaugeact = {type="symanzik_1loop_hisq", u0=p.u0, nf=p.nf}
-p.gaugeact = {type="plaquette_adjoint",adjFac=beta_a}
+p.gaugeact = {type="plaquette"}
 p.npseudo = npseudo
 p.fermact = {type="wilson", rhmc=rhmc}
 p.fermact.smear = smear
