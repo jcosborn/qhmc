@@ -326,9 +326,11 @@ function dochain.stout(f, sg, g, p)
   p.fc:zero() 
   -- same as "product": exp(iQ) U
   qopqdp.smearChain({p.fc, p.f}, {f}, {sg}, {p.expg, g}, p.stout)
-  f:set(p.f)
+  -- now p.fc = f sg, p.f = expg f
+  f:set(p.f) -- f = p.f = expg f
   p.f:zero()
   qopqdp.smearChain({p.f}, {p.fc}, {p.expg}, {p.ahg}, p.exp)
+  -- now p.f = the exponential derivative 
   p.fc:zero()
   qopqdp.smearChain({p.fc}, {p.f}, {p.ahg}, {p.plaqg}, p.ah)
   p.f:zero()

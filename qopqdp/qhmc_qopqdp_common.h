@@ -162,9 +162,9 @@ void projectU_deriv(QDP_ColorMatrix *deriv, QDP_ColorMatrix *proj,
 void sylsolve_site(NCPROT QLA_ColorMatrix(*x), QLA_ColorMatrix(*a),
 		   QLA_ColorMatrix(*b), QLA_ColorMatrix(*c));
 
-void exp_deriv_site(QLA_ColorMatrix *deriv, QLA_ColorMatrix *expM,
+void exp_deriv_site(QLA_ColorMatrix *deriv, QLA_Real *r,
 		QLA_ColorMatrix *M, QLA_ColorMatrix *chain);
-void exp_deriv(QDP_ColorMatrix *deriv, QDP_ColorMatrix *expM,
+void exp_deriv(QDP_ColorMatrix *deriv, QLA_Real *r,
 	      QDP_ColorMatrix *M, QDP_ColorMatrix *chain, QDP_Subset sub);
 
 typedef struct {

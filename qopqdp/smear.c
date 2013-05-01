@@ -444,7 +444,7 @@ qopqdp_smearChain(lua_State *L)
     for(int mu=0; mu<nd; mu++) {
      QLA_Real r = rho[mu];
      // QDP_M_peq_r_times_M(f[0]->force[mu], &r, fc[0]->force[mu], QDP_all);
-     exp_deriv(f[0]->force[mu], sg[0]->links[mu], g[0]->links[mu], fc[0]->force[mu], QDP_all);
+     exp_deriv(f[0]->force[mu], &r, g[0]->links[mu], fc[0]->force[mu], QDP_all);
      QDP_M_eq_r_times_M(f[0]->force[mu], &r, f[0]->force[mu],QDP_all);
 
     }
