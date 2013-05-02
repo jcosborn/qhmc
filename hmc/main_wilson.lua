@@ -20,12 +20,12 @@ local hmcmasses = { mass }
 --local hmcmasses = { mass, 20*mass }
 local seed = 1316844761
 
---local inlat = nil
---local inlat = "f8x88b40m01.100"
+--local inlat = inlat or nil
+local inlat = inlat or nil
 --local inlat = "l84f8b40m04a.2700.scidac"
---local outlat = nil
+local outlat = outlat or nil
 --local outlat = "f8x88b40m01.100"
-
+local warmup = warmup or 0
 local ntraj = ntraj or 10
 local tau = tau or 0.1
 local ngsteps = ngsteps or 240
@@ -117,8 +117,8 @@ local acts = setupacts(p)
 --myprint("rhmc0 = ", rhmc0, "\n")
 
 local r = {}
-r.ntraj = ntraj
 r.tau = tau
+
 local fp = {}
 r.forceparams = fp
 fp[1] = {}
@@ -160,6 +160,14 @@ else
   acts:unit()
 end
 
+if warmup then
+  r.ntraj = warmup
+  r.md = true
+  acts:run(r)
+  r.md = false
+end
+
+r.ntraj = ntraj
 acts:run(r)
 
 if outlat then
