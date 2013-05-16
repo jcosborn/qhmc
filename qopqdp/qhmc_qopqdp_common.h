@@ -166,6 +166,10 @@ void exp_deriv_site(QLA_ColorMatrix *deriv, QLA_Real *r,
 		QLA_ColorMatrix *M, QLA_ColorMatrix *chain);
 void exp_deriv(QDP_ColorMatrix *deriv, QLA_Real *r,
 	      QDP_ColorMatrix *M, QDP_ColorMatrix *chain, QDP_Subset sub);
+void traceless_herm_M_evalues(QLA_ColorMatrix *Q, double _Complex *u, double _Complex *w, 
+			      double _Complex *q1, double _Complex *q2, double _Complex *q3);
+void get_Bs(QLA_ColorMatrix *Q, QLA_ColorMatrix *Q2, QLA_ColorMatrix *B1,
+	      QLA_ColorMatrix *B2, double _Complex *f0, double _Complex *f1, double _Complex *f2);
 
 typedef struct {
   QDP_ColorMatrix **links;

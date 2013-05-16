@@ -196,6 +196,146 @@ projectU_deriv(QDP_ColorMatrix *deriv, QDP_ColorMatrix *proj,
 #undef NC
 }
 
+#if QDP_Colors == 3
+void 
+traceless_herm_M_evalues(QLA_ColorMatrix *Q, double _Complex *u, double _Complex *w, 
+			   double _Complex *q1, double _Complex *q2, double _Complex *q3) {
+  
+  QLA_Complex c0, c1;
+
+  QLA_ColorMatrix Q2;
+  QLA_M_eq_M_times_M(&Q2, Q, Q);
+  //  printf("Q^2 = \n"); printm(&Q2);
+
+  QLA_C_eq_det_M    (&c0, Q);     // c0 = det(Q)
+  QLA_C_eq_trace_M  (&c1, &Q2);     // c1 = tr(Q^2)
+  
+  double athird = 1.0/3.0;
+  double _Complex cc0, cc1, cc0max;
+  QLA_c99_eq_c(cc0, c0);
+  QLA_c99_eq_c(cc1, c1);
+  cc1 *= 0.5;
+
+  cc0max = 2*csqrt(cc1 * athird)*(cc1 * athird);  //c_0^max = 2 * (c1/3)^{3/2}
+  printf("c0 = %f+i%f\n", creal(cc0), cimag(cc0));
+  printf("c1 = %f+i%f\n", creal(cc1), cimag(cc1));
+  printf("c0_max = %f+i%f\n", creal(cc0max), cimag(cc0max));
+
+  double _Complex theta;
+  
+  theta =cacos(cc0/cc0max);
+  *u = csqrt(athird * cc1) * ccos(athird * theta);
+  *w = csqrt(cc1) * csin(athird * theta);
+  *q1 = 2 * *u;
+  *q2 = -*u + *w;
+  *q3 = -*u - *w;
+
+  printf("u = %f+i%f, w = %f+i%f, q1 = %f+i%f, q2 = %f+i%f, q3 = %f+i%f\n", creal(*u), cimag(*u), creal(*w), cimag(*w), creal(*q1), cimag(*q1), creal(*q2),cimag(*q2), creal(*q3), cimag(*q3));
+}
+
+void
+get_Bs(QLA_ColorMatrix *Q, QLA_ColorMatrix *Q2, QLA_ColorMatrix *B1, QLA_ColorMatrix *B2,
+       double _Complex *f0, double _Complex *f1, double _Complex *f2) {
+  double _Complex u, w, q1, q2, q3;
+  traceless_herm_M_evalues(Q, &u, &w, &q1, &q2, &q3);
+  //  printf("q1=\n"); printc99(&q1);
+
+  double _Complex e2iu, e_iu;
+  e2iu = cexp(2 * _Complex_I * u);
+  e_iu = cexp(-1.0 * _Complex_I * u);
+  
+  double _Complex u2 = u*u;
+  double _Complex w2 = w*w;
+
+  double _Complex zeta0w, zeta1w;
+  if (cabs(w) > 0.05) {
+    zeta0w = sin(w)/w;
+    zeta1w = (cos(w)-zeta0w)/w2;
+  }
+  else {
+    zeta0w = 1 - w2/6. * (1-w2/20. * (1 - w2/42.));
+    zeta1w = -(1 - w2/10. * (1 - w2/28.*(1 - w2/54.)))/3.0;
+  }
+  
+  double _Complex h0, h1, h2; 
+  h0 = (u2 - w2) * e2iu + e_iu * ( 8 * u2 *cos(w) + 2*_Complex_I*u * (3*u2+w2)*zeta0w);
+  h1 = 2*u*e2iu - e_iu * (2 * u * cos(w) - _Complex_I * (3*u2-w2)*zeta0w);
+  h2 = e2iu - e_iu * ( cos(w) + 3*_Complex_I*u * zeta0w);
+
+  double _Complex fac = 1.0/(9*u2-w2);
+  *f0 = h0 * fac;
+  *f1 = h1 * fac;
+  *f2 = h2 * fac;
+
+  double _Complex r01, r11, r21, r02, r12, r22, iu;
+  double _Complex cosw = ccos(w);
+
+  iu = _Complex_I * u;
+
+  r01 = 2*(u + _Complex_I * (u2 - w2)) * e2iu 
+	   + 2 * e_iu * ( 4*u*(2 - iu) * cosw + _Complex_I * (9 * u2 + w2 - iu * (3*u2 + w2))*zeta0w);
+
+  r11 = 2*(1 + 2*iu) * e2iu 
+    + e_iu * ( -2 * (1-iu) * cosw + _Complex_I * (6*u + _Complex_I * (w2 - 3*u2)) * zeta0w);
+
+  r21 = 2 * _Complex_I * e2iu + _Complex_I * e_iu * (cosw - 3*(1-iu)*zeta0w);
+
+  r02 = -2 * e2iu + 2 * iu * e_iu * (cosw + (1+4*iu) * zeta0w + 3 * u2 * zeta1w);
+
+  r12 = -_Complex_I * e_iu * ( cosw + (1+2*iu) * zeta0w - 3*u2 * zeta1w);
+
+  r22 = e_iu * (zeta0w - 3 * iu * zeta1w);
+
+  double _Complex b10, b11, b12, b20, b21, b22;
+  
+  double _Complex fac1, fac2, fac3;
+  
+  double _Complex mult = 0.5 * fac * fac;
+  fac1 = 2 * u;
+  fac2 = 3*u2 - w2;
+  fac3 = 2*(15*u2+w2);
+
+  b10 = fac1 * r01 + fac2 * r02 - fac3 * (*f0);
+  b10 *= mult;
+
+  b11 = fac1 * r11 + fac2 * r12 - fac3 * (*f1);
+  b11 *= mult;
+
+  b12 = fac1 * r21 + fac2 * r22 - fac3 * (*f2);
+  b12 *= mult;
+
+  fac2 = 3*u;
+  fac3 = 24*u;
+  b20 = r01 - fac2 * r02 - fac3 * (*f0);
+  b20 *= mult;
+
+  b21 = r11 - fac2 * r12 - fac3 * (*f1);
+  b21 *= mult;
+
+  b22 = r21 - fac2 * r22 - fac3 * (*f2);
+  b22 *= mult;
+
+  QLA_Complex qb10, qb11, qb12, qb20, qb21, qb22;
+  QLA_c_eq_c99(qb10, b10);
+  QLA_c_eq_c99(qb11, b11);
+  QLA_c_eq_c99(qb12, b12);
+  QLA_c_eq_c99(qb20, b20);
+  QLA_c_eq_c99(qb21, b21);
+  QLA_c_eq_c99(qb22, b22);
+
+  QLA_M_eq_c(B1, &qb10);
+  QLA_M_peq_c_times_M(B1, &qb11, Q); 
+  QLA_M_peq_c_times_M(B1, &qb12, Q2);
+  
+  QLA_M_eq_c(B2, &qb20);
+  QLA_M_peq_c_times_M(B2, &qb21, Q); 
+  QLA_M_peq_c_times_M(B2, &qb22, Q2);
+  
+}
+
+
+#endif
+
 void
 exp_deriv_site(QLA_ColorMatrix *deriv, QLA_Real *r, 
 	       QLA_ColorMatrix *M, QLA_ColorMatrix *chain) 
@@ -205,23 +345,74 @@ QLA_ColorMatrix tmp;
 QLA_ColorMatrix A;
 QLA_M_eq_r_times_M(&A, r, M);
 
+// special SU(3) case
+#if QDP_Colors == 3
+ QLA_Complex minus_i;
+ QLA_c_eq_r_plus_ir(minus_i, 0, -1);
+ QLA_ColorMatrix Q, Q2;
+ 
+  QLA_M_eq_C_times_M(&Q, &minus_i, &A);
+  QLA_M_eq_M_times_M(&Q2, &Q, &Q);
+
+  double _Complex f0, f1, f2;
+  QLA_ColorMatrix B1, B2;
+  
+  get_Bs(&Q, &Q2, &B1, &B2, &f0, &f1, &f2);
+
+  QLA_Complex qf0, qf1, qf2;
+
+  QLA_c_eq_c99(qf0, f0);
+  QLA_c_eq_c99(qf1, f1);
+  QLA_c_eq_c99(qf2, f2);
+ 
+  // derivative  
+  QLA_Complex trB1M, trB2M;
+  QLA_ColorMatrix prod, mat;
+  QLA_M_eq_Ma (&mat, chain);
+
+  //tr(B_1 M)
+  QLA_M_eq_M_times_M (&prod, &B1, &mat); //B_1 M
+  QLA_C_eq_trace_M   (&trB1M, &prod);
+  
+  //tr(B_2 M);
+  QLA_M_eq_M_times_M (&prod, &B2, &mat); //B_2 M
+  QLA_C_eq_trace_M   (&trB2M, &prod);
+  
+  // deriv = Tr(B_1 M) Q
+  QLA_M_eq_c_times_M (&tmp, &trB1M, &Q);
+  
+  // deriv += Tr(B_2 M) Q^2
+  QLA_M_peq_c_times_M (&tmp, &trB2M, &Q2);
+  
+  // deriv += f1 M
+  QLA_M_peq_c_times_M (&tmp, &qf1, &mat);
+  
+  // deriv += f2 Q M
+  QLA_M_eq_M_times_M  (&prod, &Q, &mat); // Q M
+  QLA_M_peq_c_times_M (&tmp, &qf2, &prod); 
+  
+  // deriv += f2 M Q
+  QLA_M_eq_M_times_M  (&prod, &mat, &Q); // M Q
+  QLA_M_peq_c_times_M (&tmp, &qf2, &prod);
+
+  QLA_M_eq_c_times_M  (&tmp, &minus_i, &tmp);
+  
+  QLA_M_eq_Ma(deriv, &tmp);
+
  // special SU(2) case
-#if QDP_Colors == 2
+#elif QDP_Colors == 2
   QLA_Complex Tr, det;
   QLA_c_eq_c_times_c(det, QLA_elem_M(A,0,0),QLA_elem_M(A,1,1));
   QLA_c_meq_c_times_c(det, QLA_elem_M(A,0,1), QLA_elem_M(A,1,0));
 
   QLA_C_eq_trace_M(&Tr, &A);
 
-//  printf("trace = %f + i %f\n", QLA_real(Tr), QLA_imag(Tr));
-//  printf("det = %f + i %f\n", QLA_real(det), QLA_imag(det));
   if (QLA_real(Tr) == 0 && QLA_imag(Tr) == 0) {
     
     double _Complex t, t2;
     double _Complex cosht, sinht, sinht_t;
 
     t = csqrt(-QLA_real(det) - _Complex_I * QLA_imag(det)); 
-//    printf("t = %f + i %f\n", creal(t), cimag(t));
     t2 = t * t;
 
     if(creal(t) == 0 && cimag(t) == 0) {
@@ -237,8 +428,6 @@ QLA_M_eq_r_times_M(&A, r, M);
     double _Complex f0, f1;
     f0 = cosht;
     f1 = sinht_t;
-//    printf("f0=%f+%fi\n",creal(f0),cimag(f0));
-//    printf("f1=%f+%fi\n",creal(f1),cimag(f1));
 
     double _Complex f1t, f0t2, f1t2;
     if (cabs(t) > 0.05) {
@@ -274,7 +463,6 @@ QLA_M_eq_r_times_M(&A, r, M);
   }    
   else {
     QLA_Complex qs;
-    //  QLA_Complex qt;
     QLA_c_eq_r_times_c(qs, 0.5, Tr); // s=TrA/2
     
     QLA_Complex qs2;
@@ -283,8 +471,6 @@ QLA_M_eq_r_times_M(&A, r, M);
     
     double _Complex t = QLA_real(qs2) + QLA_imag(qs2) * _Complex_I;
     t = csqrt(t); // sqrt(s^2 - det A)
-    //  QLA_c_eq_r_plus_ir(qt, creal(t), cimag(t)); // t = sqrt(s^2 - det A)
-//    printf("t = %f + i %f\n", creal(t), cimag(t));
 
     double _Complex exps, cosht, sinht, sinht_t;
     double _Complex s = QLA_real(qs) + QLA_imag(qs) * _Complex_I;
@@ -321,9 +507,7 @@ QLA_M_eq_r_times_M(&A, r, M);
     f0t  = t*f1 - s*f1t;
     f0t2 = f1 - s*f1t2;
     
-    //QLA_Complex qf0;
     QLA_Complex qf1;
-    //QLA_c_eq_r_plus_ir(qf0, creal(f0), cimag(f0));
     QLA_c_eq_r_plus_ir(qf1, creal(f1), cimag(f1));
     
     QLA_ColorMatrix B, AB;
@@ -352,9 +536,7 @@ QLA_M_eq_r_times_M(&A, r, M);
     QLA_c_eq_r_plus_ir(qc, creal(coeff),cimag(coeff));
     QLA_M_peq_c_times_M(&tmp, &qc, &A);
   } 
-//  QLA_M_eq_M(deriv, &tmp);
     QLA_M_eq_Ma(deriv, &tmp);
-  
 #else
   printerr("Not implemented\n");
   ABORT(1);

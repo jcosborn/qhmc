@@ -26,7 +26,7 @@ printc99(double _Complex *c) {
   printf("%f+i%f\n",creal(*c), cimag(*c));
 }
 
-
+/*
 void 
 traceless_herm_M_evalues(QLA_ColorMatrix *Q, double *u, double *w, 
 			   double *q1, double *q2, double *q3) {
@@ -95,8 +95,8 @@ get_f_coeffs(QLA_ColorMatrix *Q, double _Complex *f0, double _Complex *f1, doubl
 }
 
 void
-get_Bs(QLA_ColorMatrix *Q, QLA_ColorMatrix *Q2, QLA_ColorMatrix *B1, QLA_ColorMatrix *B2, double _Complex *f0, double _Complex *f1, double _Complex *f2){
-double u, w, q1, q2, q3;
+get_Bs(QLA_ColorMatrix *Q, QLA_ColorMatrix *Q2, QLA_ColorMatrix *B1, QLA_ColorMatrix *B2, double _Complex *f0, double _Complex *f1, double _Complex *f2) {
+  double u, w, q1, q2, q3;
   traceless_herm_M_evalues(Q, &u, &w, &q1, &q2, &q3);
   printf("q1=\n"); printc99(&q1);
 
@@ -110,7 +110,7 @@ double u, w, q1, q2, q3;
   double _Complex zeta0w, zeta1w;
   if (fabs(w) > 0.05) {
     zeta0w = sin(w)/w;
-    zeta1w = (cos(w)-zeta0w)/w/w;
+    zeta1w = (cos(w)-zeta0w)/w2;
   }
   else {
     zeta0w = 1 - w2/6. * (1-w2/20. * (1 - w2/42.));
@@ -150,7 +150,7 @@ double u, w, q1, q2, q3;
   
   double fac1, fac2, fac3;
   
-  double mult = 1.0/(2*(9*u2-w2)*(9*u2-w2));
+  double mult = 0.5 * fac * fac;
   fac1 = 2 * u;
   fac2 = 3*u2 - w2;
   fac3 = 2*(15*u2+w2);
@@ -193,7 +193,7 @@ double u, w, q1, q2, q3;
   
 }
 
-
+*/
 int
 main(void) {
   QLA_ColorMatrix O, iQ, matI;
@@ -218,19 +218,27 @@ main(void) {
 #if QDP_Colors == 3
   QLA_ColorMatrix A;
   QLA_M_eq_zero(&A);
-  printm(&A);
+
   for ( int m = 0; m < QLA_Nc; m++) {
     for ( int n = 0; n < QLA_Nc; n++) {
       QLA_c_eq_r_plus_ir(QLA_elem_M(A, m, n), 3+m, 2-n);
     }
+    QLA_c_eq_r_plus_ir(QLA_elem_M(A,m,m), 2+1, 1);
+
   }
   QLA_M_eq_antiherm_M(&A, &A);
   printm(&A);
+  
+  QLA_M_eq_zero(&A);
 
+  QLA_c_eq_r_plus_ir(QLA_elem_M(A,0,0),0,-1);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(A,1,1),0,0.4);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(A,2,2),0,0.6);
+  printm(&A);
+  
   QLA_Complex minus_i;
   QLA_c_eq_r_plus_ir(minus_i, 0, -1);
   QLA_ColorMatrix Q, Q2, expiQ, qla_expA;
-
 
   QLA_M_eq_C_times_M(&Q, &minus_i, &A);
   QLA_M_eq_M_times_M(&Q2, &Q, &Q);
@@ -241,6 +249,10 @@ main(void) {
   QLA_ColorMatrix B1, B2;
   
   get_Bs(&Q, &Q2, &B1, &B2, &f0, &f1, &f2);
+  printf("f0, f1, f2=\n");
+  printc99(&f0);
+  printc99(&f1);
+  printc99(&f2);
 
   QLA_Complex qf0, qf1, qf2;
 
@@ -253,7 +265,6 @@ main(void) {
   QLA_M_peq_c_times_M(&expiQ, &qf2, &Q2);
 
   QLA_M_eq_exp_M(&qla_expA, &A);
-  
 
   printf("my expiQ = \n");
   printm(&expiQ);
@@ -299,6 +310,7 @@ main(void) {
   printf("deriv = \n");
   printm(&deriv);
   
+
   QLA_M_meq_M(&deriv, &expiQ);
   printf("diff = \n");
   printm(&deriv);
