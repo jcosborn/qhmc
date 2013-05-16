@@ -2,8 +2,8 @@ CC = mpicc
 #COPT = -O3 -std=gnu99 -Wall -Wno-strict-aliasing -fopenmp
 COPT = -O3 -g -std=gnu99 -Wall -fopenmp
 
-COLORLIB = 2
-NC = 2
+COLORLIB = 3
+NC = 3
 
 ifeq ($(COLORLIB),n)
   COLORS = \'N\'
@@ -17,7 +17,7 @@ TAG = -mpi
 SCIDAC = $(HOME)/lqcd/install
 QMPDIR = $(SCIDAC)/qmp$(TAG)
 QIODIR = $(SCIDAC)/qio$(TAG)
-QLADIR = $(SCIDAC)/qla-cvs$(TAG)
+QLADIR = $(SCIDAC)/qla$(TAG)
 QDPDIR = $(SCIDAC)/qdp$(TAG)
 QOPDIR = $(SCIDAC)/qopqdp$(TAG)
 

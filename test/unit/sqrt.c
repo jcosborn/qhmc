@@ -53,6 +53,6 @@ main(void)
       printf("%g\n", r);
     }
   }
-
+//  printm(&f2);
   return 0;
 }
