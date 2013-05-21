@@ -435,6 +435,7 @@ qopqdp_smearChain(lua_State *L)
   } else
   // exp
   if(strcmp(type,"exp")==0) {
+    //    printf("calling exp_deriv\n");
     qassert(nf==1 && nfc==1 && nsg==1 && ng==1);
     tableGetField(L, 5, "rho");
     int ns; get_table_len(L, -1, &ns);

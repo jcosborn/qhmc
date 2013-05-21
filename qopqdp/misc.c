@@ -205,9 +205,8 @@ traceless_herm_M_evalues(QLA_ColorMatrix *Q, double _Complex *u, double _Complex
 
   QLA_ColorMatrix Q2;
   QLA_M_eq_M_times_M(&Q2, Q, Q);
-  //  printf("Q^2 = \n"); printm(&Q2);
 
-  QLA_C_eq_det_M    (&c0, Q);     // c0 = det(Q)
+  QLA_C_eq_det_M    (&c0, Q);       // c0 = det(Q)
   QLA_C_eq_trace_M  (&c1, &Q2);     // c1 = tr(Q^2)
   
   double athird = 1.0/3.0;
@@ -217,10 +216,6 @@ traceless_herm_M_evalues(QLA_ColorMatrix *Q, double _Complex *u, double _Complex
   cc1 *= 0.5;
 
   cc0max = 2*csqrt(cc1 * athird)*(cc1 * athird);  //c_0^max = 2 * (c1/3)^{3/2}
-  printf("c0 = %f+i%f\n", creal(cc0), cimag(cc0));
-  printf("c1 = %f+i%f\n", creal(cc1), cimag(cc1));
-  printf("c0_max = %f+i%f\n", creal(cc0max), cimag(cc0max));
-
   double _Complex theta;
   
   theta =cacos(cc0/cc0max);
@@ -229,16 +224,14 @@ traceless_herm_M_evalues(QLA_ColorMatrix *Q, double _Complex *u, double _Complex
   *q1 = 2 * *u;
   *q2 = -*u + *w;
   *q3 = -*u - *w;
-
-  printf("u = %f+i%f, w = %f+i%f, q1 = %f+i%f, q2 = %f+i%f, q3 = %f+i%f\n", creal(*u), cimag(*u), creal(*w), cimag(*w), creal(*q1), cimag(*q1), creal(*q2),cimag(*q2), creal(*q3), cimag(*q3));
 }
 
 void
 get_Bs(QLA_ColorMatrix *Q, QLA_ColorMatrix *Q2, QLA_ColorMatrix *B1, QLA_ColorMatrix *B2,
        double _Complex *f0, double _Complex *f1, double _Complex *f2) {
+
   double _Complex u, w, q1, q2, q3;
   traceless_herm_M_evalues(Q, &u, &w, &q1, &q2, &q3);
-  //  printf("q1=\n"); printc99(&q1);
 
   double _Complex e2iu, e_iu;
   e2iu = cexp(2 * _Complex_I * u);
@@ -330,37 +323,33 @@ get_Bs(QLA_ColorMatrix *Q, QLA_ColorMatrix *Q2, QLA_ColorMatrix *B1, QLA_ColorMa
   QLA_M_eq_c(B2, &qb20);
   QLA_M_peq_c_times_M(B2, &qb21, Q); 
   QLA_M_peq_c_times_M(B2, &qb22, Q2);
-  
 }
-
 
 #endif
 
 void
 exp_deriv_site(QLA_ColorMatrix *deriv, QLA_Real *r, 
-	       QLA_ColorMatrix *M, QLA_ColorMatrix *chain) 
-{
-
-QLA_ColorMatrix tmp;
-QLA_ColorMatrix A;
-QLA_M_eq_r_times_M(&A, r, M);
-
-// special SU(3) case
+	       QLA_ColorMatrix *M, QLA_ColorMatrix *chain) {
+  
+  QLA_ColorMatrix tmp;
+  QLA_ColorMatrix A;
+  QLA_M_eq_r_times_M(&A, r, M);
+  
+  // special SU(3) case
 #if QDP_Colors == 3
- QLA_Complex minus_i;
- QLA_c_eq_r_plus_ir(minus_i, 0, -1);
- QLA_ColorMatrix Q, Q2;
- 
+  
+  QLA_Complex minus_i;
+  QLA_c_eq_r_plus_ir(minus_i, 0, -1);
+  
+  QLA_ColorMatrix Q, Q2;
   QLA_M_eq_C_times_M(&Q, &minus_i, &A);
   QLA_M_eq_M_times_M(&Q2, &Q, &Q);
 
   double _Complex f0, f1, f2;
   QLA_ColorMatrix B1, B2;
-  
   get_Bs(&Q, &Q2, &B1, &B2, &f0, &f1, &f2);
 
   QLA_Complex qf0, qf1, qf2;
-
   QLA_c_eq_c99(qf0, f0);
   QLA_c_eq_c99(qf1, f1);
   QLA_c_eq_c99(qf2, f2);
