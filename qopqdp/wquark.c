@@ -114,6 +114,33 @@ qopqdp_wquark_set(lua_State *L)
   return 0;
 }
 
+// 1: wquark
+// 2: coords table
+// 3: color
+// 4: spin
+// 5: re part
+// 6: im part
+static int
+qopqdp_wquark_point(lua_State *L)
+{
+  int narg = lua_gettop(L);
+  qassert(narg==6);
+  wquark_t *q = qopqdp_wquark_check(L, 1);
+  int nd; get_table_len(L, 2, &nd);
+  int point[nd]; get_int_array(L, 2, nd, point);
+  int color = luaL_checkint(L, 3);
+  int spin = luaL_checkint(L, 4);
+  double re = luaL_checknumber(L, 5);
+  double im = luaL_checknumber(L, 6);
+  int node = QDP_node_number(point);
+  if(node==QDP_this_node) {
+    int index = QDP_index(point);
+    QLA_DiracFermion *qdf = QDP_site_ptr_readwrite_D(q->df, index);
+    QLA_c_eq_r_plus_ir(QLA_elem_D(*qdf,color,spin), re, im);
+  }
+  return 0;
+}
+
 static int
 qopqdp_wquark_norm2(lua_State *L)
 {
@@ -176,6 +203,7 @@ static struct luaL_Reg wquark_reg[] = {
   { "random",   qopqdp_wquark_random },
   { "randomU1", qopqdp_wquark_randomU1 },
   { "set",      qopqdp_wquark_set },
+  { "point",    qopqdp_wquark_point },
   { "norm2",    qopqdp_wquark_norm2 },
   { "Re_dot",   qopqdp_wquark_redot },
   { "combine",  qopqdp_wquark_combine },

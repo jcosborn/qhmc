@@ -1,6 +1,13 @@
-CC = mpicc
-#COPT = -O3 -std=gnu99 -Wall -Wno-strict-aliasing -fopenmp
-COPT = -O3 -g -std=gnu99 -Wall -fopenmp
+HOST := $(shell hostname)
+BGQ := $(filter cetus% vesta% mira%,$(HOST))
+ifneq "$(BGQ)" ""
+  CC = mpixlc
+  COPT = -O3 -qinfo=pro -g
+else
+  CC = mpicc
+  #COPT = -O3 -std=gnu99 -Wall -Wno-strict-aliasing -fopenmp
+  COPT = -O3 -g -std=gnu99 -Wall -fopenmp
+endif
 
 COLORLIB = 3
 NC = 3

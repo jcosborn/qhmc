@@ -1,0 +1,42 @@
+#!/bin/sh
+
+if [ "X$1" = "X=" ]; then
+  h=1
+  m=$2
+  shift
+  shift
+fi
+
+fs="`\ls -1 "$@" |sort -n -t . -k 2`"
+test "X$h" = "X" && echo $fs
+
+get() {
+  for f in $fs; do
+    grep "$tag" $f |awk '{print$'$1'}'
+  done
+}
+
+if [ "X$h" = "X" ]; then
+  ms="`cat "$@" |grep '^pbp mass' |awk '{print$3}' |sort -u`"
+  echo $ms
+else
+  tag="pbp mass $m"
+  get 5
+  exit
+fi
+
+for m in $ms; do
+tag="pbp mass $m"
+echo $tag
+
+n=`get 75|wc -l`
+n9=$((9*n/10))
+n8=$((8*n/10))
+n5=$((5*n/10))
+n2=$((2*n/10))
+get 5 |ave
+get 5 |tail -n $n9 |ave
+get 5 |tail -n $n8 |ave
+get 5 |tail -n $n5 |ave
+get 5 |tail -n $n2 |ave
+done

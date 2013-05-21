@@ -170,6 +170,20 @@ void traceless_herm_M_evalues(QLA_ColorMatrix *Q, double _Complex *u, double _Co
 			      double _Complex *q1, double _Complex *q2, double _Complex *q3);
 void get_Bs(QLA_ColorMatrix *Q, QLA_ColorMatrix *Q2, QLA_ColorMatrix *B1,
 	      QLA_ColorMatrix *B2, double _Complex *f0, double _Complex *f1, double _Complex *f2);
+typedef struct {
+  QDP_Reader *qr;
+} reader_t;
+
+reader_t *qopqdp_reader_create(lua_State *L);
+reader_t *qopqdp_reader_check(lua_State *L, int idx);
+
+typedef struct {
+  QDP_Writer *qw;
+} writer_t;
+
+writer_t *qopqdp_writer_create(lua_State* L, const char *fn, const char *mds);
+writer_t *qopqdp_writer_check(lua_State *L, int idx);
+
 
 typedef struct {
   QDP_ColorMatrix **links;

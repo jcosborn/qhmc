@@ -734,7 +734,8 @@ qopqdp_gauge_update(lua_State *L)
   QDP_ColorMatrix *m2 = QDP_create_M();
   for(int i=0; i<g->nd; i++) {
     QDP_M_eq_r_times_M(m1, &eps, f->force[i], QDP_all);
-    QDP_M_eq_exp_M(m2, m1, QDP_all);
+    //QDP_M_eq_exp_M(m2, m1, QDP_all);
+    QDP_M_eq_expTA_M(m2, m1, QDP_all);  // assume traceless antihermitian
     QDP_M_eq_M_times_M(m1, m2, g->links[i], QDP_all);
     QDP_M_eq_M(g->links[i], m1, QDP_all);
 #ifdef QHMC_REPRO_UNIFORM
