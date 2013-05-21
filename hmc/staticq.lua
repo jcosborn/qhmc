@@ -112,8 +112,9 @@ end
 --smear = { type="fat7", coeffs={one_link=0.9,three_staple=0.1/6} }
 --smear = { type="staples", coeffs=ape4d(0.1) }
 --smear[#smear+1] = { type="stout", rho=0.01 }
+smear = { type="stout", rho=0.14 }
 --smear[#smear+1] = { type="stout", rho=0.14 }
-smear = { type="hyp", alpha={0.7,0.5,0.3} }
+--smear = { type="hyp", alpha={0.7,0.5,0.3} }
 
 g = {U}
 s = U

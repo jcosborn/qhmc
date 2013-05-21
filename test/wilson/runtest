@@ -8,7 +8,7 @@ export OMP_NUM_THREADS=1
 
 opts="beta=5.6;mass=0.2;ngsteps=50;nfsteps={50}"
 opts="$opts;ntraj=1"
-#opts="$opts;noMG=true"
+opts="$opts;noMG=true"
 
 #$qhmc $hmc/wilson.lua
 #$qhmc -e "ngsteps=60;nfsteps={20}" $hmc/wilson.lua

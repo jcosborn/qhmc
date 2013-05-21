@@ -162,6 +162,20 @@ void projectU_deriv(QDP_ColorMatrix *deriv, QDP_ColorMatrix *proj,
 void sylsolve_site(NCPROT QLA_ColorMatrix(*x), QLA_ColorMatrix(*a),
 		   QLA_ColorMatrix(*b), QLA_ColorMatrix(*c));
 
+typedef struct {
+  QDP_Reader *qr;
+} reader_t;
+
+reader_t *qopqdp_reader_create(lua_State *L);
+reader_t *qopqdp_reader_check(lua_State *L, int idx);
+
+typedef struct {
+  QDP_Writer *qw;
+} writer_t;
+
+writer_t *qopqdp_writer_create(lua_State* L, const char *fn, const char *mds);
+writer_t *qopqdp_writer_check(lua_State *L, int idx);
+
 
 typedef struct {
   QDP_ColorMatrix **links;

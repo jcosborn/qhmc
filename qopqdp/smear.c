@@ -140,7 +140,7 @@ qopqdp_smear(lua_State *L)
   if(strcmp(type,"projectU")==0) {
     qassert(nsg==1 && ng==1);
     int nd = sg[0]->nd;
-#if QOP_Colors == 3
+#if QOP_Colors == 0
     for(int mu=0; mu<nd; mu++) {
       QOP_u3reunit(&info, g[0]->links[mu], sg[0]->links[mu]);
     }

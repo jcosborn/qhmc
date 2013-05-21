@@ -306,6 +306,23 @@ qopqdp_dw(lua_State* L)
   return 1;
 }
 
+// 1: filename
+// 2: metadata
+static int
+qopqdp_writer(lua_State* L)
+{
+  int narg = lua_gettop(L);
+  qassert(narg==2 || narg==3);
+  lua_pushvalue(L, 1);
+  const char *fn = luaL_checkstring(L, -1);
+  lua_pop(L, 1);
+  lua_pushvalue(L, 2);
+  const char *md = luaL_checkstring(L, -1);
+  lua_pop(L, 1);
+  qopqdp_writer_create(L, fn, md);
+  return 1;
+}
+
 static int
 qopqdp_remapout(lua_State* L)
 {
@@ -336,6 +353,7 @@ static struct luaL_Reg qopqdp_reg[] = {
   { "hisq",      qopqdp_hisq },
   { "wilson",    qopqdp_wilson },
   { "dw",        qopqdp_dw },
+  { "writer",    qopqdp_writer },
   { "remapout",  qopqdp_remapout },
   { NULL, NULL}
 };
