@@ -53,8 +53,16 @@ local function measure(a, r)
   local ps,pt = a.fields.G:plaq()
   printf("plaq ss: %-8g  st: %-8g  tot: %-8g\n", ps, pt, 0.5*(ps+pt))
 
-  --plp = ploop(G)
+  local plr,pli = a.fields.G:ploop()
+  local plrs,plis= 0,0
+  local plrt, plit=plr[#plr],pli[#pli]
+  local tmp=#plr-1
+  for i=1,#plr-1 do
+	plrs,plis=plrs+plr[i],plis+pli[i]
+  end
+  plrs,plis=plrs/(#plr-1),plis/(#pli-1)
   --printf("ploop: %s\n", tostring(plp))
+  printf("ploop: spatial: %g +i %g temporal: %g +i %g\n", plrs,plis,plrt,plit)
 
   for i,v in ipairs(r.pbp) do
     for j=1,v.reps do
