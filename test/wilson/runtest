@@ -5,19 +5,19 @@ hmc="../../hmc"
 t="test.out"
 
 tau=1.0
-rho=0.25
+rho=0.2
 nx=4
 nt=8
-nf=6
+nf=2
 nfsteps=10
-ngsteps=10
+ngsteps=20
 lattice='startconf'
 
 #$qhmc $hmc/wilson.lua
 #$qhmc -e "ngsteps=60;nfsteps={20}" $hmc/wilson.lua
 #$qhmc -e "ngsteps=150;nfsteps={50}" $hmc/wilson.lua
-mpirun -np 2 $qhmc -e "warmup=50;nf=$nf;nx=$nx;nt=$nt;tau=$tau;beta=4;mass=-0.161;ngsteps=$ngsteps;nfsteps={$nfsteps};ntraj=100;rho=$rho" \
-	$hmc/main_wilson.lua | tee nf${nf}_nx${nx}nt${nt}_ns${nsteps}_rho$rho.out
+mpirun -np 2 $qhmc -e "warmup=50;nf=$nf;nx=$nx;nt=$nt;tau=$tau;beta=5.7;mass=-0.2;ngsteps=$ngsteps;nfsteps={$nfsteps};ntraj=5000;rho=$rho" \
+	$hmc/wilson.lua | tee nc3_nf${nf}_nx${nx}nt${nt}_ns${nfsteps}_rho$rho.out
 #$qhmc -e "beta=5.6;mass=0.2;ngsteps=100;nfsteps={100}" $hmc/wilson.lua
 #$qhmc -e "ngsteps=600;nfsteps={200}" $hmc/wilson.lua
 #$qhmc -e "doTrace=false;tau=1;ntraj=20;beta=4;mass=0.5" $hmc/wilson.lua
