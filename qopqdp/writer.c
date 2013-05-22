@@ -96,7 +96,7 @@ qopqdp_writer_write(lua_State *L)
 
   QDP_string_destroy(md);
   dt += QDP_time();
-  printf0(" saved in %g seconds\n", dt);
+  printf0(" wrote in %g seconds\n", dt);
   return 0;
 }
 
