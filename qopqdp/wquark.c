@@ -141,6 +141,8 @@ qopqdp_wquark_point(lua_State *L)
   return 0;
 }
 
+// 1: wquark
+// 2: (optional) subset
 static int
 qopqdp_wquark_norm2(lua_State *L)
 {
@@ -197,16 +199,67 @@ qopqdp_wquark_combine(lua_State *L)
   return 0;
 }
 
+// 1: wquark
+// 2: gauge
+// 3: r
+// 4: (optional) n
+static int
+qopqdp_wquark_smearGauss(lua_State *L)
+{
+  int narg = lua_gettop(L);
+  qassert(narg==3 || narg==4);
+  wquark_t *q = qopqdp_wquark_check(L, 1);
+  gauge_t *g = qopqdp_gauge_check(L, 2);
+  double r = luaL_checknumber(L, 3);
+  int n = luaL_optint(L, 4, 1);
+
+  QDP_DiracFermion *t, *tt[3], *ts[3], *tf[3], *tb1[3], *tb2[3];
+  QDP_ShiftDir fwd[3], bck[3];
+  t = QDP_create_D();
+  for(int i=0; i<3; i++) {
+    tt[i] = t;
+    ts[i] = q->df;
+    tf[i] = QDP_create_D();
+    tb1[i] = QDP_create_D();
+    tb2[i] = QDP_create_D();
+    fwd[i] = QDP_forward;
+    bck[i] = QDP_backward;
+  }
+  QLA_Real s0 = 1.0/(1.0+6*r);
+  QLA_Real s1 = s0*r;
+  for(int i=0; i<n; i++) {
+    QDP_D_eq_r_times_D(t, &s1, q->df, QDP_all);
+    QDP_D_veq_sD(tf, tt, QDP_neighbor, fwd, QDP_all, 3);
+    QDP_D_veq_Ma_times_D(tb1, g->links, tt, QDP_all, 3);
+    QDP_D_veq_sD(tb2, tb1, QDP_neighbor, bck, QDP_all, 3);
+    QDP_D_eq_r_times_D(q->df, &s0, q->df, QDP_all);
+    QDP_D_vpeq_M_times_D(ts, g->links, tf, QDP_all, 3);
+    QDP_D_vpeq_D(ts, tb2, QDP_all, 3);
+    for(int i=0; i<3; i++) {
+      QDP_discard_D(tf[i]);
+      QDP_discard_D(tb2[i]);
+    }
+  }
+  QDP_destroy_D(t);
+  for(int i=0; i<3; i++) {
+    QDP_destroy_D(tf[i]);
+    QDP_destroy_D(tb1[i]);
+    QDP_destroy_D(tb2[i]);
+  }
+  return 0;
+}
+
 static struct luaL_Reg wquark_reg[] = {
-  { "__gc",     qopqdp_wquark_gc },
-  { "zero",     qopqdp_wquark_zero },
-  { "random",   qopqdp_wquark_random },
-  { "randomU1", qopqdp_wquark_randomU1 },
-  { "set",      qopqdp_wquark_set },
-  { "point",    qopqdp_wquark_point },
-  { "norm2",    qopqdp_wquark_norm2 },
-  { "Re_dot",   qopqdp_wquark_redot },
-  { "combine",  qopqdp_wquark_combine },
+  { "__gc",       qopqdp_wquark_gc },
+  { "zero",       qopqdp_wquark_zero },
+  { "random",     qopqdp_wquark_random },
+  { "randomU1",   qopqdp_wquark_randomU1 },
+  { "set",        qopqdp_wquark_set },
+  { "point",      qopqdp_wquark_point },
+  { "norm2",      qopqdp_wquark_norm2 },
+  { "Re_dot",     qopqdp_wquark_redot },
+  { "combine",    qopqdp_wquark_combine },
+  { "smearGauss", qopqdp_wquark_smearGauss },
   { NULL, NULL}
 };
 

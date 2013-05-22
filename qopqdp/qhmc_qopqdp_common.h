@@ -106,6 +106,7 @@
 
 #define printf0 if(QDP_this_node==0) printf
 #define printerr(...) fprintf(stderr, __VA_ARGS__)
+#define printerr0(...) if(QDP_this_node==0) printerr(__VA_ARGS__)
 #define ABORT(code) QDP_abort(code)
 #define TRACE printf0("%s %s %i\n", __FILE__, __func__, __LINE__);
 
@@ -166,7 +167,7 @@ typedef struct {
   QDP_Reader *qr;
 } reader_t;
 
-reader_t *qopqdp_reader_create(lua_State *L);
+reader_t *qopqdp_reader_create(lua_State* L, const char *fn);
 reader_t *qopqdp_reader_check(lua_State *L, int idx);
 
 typedef struct {
