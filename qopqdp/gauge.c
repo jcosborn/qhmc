@@ -535,22 +535,34 @@ get_measure_action(gauge_t *g)
 }
 #endif
 
+// 1: gauge
+// 2: coeffs
+// 3: (optional) xi0
 static int
 qopqdp_gauge_action(lua_State *L)
 {
-  qassert(lua_gettop(L)==2);
+  int nargs = lua_gettop(L);
+  qassert(nargs>=2&&nargs<=3);
   gauge_t *g = qopqdp_gauge_check(L, 1);
   QOP_gauge_coeffs_t coeffs;
   get_gauge_coeffs(L, &coeffs, 2);
+  QLA_Real ixi0=1, xi0=luaL_optnumber(L, 3, 1);
+  if(xi0!=1) {
+    ixi0 = 1/xi0;
+    QDP_M_eq_r_times_M(g->links[g->nd-1], &xi0, g->links[g->nd-1], QDP_all);
+  }
   QOP_info_t info;
   QLA_Real acts, actt;
   QOP_GaugeField *qg = QOP_create_G_from_qdp(g->links);
   QOP_symanzik_1loop_gauge_action(&info, qg, &acts, &actt, &coeffs);
   QOP_destroy_G(qg);
+  if(xi0!=1) {
+    QDP_M_eq_r_times_M(g->links[g->nd-1], &ixi0, g->links[g->nd-1], QDP_all);
+  }
   double ma = 0;
   //ma = get_measure_action(g);
-  lua_pushnumber(L, acts);
-  lua_pushnumber(L, actt);
+  lua_pushnumber(L, ixi0*acts);
+  lua_pushnumber(L, ixi0*actt);
   lua_pushnumber(L, ma);
   return 3;
 }
@@ -690,16 +702,28 @@ action(gauge_t *g, void *args)
 }
 #endif
 
+// 1: gauge
+// 2: force
+// 3: coeffs
+// 4: (optional) beta
+// 5: (optional) xi0
 static int
 qopqdp_gauge_force(lua_State *L)
 {
-  qassert(lua_gettop(L)==3||lua_gettop(L)==4);
+  int nargs = lua_gettop(L);
+  qassert(nargs>=3&&nargs<=5);
   gauge_t *g = qopqdp_gauge_check(L, 1);
   force_t *f = qopqdp_force_check(L, 2);
   for(int i=0; i<f->nd; i++) QDP_M_eq_zero(f->force[i], QDP_all);
   QOP_gauge_coeffs_t coeffs;
   get_gauge_coeffs(L, &coeffs, 3);
   double beta = luaL_optnumber(L, 4, 1);
+  QLA_Real ixi0=1, xi0=luaL_optnumber(L, 5, 1);
+  if(xi0!=1) {
+    ixi0 = 1/xi0;
+    beta *= ixi0;
+    QDP_M_eq_r_times_M(g->links[g->nd-1], &xi0, g->links[g->nd-1], QDP_all);
+  }
   QOP_info_t info;
   QOP_GaugeField *qg = QOP_create_G_from_qdp(g->links);
   QOP_Force *qf = QOP_create_F_from_qdp(f->force);
@@ -707,6 +731,9 @@ qopqdp_gauge_force(lua_State *L)
   QOP_extract_F_to_qdp(f->force, qf);
   QOP_destroy_G(qg);
   QOP_destroy_F(qf);
+  if(xi0!=1) {
+    QDP_M_eq_r_times_M(g->links[g->nd-1], &ixi0, g->links[g->nd-1], QDP_all);
+  }
 #if 0
   QOP_symanzik_1loop_gauge_deriv(&info, qg, qf, &coeffs, beta);
   QOP_extract_F_to_qdp(f->force, qf);

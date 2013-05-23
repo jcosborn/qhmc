@@ -8,12 +8,13 @@ function setupfields(a, p)
   fields.F = a.g:forceNew()
   fields.vol = p.vol
   fields.npseudo = p.npseudo
+  fields.gmom_var = p.gmom_var
   return setmetatable(fields, {__index=fieldsmt})
 end
 
 function fieldsmt.save(f)
   f.GSave:set(f.G)
-  f.F:random()
+  f.F:random(f.gmom_var)
   f.a.f:refresh(f.G)
 end
 

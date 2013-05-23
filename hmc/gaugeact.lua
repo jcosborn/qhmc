@@ -89,6 +89,7 @@ function gaugeact(p)
   a.latsize = p.latsize
   a.vol = p.vol
   a.beta = p.beta
+  a.xi0 = p.xi0 or 1
   a.params = p.gaugeact or { type="plaquette" }
   local gcfunc = gaugecoeffs[a.params.type]
   if not gcfunc then
@@ -104,6 +105,7 @@ function gaugeact(p)
   --for k,v in pairs(a.coeffs) do printf(" %-5s = % g\n", k, v) end
   myprint("gauge coeffs: ", a.coeffs, "\n")
   a.act0 = a.vol*(6*a.coeffs.plaq + 12*a.coeffs.rect + 16*a.coeffs.pgm + 6*a.coeffs.adjplaq)
+  a.act0 = a.act0*(1+a.xi0*a.xi0)/(2*a.xi0)
   a.gf = actmt.forceNew(a)
   actmt.clearStats(a)
   return setmetatable(a, actmt)
@@ -140,13 +142,13 @@ function actmt.forceNew(a)
 end
 
 function actmt.action(a, g)
-  local ss,st,sm = g.g:action(a.coeffs)
+  local ss,st,sm = g.g:action(a.coeffs, a.xi0)
   return a.beta*(a.act0-ss-st) + sm
 end
 
 function actmt.force(a, f, g)
   local t0 = clock()
-  g.g:force(f.f, a.coeffs, a.beta)
+  g.g:force(f.f, a.coeffs, a.beta, a.xi0)
   a.GFtime = a.GFtime + clock() - t0
   --a.GFtime = a.GFtime + f.f:time()
   a.GFflops = a.GFflops + f.f:flops()
@@ -229,8 +231,9 @@ end
 
 -- force methods
 
-function forcemt.random(f)
+function forcemt.random(f, var)
   f.f:random()
+  f.f:scale(var)
 end
 
 function forcemt.norm2(f)
