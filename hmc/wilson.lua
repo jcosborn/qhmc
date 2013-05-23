@@ -9,9 +9,17 @@ local nx = nx or 4
 local nt = nt or 8
 local beta = beta or 4
 local u0 = u0 or 1
+local aniso = aniso or {}
 local nf = nf or 2
-local mass = mass or 0.0
+local mass = mass or 0
+local clov = clov or 0
+local clov_s = clov_s or clov
+local clov_t = clov_t or clov
 _G.mass = mass
+
+aniso.xi0 = aniso.xi0 or 1
+aniso.nu = aniso.nu or 1
+aniso.gmom = aniso.gmom or 1
 
 local rhmc = {}
 local hmcmasses = { mass }
@@ -55,7 +63,7 @@ local smear = {}
 --smear[#smear+1] = { type="fat7", coeffs={three_staple=0.2} }
 --smear[#smear+1] = { type="fat7", coeffs={one_link=0.4,three_staple=0.1} }
 --smear[#smear+1] = { type="stout", rho=0.0 }
-smear[#smear+1] = { type="stout", rho=0.14 }
+--smear[#smear+1] = { type="stout", rho=0.14 }
 
 --- end of parameters
 
@@ -103,11 +111,14 @@ p.seed = seed or os.time()
 p.beta = beta
 p.nf = nf
 p.u0 = u0
+p.xi0 = aniso.xi0
+p.gmom_var = { 1, 1, 1, aniso.gmom }
 --p.gaugeact = {type="symanzik_1loop_hisq", u0=p.u0, nf=p.nf}
 p.gaugeact = {type="plaquette"}
 p.npseudo = npseudo
 p.fermact = {type="wilson", rhmc=rhmc}
 p.fermact.smear = smear
+p.fermact.coeffs = {clov_s=clov_s, clov_t=clov_t, aniso=aniso.nu/aniso.xi0}
 
 local rhmc0 = copy(rhmc)
 local acts = setupacts(p)

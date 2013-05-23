@@ -68,8 +68,11 @@ function wilsonact(ga, params)
   local smear = params.smear
   local a = {}
   a.ga = ga
+  a.coeffs = params.coeffs or {}
+  a.coeffs.clov_s = a.coeffs.clov_s or 0
+  a.coeffs.clov_t = a.coeffs.clov_t or 0
+  a.coeffs.aniso = a.coeffs.aniso or 1
   a.w = qopqdp.wilson()
-  a.w:printcoeffs()
   a.npseudo = #rhmc
   a.pseudo = {}
   for i=1,a.npseudo do a.pseudo[i] = a.w:quark() end
@@ -156,7 +159,7 @@ function actmt.set(a, g, prec)
   if nup~=a.gnupdate then
     local t0 = clock()
     local sg = smearGauge(g, a.smear)
-    a.w:set(sg, prec)
+    a.w:set(sg, a.coeffs, prec)
     if mgSetup then mgSetup(a.w) end
     a.LLtime = a.LLtime + clock() - t0
     a.LLflops = a.LLflops + a.w:flops()

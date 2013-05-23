@@ -122,14 +122,24 @@ qopqdp_force_random(lua_State *L)
   return 0;
 }
 
+// 1: force
+// 2: number or table of numbers
 static int
 qopqdp_force_scale(lua_State *L)
 {
   qassert(lua_gettop(L)==2);
   force_t *f = qopqdp_force_check(L, 1);
-  QLA_Real s = luaL_checknumber(L, 2);
-  for(int i=0; i<f->nd; i++) {
-    QDP_M_eq_r_times_M(f->force[i], &s, f->force[i], QDP_all);
+  int nd = f->nd;
+  double sa[nd];
+  if(lua_type(L,2)==LUA_TTABLE) {
+    get_double_array(L, 2, nd, sa);
+  } else {
+    double s = luaL_checknumber(L, 2);
+    for(int i=0; i<nd; i++) sa[i] = s;
+  }
+  for(int i=0; i<nd; i++) {
+    QLA_Real s = sa[i];
+    if(s!=1) QDP_M_eq_r_times_M(f->force[i], &s, f->force[i], QDP_all);
   }
   return 0;
 }

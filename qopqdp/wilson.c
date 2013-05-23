@@ -3,7 +3,7 @@
 
 static char *mtname = "qopqdp.wilson";
 
-#define kappa(m) (0.5/(4+m))
+#define kappa(w,m) (0.5/(1.+3./((w)->coeffs.aniso)+(m)))
 
 wilson_t *
 qopqdp_wilson_check(lua_State *L, int idx)
@@ -40,14 +40,6 @@ qopqdp_wilson_gc(lua_State *L)
 {
   qopqdp_wilson_free(L, -1);
   return 0;
-}
-
-static void
-qopqdp_wilson_set_coeffs(QOP_wilson_coeffs_t *coeffs)
-{
-  coeffs->clov_s = 0;
-  coeffs->clov_t = 0;
-  coeffs->aniso = 1;
 }
 
 static void
@@ -152,7 +144,6 @@ wilson_set(wilson_t *w, int prec)
   QOP_staggered_sign_t ss;
   ss.signmask = signmask;
   int r0[4] = {0,0,0,0};
-  qopqdp_wilson_set_coeffs(&w->coeffs);
   QOP_info_t info;
   if(prec==1) {
     QDP_F_ColorMatrix *flinks[nd];
@@ -177,14 +168,31 @@ wilson_set(wilson_t *w, int prec)
   w->flops = info.final_flop;
 }
 
+// 1: wilson
+// 2: gauge
+// 3: (optional) table of coefficients (clov_s, clov_t, aniso(=nu/xi0))
+// 3/4: (optional) precision
 static int
 qopqdp_wilson_set(lua_State *L)
 {
   int nargs = lua_gettop(L);
-  qassert(nargs>=2 && nargs<=3);
+  qassert(nargs>=2 && nargs<=4);
   wilson_t *w = qopqdp_wilson_check(L, 1);
   gauge_t *g = qopqdp_gauge_check(L, 2);
-  double prec = luaL_optint(L, 3, 0);
+  w->coeffs = QOP_WILSON_COEFFS_ZERO;
+  double prec = 0;
+  if(lua_type(L,3)==LUA_TTABLE) {
+    tableLoopKeys(L, 3) {
+      //printf0("%s\n", tableLoopKey);
+      tableLoopKeysIfKeySetDouble(L, "clov_s", w->coeffs.clov_s);
+      else tableLoopKeysIfKeySetDouble(L, "clov_t", w->coeffs.clov_t);
+      else tableLoopKeysIfKeySetDouble(L, "aniso", w->coeffs.aniso);
+      tableLoopKeysEnd(L);
+    }
+    prec = luaL_optint(L, 4, 0);
+  } else {
+    prec = luaL_optint(L, 3, 0);
+  }
   if(w->fl) {
     QOP_wilson_destroy_L(w->fl);
     w->fl = NULL;
@@ -275,7 +283,7 @@ qopqdp_wilson_D(lua_State *L)
     eos = qopqdp_check_evenodd(L, 6);
   }
   wilson_set(w, 2);
-  QOP_wilson_dslash_qdp(NULL, w->fl, kappa(mass), 1, qd->df, qs->df, eod, eos);
+  QOP_wilson_dslash_qdp(NULL, w->fl, kappa(w,mass), 1, qd->df, qs->df, eod, eos);
   return 0;
 }
 
@@ -294,7 +302,7 @@ qopqdp_wilson_Ddag(lua_State *L)
     eos = qopqdp_check_evenodd(L, 6);
   }
   wilson_set(w, 2);
-  QOP_wilson_dslash_qdp(NULL, w->fl, kappa(mass), -1, qd->df, qs->df, eod, eos);
+  QOP_wilson_dslash_qdp(NULL, w->fl, kappa(w,mass), -1, qd->df, qs->df, eod, eos);
   return 0;
 }
 
@@ -308,7 +316,7 @@ qopqdp_wilson_precD(lua_State *L)
   wquark_t *qs = qopqdp_wquark_check(L, 3);
   double mass = luaL_checknumber(L, 4);
   wilson_set(w, 2);
-  double k = kappa(mass);
+  double k = kappa(w,mass);
   QOP_wilson_dslash_qdp(NULL, w->fl, k, 1, qd->df, qs->df, QOP_ODD, QOP_EVEN);
   QOP_wilson_dslash_qdp(NULL, w->fl, k, 1, qd->df, qd->df, QOP_EVEN, QOP_ODD);
   QLA_Real s = -4*k*k;
@@ -326,7 +334,7 @@ qopqdp_wilson_precDdag(lua_State *L)
   wquark_t *qs = qopqdp_wquark_check(L, 3);
   double mass = luaL_checknumber(L, 4);
   wilson_set(w, 2);
-  double k = kappa(mass);
+  double k = kappa(w,mass);
   QOP_wilson_dslash_qdp(NULL, w->fl, k, -1, qd->df, qs->df, QOP_ODD, QOP_EVEN);
   QOP_wilson_dslash_qdp(NULL, w->fl, k, -1, qd->df, qd->df, QOP_EVEN, QOP_ODD);
   QLA_Real s = -4*k*k;
@@ -415,7 +423,7 @@ qopqdp_wilson_solve(lua_State *L)
   }
 #endif
   QOP_info_t info;
-  double k = kappa(mass);
+  double k = kappa(w,mass);
   if(precNE==1) {
     if(w->mg) {
       wilson_set(w, 1);
@@ -566,7 +574,7 @@ qopqdp_wilson_force(lua_State *L)
     QLA_Real qks[nql], qeps[nql];
     QDP_DiracFermion *dfl[nql], *dfr[nql];
     for(int i=0; i<nql; i++) {
-      qks[i] = kappa(ms[i]);
+      qks[i] = kappa(w,ms[i]);
       qeps[i] = eps[i];
       dfl[i] = ql[i]->df;
       dfr[i] = qr[i]->df;
@@ -575,6 +583,12 @@ qopqdp_wilson_force(lua_State *L)
     if(deriv) {
       QOP_wilson_deriv_prec_multi_qdp(&info, w->fl, f->force, qks, qeps, dfl, dfr, nql);
       rephase_F(f);
+      if(w->coeffs.aniso!=1) {
+	QLA_Real a = w->coeffs.aniso;
+	for(int i=0; i<f->nd-1; i++) {
+	  QDP_M_eq_r_times_M(f->force[i], &a, f->force[i], QDP_all);
+	}
+      }
     } else {
       QOP_wilson_force_prec_multi_qdp(&info, w->fl, f->force, qks, qeps, dfl, dfr, nql);
     }
@@ -625,8 +639,6 @@ qopqdp_wilson_printcoeffs(lua_State *L)
 {
   qassert(lua_gettop(L)==1);
   //wilson_t *w = qopqdp_wilson_check(L, 1);
-  QOP_wilson_coeffs_t coeffs;
-  qopqdp_wilson_set_coeffs(&coeffs);
   //if(QDP_this_node==0) {
   //printf0("wilson coeffs:\n");
   //}
