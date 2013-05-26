@@ -9,10 +9,10 @@ LDLIBS = $(LQOP) $(LQDP) $(LQLA) $(LQIO) $(LQMP) -lm
 HDRS = ../../qopqdp/qhmc_qopqdp.h ../../qopqdp/qhmc_qopqdp_common.h
 OBJS = ../../qopqdp/misc.o
 
-all: sqrt
+all: test_exp sqrt
 
 sqrt: $(OBJS)
-
+test_exp: $(OBJS)
 clean:
 	-rm -f sqrt $(OBJS)
 

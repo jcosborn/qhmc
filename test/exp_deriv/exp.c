@@ -202,6 +202,7 @@ main(void) {
   for(int i=0; i<QLA_Nc; i++) {
     QLA_c_eq_r_plus_ir(QLA_elem_M(matI,i,i), 1.0, 0.0);
   }
+
   printm(&matI);
 
   //QLA_Complex tr;
@@ -240,7 +241,7 @@ main(void) {
   QLA_c_eq_r_plus_ir(minus_i, 0, -1);
   QLA_ColorMatrix Q, Q2, expiQ, qla_expA;
 
-  QLA_M_eq_C_times_M(&Q, &minus_i, &A);
+  QLA_M_eq_C_times_M(&Q, &minus_i, &matI);
   QLA_M_eq_M_times_M(&Q2, &Q, &Q);
 
   printf("Q=\n"); printm(&Q);
@@ -264,7 +265,7 @@ main(void) {
   QLA_M_peq_c_times_M(&expiQ, &qf1, &Q);
   QLA_M_peq_c_times_M(&expiQ, &qf2, &Q2);
 
-  QLA_M_eq_exp_M(&qla_expA, &A);
+  QLA_M_eq_exp_M(&qla_expA, &matI);
 
   printf("my expiQ = \n");
   printm(&expiQ);
