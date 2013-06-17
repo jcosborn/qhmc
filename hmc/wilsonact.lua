@@ -191,10 +191,10 @@ function actmt.refresh(a, g)
     a.w:precD(t.qt, t.qt2, t.mass) -- t.qt holds the pseudofermion vector
     if t.mass2 then
       a:solve(t.pt, t.qt, t.mass2, t.resid, "prec", t.solveopts, t.cgnum)
-    -- not sure if this is needed
+    --[[ not sure if this is needed
     else 
       t.pt = t.qt
-    -- not sure ended
+    -- not sure ended ]]
     end
   end
 end
@@ -211,6 +211,7 @@ function actmt.action(a, g)
     a:solve(fa.pt, fa.qt, fa.mass, fa.resid, "prec", fa.solveopts, fa.cgnum)
     act = act + fa.pt:norm2("even")
   end
+  print("act = ", act)
   return act
 end
 
@@ -226,21 +227,30 @@ function actmt.updateMomentum(a, f, g, teps, ti)
   local imin = a.npseudo
   for k,i in ipairs(ti) do
     local t = a.rhmc[i].MD
-    local tempphi = a.pseudo[i] 
     if t.mass2 then
-       a.w:precD(tempphi, a.pseudo[i], t.mass2) -- phi is now W \phi
+       a.w:precD(t.qt, a.pseudo[i], t.mass2) -- tempphi is now W \phi
+       -- (M M^+)^{-1} W \phi = Y
+       a:solve(t.pt, t.qt, t.mass, t.resid, "precNE", t.solveopts, t.cgnum)	
+    else
+       -- t.pt = (M M^+)^{-1} \phi 
+       a:solve(t.pt, a.pseudo[i], t.mass, t.resid, "precNE", t.solveopts, t.cgnum)
     end
-    -- t.pt = (M M^+)^{-1} \phi or (M M^+)^{-1} W \phi
-    a:solve(t.pt, tempphi, t.mass, t.resid, "precNE", t.solveopts, t.cgnum)
-    a.w:precDdag(t.qt, t.pt, t.mass)
+    a.w:precDdag(t.qt, t.pt, t.mass) -- t.qt = M^+ Y
 
     if t.mass2 then
-      local kappa = 0.5/(t.mass+4.0)
-      local kappa2 = 0.5/(t.mass2+4.0)
-      t.coeffs = {1, -kappa2*kappa2/(kappa*kappa)}
-      t.qt:combine({t.qt, a.pseudo[i]}, t.coeffs, "even")
+      local kappa = 0.5/(t.mass+3+a.coeffs.aniso)
+      local kappa2 = 0.5/(t.mass2+3+a.coeffs.aniso)
+      local coeffs = {1, -kappa2*kappa2/(kappa*kappa)}
+--      local coeffs = {1, -1}
+--      print(coeffs[1],coeffs[2])
+--      print(t.qt:norm2("even"))
+--      print(a.pseudo[i]:norm2("even"))
+      t.qt:combine({t.qt, a.pseudo[i]}, coeffs, "even") -- M^+Y - \tilde{k}^2/k^2 \phi
+--      print("mass2 norm =", t.qt:norm2("even"))
+--    else
+--      print("k = ", k)
+--      print(t.qt:norm2("even"))
     end
-
     pt[#pt+1] = t.pt
     qt[#qt+1] = t.qt
     ms[#ms+1] = t.mass

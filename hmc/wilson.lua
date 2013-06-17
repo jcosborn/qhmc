@@ -14,7 +14,7 @@ local u0 = u0 or 1
 local aniso = aniso or {}
 local nf = nf or 2
 local mass = mass or 0.0
-local rho = rho or 0.2
+local rho = rho or 0.0
 local clov = clov or 0
 local clov_s = clov_s or clov
 local clov_t = clov_t or clov
@@ -25,8 +25,8 @@ aniso.nu = aniso.nu or 1
 aniso.gmom = aniso.gmom or 1
 
 local rhmc = {}
-local hmcmasses = { mass, 0.8*mass, 0.6*mass }
---local hmcmasses = { mass, 20*mass }
+--local hmcmasses = {-0.4086, -0.37}
+local hmcmasses = { mass, 1.2*mass, 1.4*mass }
 local seed = 1316844761
 
 --local inlat = inlat or nil
@@ -36,9 +36,9 @@ local outlat = outlat or nil
 --local outlat = "f8x88b40m01.100"
 local warmup = warmup or 0
 local ntraj = ntraj or 10
-local tau = tau or 0.1
-local ngsteps = ngsteps or 240
-local nfsteps = nfsteps or { 80 }
+local tau = tau or 1
+local ngsteps = ngsteps or {24}
+local nfsteps = nfsteps or {4, 8}
 --local nfsteps = { 80, 80 }
 
 nfsteps = repelem(nfsteps, nf/2)
@@ -88,20 +88,19 @@ function setpseudo(rhmc, mf, mb)
     }
   end
 end
+print("#hmcmasses", #hmcmasses)
 
 for i=1,#hmcmasses do
   for j=1,nf/2 do
-    if i<#hmcmasses then
+    if i < #hmcmasses then
       setpseudo(rhmc, hmcmasses[i], hmcmasses[i+1])
-      print(i)
-      print(j)
     else
       setpseudo(rhmc, hmcmasses[i])
     end
   end
 end
 local npseudo = #rhmc
-
+print("npseudo = ", npseudo)
 -- p: lattice parameters, including fermion and gauge actions, smearing, anisotropy, and lattice dimensions, etc. 
 local p = {}
 p.latsize = { nx, nx, nx, nt }
