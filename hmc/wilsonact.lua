@@ -211,7 +211,7 @@ function actmt.action(a, g)
     a:solve(fa.pt, fa.qt, fa.mass, fa.resid, "prec", fa.solveopts, fa.cgnum)
     act = act + fa.pt:norm2("even")
   end
-  print("act = ", act)
+  -- print("act = ", act)
   return act
 end
 
@@ -238,8 +238,8 @@ function actmt.updateMomentum(a, f, g, teps, ti)
     a.w:precDdag(t.qt, t.pt, t.mass) -- t.qt = M^+ Y
 
     if t.mass2 then
-      local kappa = 0.5/(t.mass+3+a.coeffs.aniso)
-      local kappa2 = 0.5/(t.mass2+3+a.coeffs.aniso)
+      local kappa = 0.5/(t.mass+1.0+3.0/a.coeffs.aniso)
+      local kappa2 = 0.5/(t.mass2+1.0+3.0/a.coeffs.aniso)
       local coeffs = {1, -kappa2*kappa2/(kappa*kappa)}
 --      local coeffs = {1, -1}
 --      print(coeffs[1],coeffs[2])
