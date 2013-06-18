@@ -4,7 +4,7 @@ require 'run'
 require 'mg'
 
 trace(doTrace)
-noMG = true
+--noMG = true
 
 local nx = nx or 4
 local nt = nt or 8
@@ -25,8 +25,8 @@ aniso.nu = aniso.nu or 1
 aniso.gmom = aniso.gmom or 1
 
 local rhmc = {}
---local hmcmasses = {-0.4086, -0.37}
-local hmcmasses = { mass, 1.2*mass, 1.4*mass }
+local hmcmasses = masses
+--local hmcmasses = { mass, 1.4*mass }
 local seed = 1316844761
 
 --local inlat = inlat or nil
