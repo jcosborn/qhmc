@@ -4,7 +4,7 @@ function mgSetup(w)
   if mgIsSet then return end
   mgIsSet = true
   if noMG then return end
-  local kappa = 0.5/mass
+  local kappa = 0.5/(mass+4)
   --local block = {2,2,2,2}
   local block = {4,4,4,4}
   local lat = {}
