@@ -42,20 +42,20 @@ local nfsteps = nfsteps or {4, 8}
 --local nfsteps = { 80, 80 }
 
 nfsteps = repelem(nfsteps, nf/2)
-local grcg = { prec=2, resid=1e-10, restart=500 }
-local facg = { prec=2, resid=1e-10, restart=500 }
+local grcg = { prec=2, resid=1e-8, restart=500 }
+local facg = { prec=2, resid=1e-8, restart=500 }
 local mdcg = { prec=2, resid=1e-8, restart=500 }
 local ffprec = 2
 --local gintalg = {type="leapfrog"}
 --local gintalg = {type="omelyan"}
-local gintalg = {type="omelyan", lambda=0.22}
+local gintalg = {type="2MNV", lambda=0.1932}
 --local gintalg = {type="omelyan", lambda=0.33}
 --local fintalg = {type="leapfrog"}
-local fintalg = {type="omelyan", lambda=0.22}
+local fintalg = {type="2MNV", lambda=0.1932}
 
 local pbp = {}
 pbp[1] = { reps=1 }
-pbp[1].mass = mass
+pbp[1].mass = masses[1]
 pbp[1].resid = 1e-6
 pbp[1].opts = { restart=500, max_restarts=5, max_iter=2000 }
 

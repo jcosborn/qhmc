@@ -241,16 +241,9 @@ function actmt.updateMomentum(a, f, g, teps, ti)
       local kappa = 0.5/(t.mass+1.0+3.0/a.coeffs.aniso)
       local kappa2 = 0.5/(t.mass2+1.0+3.0/a.coeffs.aniso)
       local coeffs = {1, -kappa2*kappa2/(kappa*kappa)}
---      local coeffs = {1, -1}
---      print(coeffs[1],coeffs[2])
---      print(t.qt:norm2("even"))
---      print(a.pseudo[i]:norm2("even"))
       t.qt:combine({t.qt, a.pseudo[i]}, coeffs, "even") -- M^+Y - \tilde{k}^2/k^2 \phi
---      print("mass2 norm =", t.qt:norm2("even"))
---    else
---      print("k = ", k)
---      print(t.qt:norm2("even"))
     end
+
     pt[#pt+1] = t.pt
     qt[#qt+1] = t.qt
     ms[#ms+1] = t.mass
