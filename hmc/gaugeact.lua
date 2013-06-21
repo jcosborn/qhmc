@@ -211,14 +211,13 @@ function gaugemt.plaq(g)
 end
 
 function gaugemt.ploop(g)
-	local nd = #qopqdp.lattice()
-	local plr, pli={},{}
-	for i=1,nd do
-		local plpath = rep(i,g.a.latsize[i])
-		plr[i],pli[i] = g.g:loop(plpath)
-    end
-	
-	return plr, pli
+  local nd = #qopqdp.lattice()
+  local plr,pli = {},{}
+  for i=1,nd do
+    local plpath = rep(-i,g.a.latsize[i])
+    plr[i],pli[i] = g.g:loop(plpath)
+  end
+  return plr, pli
 end
 
 function gaugemt.update(g, f, eps)
@@ -233,7 +232,7 @@ end
 
 function forcemt.random(f, var)
   f.f:random()
-  f.f:scale(var)
+  if var then f.f:scale(var) end
 end
 
 function forcemt.norm2(f)

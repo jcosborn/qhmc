@@ -754,13 +754,21 @@ qopqdp_gauge_update(lua_State *L)
   qassert(lua_gettop(L)==3);
   gauge_t *g = qopqdp_gauge_check(L, 1);
   force_t *f = qopqdp_force_check(L, 2);
-  QLA_Real eps = luaL_checknumber(L, 3);
+  int nd = f->nd;
+  double eps[nd];
+  if(lua_type(L,3)==LUA_TTABLE) {
+    get_double_array(L, 3, nd, eps);
+  } else {
+    double s = luaL_checknumber(L, 3);
+    for(int i=0; i<nd; i++) eps[i] = s;
+  }
 #if 1
   //get_gauge_links(g);
   QDP_ColorMatrix *m1 = QDP_create_M();
   QDP_ColorMatrix *m2 = QDP_create_M();
-  for(int i=0; i<g->nd; i++) {
-    QDP_M_eq_r_times_M(m1, &eps, f->force[i], QDP_all);
+  for(int i=0; i<nd; i++) {
+    QLA_Real teps = eps[i];
+    QDP_M_eq_r_times_M(m1, &teps, f->force[i], QDP_all);
     //QDP_M_eq_exp_M(m2, m1, QDP_all);
     QDP_M_eq_expTA_M(m2, m1, QDP_all);  // assume traceless antihermitian
     QDP_M_eq_M_times_M(m1, m2, g->links[i], QDP_all);

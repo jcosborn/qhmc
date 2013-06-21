@@ -320,7 +320,7 @@ function actmt.pbp(a, g, mass, resid, opts)
   local y = getqt(a, 2)
   x:random()
   a:solve({y}, x, {mass}, resid, "all", opts, 0)
-  return mass*y:norm2()/a.ga.vol
+  return mass*y:norm2()/a.ga.vol, x:norm2()/a.ga.vol
 end
 
 function actmt.pions(a, g, mass, resid, opts)

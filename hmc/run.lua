@@ -66,7 +66,8 @@ local function measure(a, r)
 
   for i,v in ipairs(r.pbp) do
     for j=1,v.reps do
-      local cc = a.f:pbp(a.fields.G, v.mass, v.resid, v.opts)
+      local cc,nrm2 = a.f:pbp(a.fields.G, v.mass, v.resid, v.opts)
+      --printf("pbp nrm2 %g : %g\n", v.mass, nrm2)
       printf("pbp mass %g : %g\n", v.mass, cc)
     end
   end

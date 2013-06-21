@@ -150,13 +150,16 @@ qopqdp_force_norm2(lua_State *L)
   qassert(lua_gettop(L)==1);
   force_t *f = qopqdp_force_check(L, 1);
   QLA_Real nrm = 0;
+  double tn[f->nd];
   for(int i=0; i<f->nd; i++) {
     QLA_Real t;
     QDP_r_eq_norm2_M(&t, f->force[i], QDP_all);
     nrm += t;
+    tn[i] = t;
   }
   lua_pushnumber(L, nrm);
-  return 1;
+  push_double_array(L, f->nd, tn);
+  return 2;
 }
 
 static int

@@ -12,6 +12,7 @@ function setupfields(a, p)
   return setmetatable(fields, {__index=fieldsmt})
 end
 
+-- momentum distribution exp(-0.5*Tr(H^+ H)/(var^2))
 function fieldsmt.save(f)
   f.GSave:set(f.G)
   f.F:random(f.gmom_var)
@@ -31,7 +32,16 @@ end
 
 function fieldsmt.action(f)
   local Sgq = f.a.g:action(f.G)
-  local Sgp = 0.5 * f.F:norm2() - 16*f.vol
+  local Sgp = 0
+  if f.gmom_var then
+    local _,fn = f.F:norm2()
+    for i=1,#fn do
+      local si = 1/f.gmom_var[i]
+      Sgp = Sgp + (0.5*si*si*fn[i]-4*f.vol)
+    end
+  else
+    Sgp = 0.5 * f.F:norm2() - 16*f.vol
+  end
   local Sfq = f.a.f:action(f.G)
   local S = Sgq + Sgp + Sfq
   printf("Sgq: %-12.10g  Sgp: %-12.10g  Sfq: %-12.10g\n", Sgq, Sgp, Sfq)
@@ -62,6 +72,14 @@ end
 function fieldsmt.updateField(f, i, eps)
   --gt = gt + eps
   --printf("Gupdate %g %g %g\n", eps, gt, 0.5*f.F:norm2()-16*vol)
+  if f.gmom_var then
+    local teps = {}
+    for i=1,#f.gmom_var do
+      local si = 1/f.gmom_var[i]
+      teps[i] = eps * si*si
+    end
+    eps = teps
+  end
   f.G:update(f.F, eps)
   --local ss,st = f.G:plaq()
   --printf("plaq %g %g\n", 3*ss, 3*st);
