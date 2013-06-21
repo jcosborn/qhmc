@@ -4,7 +4,7 @@ qhmc="../../main/qhmc"
 hmc="../../hmc"
 
 export OMP_NUM_THREADS=1
-opts="nx=4;nt=8"
+opts="nx=8;nt=16"
 #opts="$opts;beta=5.5;masses={-0.8254, -0.75};ngsteps=192;nfsteps={8,32}"
 opts="$opts;beta=5.5;masses={-0.4086,-0.37};ngsteps=192;nfsteps={8,32}"
 opts="$opts;aniso={xi0=2.38,nu=1,gmom=2.4}"
