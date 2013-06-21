@@ -6,13 +6,15 @@ t="aniso.out"
 
 export OMP_NUM_THREADS=1
 
-opts="beta=5.5;mass=0.2;ngsteps=800;nfsteps={200}"
+#opts="beta=5.5;mass=0.2;ngsteps=800;nfsteps={200}"
+opts="beta=5.5;mass=-0.4125;ngsteps=192;nfsteps={64}"
+#opts="$opts;nx=8;nt=16"
 opts="$opts;noMG=true"
-opts="$opts;ntraj=1000"
+opts="$opts;ntraj=10"
 opts="$opts;aniso={xi0=2.38,nu=1,gmom=2.4}"
 #opts="$opts;aniso={xi0=2.38,nu=1,gmom=1.1}"
 #opts="$opts;aniso={xi0=2.38,nu=1,gmom=1}"
-opts="$opts;rho=0.14"
+#opts="$opts;rho=0.14"
 
 #$qhmc $hmc/wilson.lua
 #$qhmc -e "ngsteps=60;nfsteps={20}" $hmc/wilson.lua
