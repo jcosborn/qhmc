@@ -1,11 +1,10 @@
 HOST := $(shell hostname)
 BGQ := $(filter cetus% vesta% mira%,$(HOST))
 ifneq "$(BGQ)" ""
-  CC = mpixlc
-  COPT = -O3 -qinfo=pro -g
+  CC = /bgsys/drivers/ppcfloor/comm/xl.legacy.ndebug/bin/mpixlc_r
+  COPT = -O3 -qinfo=pro -g 
 else
   CC = mpicc
-  #COPT = -O3 -std=gnu99 -Wall -Wno-strict-aliasing -fopenmp
   COPT = -O3 -g -std=gnu99 -Wall -fopenmp
 endif
 
@@ -20,7 +19,7 @@ endif
 
 #DEFINES = -DQHMC_REPRO_UNIFORM
 
-TAG = -mpi
+TAG = -bgq
 SCIDAC = $(HOME)/lqcd/install
 QMPDIR = $(SCIDAC)/qmp$(TAG)
 QIODIR = $(SCIDAC)/qio$(TAG)

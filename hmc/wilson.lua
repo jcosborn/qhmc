@@ -14,6 +14,7 @@ local u0 = u0 or 1
 local aniso = aniso or {}
 local nf = nf or 2
 local mass = mass or 0.0
+local MPmass = MPmass or nil
 local rho = rho or 0.0
 local clov = clov or 0
 local clov_s = clov_s or clov
@@ -25,7 +26,7 @@ aniso.nu = aniso.nu or 1
 aniso.gmom = aniso.gmom or 1
 
 local rhmc = {}
-local hmcmasses = masses
+local hmcmasses = {mass}
 --local hmcmasses = { mass, 1.4*mass }
 local seed = 1316844761
 
@@ -48,14 +49,17 @@ local mdcg = { prec=2, resid=1e-8, restart=500 }
 local ffprec = 2
 --local gintalg = {type="leapfrog"}
 --local gintalg = {type="omelyan"}
-local gintalg = {type="2MNV", lambda=0.1932}
+local gintalg = {type="omelyan", lambda=0.22}
+--local gintalg = {type="2MNV", lambda=0.1932}
 --local gintalg = {type="omelyan", lambda=0.33}
+
 --local fintalg = {type="leapfrog"}
-local fintalg = {type="2MNV", lambda=0.1932}
+local fintalg = {type="omelyan", lambda=0.22}
+--local fintalg = {type="2MNV", lambda=0.1932}
 
 local pbp = {}
 pbp[1] = { reps=1 }
-pbp[1].mass = masses[1]
+pbp[1].mass = mass
 pbp[1].resid = 1e-6
 pbp[1].opts = { restart=500, max_restarts=5, max_iter=2000 }
 
@@ -88,7 +92,6 @@ function setpseudo(rhmc, mf, mb)
     }
   end
 end
-print("#hmcmasses", #hmcmasses)
 
 for i=1,#hmcmasses do
   for j=1,nf/2 do
@@ -100,7 +103,6 @@ for i=1,#hmcmasses do
   end
 end
 local npseudo = #rhmc
-print("npseudo = ", npseudo)
 -- p: lattice parameters, including fermion and gauge actions, smearing, anisotropy, and lattice dimensions, etc. 
 local p = {}
 p.latsize = { nx, nx, nx, nt }
@@ -168,6 +170,7 @@ if inlat then
   printf("plaq ss: %g  st: %g  tot: %g\n", ps, pt, 0.5*(ps+pt))
 else
   acts:unit()
+--  acts:random()
 end
 
 if warmup then
