@@ -20,13 +20,13 @@ endif
 
 #DEFINES = -DQHMC_REPRO_UNIFORM
 
-#TAG = -mpi
+TAG = -mpi
 SCIDAC = $(HOME)/lqcd/install
 QMPDIR = $(SCIDAC)/qmp$(TAG)
 QIODIR = $(SCIDAC)/qio$(TAG)
 QLADIR = $(SCIDAC)/qla$(TAG)
 QDPDIR = $(SCIDAC)/qdp$(TAG)
-QOPDIR = $(SCIDAC)/qopqdp-cvs$(TAG)
+QOPDIR = $(SCIDAC)/qopqdp$(TAG)
 
 IQMP = -I$(QMPDIR)/include
 LQMP = -L$(QMPDIR)/lib -lqmp

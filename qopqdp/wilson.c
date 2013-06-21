@@ -3,7 +3,7 @@
 
 static char *mtname = "qopqdp.wilson";
 
-#define kappa(w,m) (0.5/(1.+3./((w)->coeffs.aniso)+(m)))
+#define kappa(w,m) (0.5/(1.+3.*((w)->coeffs.aniso)+(m)))
 
 wilson_t *
 qopqdp_wilson_check(lua_State *L, int idx)

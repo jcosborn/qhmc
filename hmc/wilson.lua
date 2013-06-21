@@ -14,7 +14,7 @@ local u0 = u0 or 1
 local aniso = aniso or {}
 local nf = nf or 2
 local mass = mass or 0.0
-local rho = rho or 0.0
+--local rho = rho or 0.02
 local clov = clov or 0
 local clov_s = clov_s or clov
 local clov_t = clov_t or clov
@@ -66,6 +66,9 @@ local smear = {}
 --smear[#smear+1] = { type="fat7", coeffs={three_staple=0.2} }
 --smear[#smear+1] = { type="fat7", coeffs={one_link=0.4,three_staple=0.1} }
 --smear[#smear+1] = { type="stout", rho=rho}
+if rho then
+  smear[#smear+1] = { type="stout", rho=rho}
+end
 
 --- end of parameters
 
