@@ -48,7 +48,6 @@ local mdcg = { prec=2, resid=1e-8, restart=500 }
 local ffprec = 2
 --local gintalg = {type="leapfrog"}
 --local gintalg = {type="omelyan"}
-<<<<<<< HEAD
 --local gintalg = {type="omelyan", lambda=0.22}
 local gintalg = {type="2MNV", lambda=0.1932}
 --local gintalg = {type="omelyan", lambda=0.33}
