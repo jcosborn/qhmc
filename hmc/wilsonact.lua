@@ -238,8 +238,8 @@ function actmt.updateMomentum(a, f, g, teps, ti)
     a.w:precDdag(t.qt, t.pt, t.mass) -- t.qt = M^+ Y
 
     if t.mass2 then
-      local kappa = 0.5/(t.mass+1.0+3.0/a.coeffs.aniso)
-      local kappa2 = 0.5/(t.mass2+1.0+3.0/a.coeffs.aniso)
+      local kappa = 0.5/(t.mass+1.0+3.0*a.coeffs.aniso)
+      local kappa2 = 0.5/(t.mass2+1.0+3.0*a.coeffs.aniso)
       local coeffs = {1, -kappa2*kappa2/(kappa*kappa)}
       t.qt:combine({t.qt, a.pseudo[i]}, coeffs, "even") -- M^+Y - \tilde{k}^2/k^2 \phi
     end

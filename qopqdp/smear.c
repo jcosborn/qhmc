@@ -269,7 +269,8 @@ qopqdp_smear(lua_State *L)
       lua_pop(L, 1);
     }
     lua_pop(L, 1);
-    QOP_staples(nout, nin, out, in, nstaples,
+    QOP_info_t info;
+    QOP_staples(&info, nout, nin, out, in, nstaples,
 		topdir, sidedir, toplinknum, sidelinknum, coeffs);
   } else {
     printerr("unknown smearing type: %s\n", type);
@@ -528,7 +529,8 @@ qopqdp_smearChain(lua_State *L)
       lua_pop(L, 1);
     }
     lua_pop(L, 1);
-    QOP_staples_deriv(nout, nin, deriv, chain, in, nstaples,
+    QOP_info_t info;
+    QOP_staples_deriv(&info, nout, nin, deriv, chain, in, nstaples,
 		topdir, sidedir, toplinknum, sidelinknum, coeffs);
   } else {
     printerr("unknown smearing type: %s\n", type);

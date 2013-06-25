@@ -91,6 +91,32 @@ qopqdp_squark_random(lua_State *L)
   return 0;
 }
 
+static void
+lnormalize_V(NCPROT QLA_ColorVector(*x), int i)
+{
+  for(int ic=0; ic<QLA_Nc; ic++) {
+    QLA_Complex z = QLA_elem_V(*x,ic);
+    QLA_Real n = QLA_norm2_c(z);
+    if(n!=0) n = 1/sqrt(n);
+    QLA_c_eq_r_times_c(QLA_elem_V(*x,ic), n, z);
+  }
+}
+
+static int
+qopqdp_squark_randomU1(lua_State *L)
+{
+  int narg = lua_gettop(L);
+  qassert(narg==1 || narg==2);
+  squark_t *q = qopqdp_squark_check(L, 1);
+  QDP_Subset sub = QDP_all;
+  if(narg!=1) {
+    sub = qopqdp_check_subset(L, 2);
+  }
+  QDP_V_eq_gaussian_S(q->cv, qopqdp_srs, sub);
+  QDP_V_eq_funci(q->cv, lnormalize_V, sub);
+  return 0;
+}
+
 static int
 qopqdp_squark_set(lua_State *L)
 {
@@ -207,6 +233,7 @@ static struct luaL_Reg squark_reg[] = {
   { "zero",    qopqdp_squark_zero },
   { "point",   qopqdp_squark_point },
   { "random",  qopqdp_squark_random },
+  { "randomU1",qopqdp_squark_randomU1 },
   { "set",     qopqdp_squark_set },
   { "norm2",   qopqdp_squark_norm2 },
   { "Re_dot",  qopqdp_squark_redot },
