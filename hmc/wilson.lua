@@ -14,6 +14,7 @@ local u0 = u0 or 1
 local aniso = aniso or {}
 local nf = nf or 2
 local mass = mass or 0.0
+local MPmass = MPmass or nil
 local rho = rho or 0.0
 local clov = clov or 0
 local clov_s = clov_s or clov
@@ -48,6 +49,7 @@ local mdcg = { prec=2, resid=1e-8, restart=500 }
 local ffprec = 2
 --local gintalg = {type="leapfrog"}
 --local gintalg = {type="omelyan"}
+<<<<<<< HEAD
 --local gintalg = {type="omelyan", lambda=0.22}
 local gintalg = {type="2MNV", lambda=0.1932}
 --local gintalg = {type="omelyan", lambda=0.33}
