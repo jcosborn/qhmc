@@ -25,7 +25,7 @@ aniso.nu = aniso.nu or 1
 aniso.gmom = aniso.gmom or 1
 
 local rhmc = {}
-local hmcmasses = masses or {-0.2}
+local hmcmasses = {mass, mass2}
 --local hmcmasses = { mass, 1.4*mass }
 local seed = 1316844761
 
