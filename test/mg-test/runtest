@@ -1,0 +1,16 @@
+#!/bin/sh
+
+qhmc="../../main/qhmc"
+hmc="../../hmc"
+
+export OMP_NUM_THREADS=1
+opts="nx=8;nt=16"
+opts="$opts;xi0=2.38;nu=1"
+opts="$opts;mass=-0.4125"
+
+#opts="$opts;beta=5.5;masses={-0.8254, -0.75};ngsteps=192;nfsteps={8,32}"
+
+t="mg-test.out"
+stamp=`date +%Y%m%d%H%M%S`
+echo $opts > $t.$stamp 
+mpirun -np 2 $qhmc -e "$opts" $hmc/mg-test.lua >> $t.$stamp
