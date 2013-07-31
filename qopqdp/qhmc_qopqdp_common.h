@@ -187,6 +187,14 @@ writer_t *qopqdp_writer_check(lua_State *L, int idx);
 
 
 typedef struct {
+  QDP_Complex *c;
+} cscalar_t;
+cscalar_t *qopqdp_cscalar_create(lua_State *L);
+cscalar_t *qopqdp_cscalar_check(lua_State *L, int idx);
+void qopqdp_cscalar_array_check(lua_State *L, int idx, int n, cscalar_t *s[n]);
+
+
+typedef struct {
   QDP_ColorMatrix **links;
   QDP_ColorMatrix **lie;
   int nd;

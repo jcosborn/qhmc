@@ -1,4 +1,4 @@
-package.path = arg[0]:gsub("[^/]*.lua","?.lua") .. ";./hmc/?.lua;" .. package.path
+package.path = (userpath or "") .. "./?.lua;./hmc/?.lua;" .. arg[0]:gsub("[^/]*.lua","?.lua;") .. package.path
 require 'common'
 require 'gaugeact'
 require 'asqtadact'
