@@ -4,7 +4,7 @@ require 'run'
 require 'mg'
 
 trace(doTrace)
-noMG = true
+--noMG = true
 
 local nx = nx or 4
 local nt = nt or 8
@@ -25,8 +25,8 @@ aniso.nu = aniso.nu or 1
 aniso.gmom = aniso.gmom or 1
 
 local rhmc = {}
-local hmcmasses = { mass }
---local hmcmasses = { mass, 20*mass }
+local hmcmasses = {mass, mass2}
+--local hmcmasses = { mass, 1.4*mass }
 local seed = 1316844761
 
 --local inlat = inlat or nil
@@ -34,7 +34,7 @@ local inlat = inlat or nil
 --local inlat = "l84f8b40m04a.2700.scidac"
 local outlat = outlat or nil
 --local outlat = "f8x88b40m01.100"
-local warmup = warmup or nil
+local warmup = warmup or 0
 local ntraj = ntraj or 10
 local tau = tau or 1
 local ngsteps = ngsteps or 240
@@ -42,16 +42,19 @@ local nfsteps = nfsteps or { 80 }
 --local nfsteps = { 80, 80 }
 
 nfsteps = repelem(nfsteps, nf/2)
-local grcg = { prec=2, resid=1e-10, restart=500 }
-local facg = { prec=2, resid=1e-10, restart=500 }
+local grcg = { prec=2, resid=1e-8, restart=500 }
+local facg = { prec=2, resid=1e-8, restart=500 }
 local mdcg = { prec=2, resid=1e-8, restart=500 }
 local ffprec = 2
 --local gintalg = {type="leapfrog"}
 --local gintalg = {type="omelyan"}
-local gintalg = {type="omelyan", lambda=0.22}
+--local gintalg = {type="omelyan", lambda=0.22}
+local gintalg = {type="2MNV", lambda=0.1932}
 --local gintalg = {type="omelyan", lambda=0.33}
+
 --local fintalg = {type="leapfrog"}
-local fintalg = {type="omelyan", lambda=0.22}
+--local fintalg = {type="omelyan", lambda=0.22}
+local fintalg = {type="2MNV", lambda=0.1932}
 
 local pbp = {}
 pbp[1] = { reps=1 }
@@ -71,25 +74,18 @@ end
 
 --- end of parameters
 
--- A = 
+--[[
+--mf: fermionic mass
+--mb: bosonic mass (Hasenbusch mass preconditioning, or Pauli-Villars field in DWF)
+--]]--
 function setpseudo(rhmc, mf, mb)
-  --kf = 0.5/(4+mf)
-  if mb then -- term (A+4mb^2)/(A+4mf^2)
-    local s2 = 4*mb*mb
-    local sr = math.sqrt(s1*s2)
-    local c1 = s1 + s2 - 2*sr
+  if mb then
     rhmc[#rhmc+1] = {
-      GR = {
-	{ {1}, {sr-s2, s2} },
-	{ {math.sqrt(c1), s2}, allfaceven=0, allfacodd=1 }
-      },
-      FA = {
-	{ {1} },
-	{ {math.sqrt(s2-s1), s1}, allfaceven=2*mf, allfacodd=1 }
-      },
-      MD = { {1}, {s2-s1, s1} }
+      GR = {mf, mb},
+      FA = {mf, mb},
+      MD = {mf, mb}
     }
-  else -- term 1/[(1-A)(1-A^+)]
+  else
     rhmc[#rhmc+1] = {
       GR = { mf },
       FA = { mf },
@@ -97,9 +93,10 @@ function setpseudo(rhmc, mf, mb)
     }
   end
 end
+
 for i=1,#hmcmasses do
   for j=1,nf/2 do
-    if i<#hmcmasses then
+    if i < #hmcmasses then
       setpseudo(rhmc, hmcmasses[i], hmcmasses[i+1])
     else
       setpseudo(rhmc, hmcmasses[i])
@@ -107,7 +104,7 @@ for i=1,#hmcmasses do
   end
 end
 local npseudo = #rhmc
-
+-- p: lattice parameters, including fermion and gauge actions, smearing, anisotropy, and lattice dimensions, etc. 
 local p = {}
 p.latsize = { nx, nx, nx, nt }
 latsize = p.latsize
@@ -118,7 +115,7 @@ p.u0 = u0
 p.xi0 = aniso.xi0
 p.gmom_var = { 1, 1, 1, aniso.gmom }
 --p.gaugeact = {type="symanzik_1loop_hisq", u0=p.u0, nf=p.nf}
-p.gaugeact = {type="plaquette_adjoint",adjFac=beta_a}
+p.gaugeact = {type="plaquette"}
 p.npseudo = npseudo
 p.fermact = {type="wilson", rhmc=rhmc}
 p.fermact.smear = smear
@@ -128,11 +125,15 @@ local rhmc0 = copy(rhmc)
 local acts = setupacts(p)
 --myprint("rhmc0 = ", rhmc0, "\n")
 
+-- r: run parameters
 local r = {}
 r.tau = tau
 
+-- fp: force parameters
 local fp = {}
 r.forceparams = fp
+
+-- Lua index starts from 1
 fp[1] = {}
 fp[1][1] = {nsteps=ngsteps, intalg=gintalg}
 local rhmc1 = {}
@@ -170,6 +171,7 @@ if inlat then
   printf("plaq ss: %g  st: %g  tot: %g\n", ps, pt, 0.5*(ps+pt))
 else
   acts:unit()
+--  acts:random()
 end
 
 if warmup then
@@ -179,7 +181,7 @@ if warmup then
   r.md = false
 end
 
-r.ntraj = ntraj
+r.ntraj = ntraj - warmup -- warmup trajectories are counted towards the total.
 acts:run(r)
 
 if outlat then

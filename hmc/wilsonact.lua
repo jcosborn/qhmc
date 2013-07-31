@@ -10,6 +10,7 @@ local function getqt(a, i)
   return a.qt[i]
 end
 
+-- Gaussian random vectors to set up the pseudofermion field
 local function setGR(a)
   local qti = 1
   for i,r in ipairs(a.rhmc) do -- loop over pseudofermions
@@ -28,6 +29,7 @@ local function setGR(a)
   end
 end
 
+-- Set up fermion action
 local function setFA(a)
   local qti = 1
   for i,r in ipairs(a.rhmc) do
@@ -45,6 +47,7 @@ local function setFA(a)
   end
 end
 
+-- set up the force calculation
 local function setMD(a)
   local qti = 1
   for i,r in ipairs(a.rhmc) do
@@ -67,13 +70,13 @@ function wilsonact(ga, params)
   local rhmc = params.rhmc
   local smear = params.smear
   local a = {}
-  a.ga = ga
+  a.ga = ga --gauge action? 
   a.coeffs = params.coeffs or {}
   a.coeffs.clov_s = a.coeffs.clov_s or 0
   a.coeffs.clov_t = a.coeffs.clov_t or 0
   a.coeffs.aniso = a.coeffs.aniso or 1
-  a.w = qopqdp.wilson()
-  a.npseudo = #rhmc
+  a.w = qopqdp.wilson() -- fermion action?
+  a.npseudo = #rhmc 
   a.pseudo = {}
   for i=1,a.npseudo do a.pseudo[i] = a.w:quark() end
   a.ff = ga:forceNew()
@@ -160,7 +163,7 @@ function actmt.set(a, g, prec)
     local t0 = clock()
     local sg = smearGauge(g, a.smear)
     a.w:set(sg, a.coeffs, prec)
-    if mgSetup then mgSetup(a.w) end
+    if mgSetup then mgSetup(a) end
     a.LLtime = a.LLtime + clock() - t0
     a.LLflops = a.LLflops + a.w:flops()
     a.LLn = a.LLn + 1
@@ -184,10 +187,14 @@ function actmt.refresh(a, g)
   a:set(g, 2)
   for i,r in ipairs(a.rhmc) do
     local t = r.GR
-    t.qt2:random("even")
-    a.w:precD(t.qt, t.qt2, t.mass)
+    t.qt2:random("even") -- t.qt2 holds the random Gaussian vector
+    a.w:precD(t.qt, t.qt2, t.mass) -- t.qt holds the pseudofermion vector
     if t.mass2 then
       a:solve(t.pt, t.qt, t.mass2, t.resid, "prec", t.solveopts, t.cgnum)
+    --[[ not sure if this is needed
+    else 
+      t.pt = t.qt
+    -- not sure ended ]]
     end
   end
 end
@@ -198,11 +205,13 @@ function actmt.action(a, g)
   for i,r in ipairs(a.rhmc) do
     local fa = r.FA
     if fa.mass2 then
-      a.w:precD(fa.qt, a.pseudo[i], fa.mass2)
+      a.w:precD(fa.qt, a.pseudo[i], fa.mass2) --fa.qt: fermion action quark temporary
     end
+    -- fa.pt holds the \chi vector 
     a:solve(fa.pt, fa.qt, fa.mass, fa.resid, "prec", fa.solveopts, fa.cgnum)
     act = act + fa.pt:norm2("even")
   end
+  -- print("act = ", act)
   return act
 end
 
@@ -218,12 +227,27 @@ function actmt.updateMomentum(a, f, g, teps, ti)
   local imin = a.npseudo
   for k,i in ipairs(ti) do
     local t = a.rhmc[i].MD
-    a:solve(t.pt, a.pseudo[i], t.mass, t.resid, "precNE", t.solveopts, t.cgnum)
-    a.w:precDdag(t.qt, t.pt, t.mass)
+    if t.mass2 then
+       a.w:precD(t.qt, a.pseudo[i], t.mass2) -- tempphi is now W \phi
+       -- (M M^+)^{-1} W \phi = Y
+       a:solve(t.pt, t.qt, t.mass, t.resid, "precNE", t.solveopts, t.cgnum)	
+    else
+       -- t.pt = (M M^+)^{-1} \phi 
+       a:solve(t.pt, a.pseudo[i], t.mass, t.resid, "precNE", t.solveopts, t.cgnum)
+    end
+    a.w:precDdag(t.qt, t.pt, t.mass) -- t.qt = M^+ Y
+
+    if t.mass2 then
+      local kappa = 0.5/(t.mass+1.0+3.0*a.coeffs.aniso)
+      local kappa2 = 0.5/(t.mass2+1.0+3.0*a.coeffs.aniso)
+      local coeffs = {1, -kappa2*kappa2/(kappa*kappa)}
+      t.qt:combine({t.qt, a.pseudo[i]}, coeffs, "even") -- M^+Y - \tilde{k}^2/k^2 \phi
+    end
+
     pt[#pt+1] = t.pt
     qt[#qt+1] = t.qt
     ms[#ms+1] = t.mass
-    c[#c+1] = teps[k]
+    c[#c+1] = teps[k] -- integration step size
     if i<imin then imin = i end
   end
   local tmin = a.rhmc[imin].MD

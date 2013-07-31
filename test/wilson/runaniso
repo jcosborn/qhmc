@@ -2,24 +2,17 @@
 
 qhmc="../../main/qhmc"
 hmc="../../hmc"
-t="aniso.out"
 
 export OMP_NUM_THREADS=1
-
-#opts="beta=5.5;mass=0.2;ngsteps=800;nfsteps={200}"
-opts="beta=5.5;mass=-0.4125;ngsteps=192;nfsteps={64}"
-#opts="$opts;nx=8;nt=16"
-opts="$opts;noMG=true"
-opts="$opts;ntraj=10"
+opts="nx=8;nt=16"
+#opts="$opts;beta=5.5;masses={-0.8254, -0.75};ngsteps=192;nfsteps={8,32}"
+opts="$opts;beta=5.5;masses={-0.4086,-0.37};ngsteps=192;nfsteps={8,32}"
 opts="$opts;aniso={xi0=2.38,nu=1,gmom=2.4}"
-#opts="$opts;aniso={xi0=2.38,nu=1,gmom=1.1}"
-#opts="$opts;aniso={xi0=2.38,nu=1,gmom=1}"
-#opts="$opts;rho=0.14"
+opts="$opts;ntraj=1000"
+opts="$opts;noMG=true"
+opts="$opts;warmup=100"
 
-#$qhmc $hmc/wilson.lua
-#$qhmc -e "ngsteps=60;nfsteps={20}" $hmc/wilson.lua
-#$qhmc -e "ngsteps=150;nfsteps={50}" $hmc/wilson.lua
-$qhmc -e "$opts" $hmc/wilson.lua
-#$qhmc -e "beta=5.6;mass=0.2;ngsteps=100;nfsteps={100}" $hmc/wilson.lua
-#$qhmc -e "ngsteps=600;nfsteps={200}" $hmc/wilson.lua
-#$qhmc -e "doTrace=false;tau=1;ntraj=20;beta=4;mass=0.5" $hmc/wilson.lua
+t="MPaniso4x8.out"
+stamp=`date +%Y%m%d%H%M%S`
+echo $opts > $t.$stamp 
+$qhmc -e "$opts" $hmc/wilson.lua >> $t.$stamp

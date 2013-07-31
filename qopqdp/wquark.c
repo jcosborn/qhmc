@@ -181,10 +181,10 @@ qopqdp_wquark_combine(lua_State *L)
 {
   int narg = lua_gettop(L);
   qassert(narg==3 || narg==4);
-  wquark_t *qd = qopqdp_wquark_check(L, 1);
-  int nqs; get_table_len(L, 2, &nqs);
+  wquark_t *qd = qopqdp_wquark_check(L, 1); //output quark field
+  int nqs; get_table_len(L, 2, &nqs); // input quark fields
   wquark_t *qs[nqs]; qopqdp_wquark_array_check(L, 2, nqs, qs);
-  int nc; get_table_len(L, 3, &nc);
+  int nc; get_table_len(L, 3, &nc); // input coefficients
   qassert(nqs==nc);
   double c[nc]; get_double_array(L, 3, nc, c);
   QLA_Real qc[nc]; for(int i=0; i<nc; i++) qc[i] = c[i];

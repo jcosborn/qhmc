@@ -227,7 +227,7 @@ qopqdp_wilson_mg_set(lua_State *L)
 	/* uses 'key' (at index -2) and 'value' (at index -1) */
 	lua_pushvalue(L, -2);
 	const char *key = luaL_checkstring(L, -1);
-	printf("%i  %s", l, key);
+	printf0("%i  %s", l, key);
 	lua_pop(L, 1);
 	if(lua_istable(L, -1)) {
 	  int n = lua_objlen(L, -1);
@@ -236,7 +236,7 @@ qopqdp_wilson_mg_set(lua_State *L)
 	    lua_pushnumber(L, i+1);
 	    lua_gettable(L, -2);
 	    val[i] = luaL_checknumber(L, -1);
-	    printf("  %g", val[i]);
+	    printf0("  %g", val[i]);
 	    lua_pop(L, 1);
 	  }
 	  QOP_wilsonMgSetArray(w->mg, l, (char*)key, val, n);
@@ -245,7 +245,7 @@ qopqdp_wilson_mg_set(lua_State *L)
 	  printf0("  %g", val);
 	  QOP_wilsonMgSet(w->mg, l, (char*)key, val);
 	}
-	printf("\n");
+	printf0("\n");
 	/* removes 'value'; keeps 'key' for next iteration */
 	lua_pop(L, 1);
       }
