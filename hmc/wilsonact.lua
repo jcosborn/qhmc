@@ -293,3 +293,48 @@ function actmt.pbp(a, g, mass, resid, opts)
   a:solve(y, x, mass, resid, "all", opts, 0)
   return x:Re_dot(y)/(4*qopqdp.Nc*a.ga.vol)
 end
+
+function actmt.makeprop(a, g, mass, resid, opts)
+  local Nc = qopqdp.Nc
+  local Ns = 4
+  local nqt = 0
+  local src = getqt(a, nqt); nqt=nqt+1
+  local dest = {}
+  for color = 0,Nc-1 do
+    for spin = 0,Ns-1 do
+      src:zero()
+      -- point({coord},color,spin,re,im)
+      src:point({0,0,0,0},color,spin,1,0)
+      printf("src norm2: %g\n", src:norm2())
+      if(opts.ngauss) src:smearGauss(g, opts.gaussalpha, opts.ngauss);
+      printf("src norm2: %g\n", src:norm2())
+      dest[#dest+1] = a.w:quark()
+      t0 = qopqdp.dtime()
+      w:solve(dest[#dest], src, mass, resid, "all", opts)
+      dt = qopqdp.dtime() - t0
+      mf = 1e-6 * w:flops() / dt
+      printf("its: %g  secs: %g  Mflops: %g\n", a.w:its(), dt, mf)
+    end
+  end
+  return dest
+end
+
+function actmt.pions(prop)
+  local Nc = qopqdp.Nc
+  local Ns = 4
+  local pions = {}
+  local t = {}
+  for g = 0,0 do
+    pions[g] = {}
+    for color = 0,Nc-1 do
+      for spin = 0,Ns-1 do
+	local k = color*Ns + spin
+	t[k] = prop[k]:norm2("timeslices")
+	for j=1,#t[k] do
+	  pions[g][j] = t[k][j] + (pions[g][j] or 0)
+	end
+      end
+    end
+  end
+  return pions
+end

@@ -259,6 +259,14 @@ qopqdp_random(lua_State* L)
 }
 
 static int
+qopqdp_cscalar(lua_State* L)
+{
+  qassert(lua_gettop(L)==0);
+  qopqdp_cscalar_create(L);
+  return 1;
+}
+
+static int
 qopqdp_gauge(lua_State* L)
 {
   qassert(lua_gettop(L)==0);
@@ -361,6 +369,7 @@ static struct luaL_Reg qopqdp_reg[] = {
   { "verbosity", qopqdp_verbosity },
   { "seed",      qopqdp_seed },
   { "random",    qopqdp_random },
+  { "cscalar",   qopqdp_cscalar },
   { "gauge",     qopqdp_gauge },
   { "force",     qopqdp_force },
   { "asqtad",    qopqdp_asqtad },

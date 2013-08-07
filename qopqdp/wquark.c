@@ -151,14 +151,27 @@ qopqdp_wquark_norm2(lua_State *L)
   wquark_t *q = qopqdp_wquark_check(L, 1);
   QDP_Subset sub = QDP_all;
   if(narg!=1) {
-    sub = qopqdp_check_subset(L, 2);
+    const char *s = luaL_checkstring(L, 2);
+    if(!strcmp(s,"timeslices")) sub = NULL;
+    else sub = qopqdp_check_subset(L, 2);
   }
-  QLA_Real nrm2;
-  QDP_r_eq_norm2_D(&nrm2, q->df, sub);
-  lua_pushnumber(L, nrm2);
+  if(sub) {
+    QLA_Real nrm2;
+    QDP_r_eq_norm2_D(&nrm2, q->df, sub);
+    lua_pushnumber(L, nrm2);
+  } else { // timeslices
+    int nt = QDP_coord_size(3);
+    QLA_Real nrm2[nt];
+    QDP_Subset *ts = qhmcqdp_get_timeslices();
+    QDP_r_eq_norm2_D_multi(nrm2, q->df, ts, nt);
+    push_double_array(L, nt, nrm2);
+  }
   return 1;
 }
 
+// 1: wquark
+// 2: wquark
+// 3: (optional) subset
 static int
 qopqdp_wquark_redot(lua_State *L)
 {
@@ -168,11 +181,53 @@ qopqdp_wquark_redot(lua_State *L)
   wquark_t *q2 = qopqdp_wquark_check(L, 2);
   QDP_Subset sub = QDP_all;
   if(narg!=2) {
-    sub = qopqdp_check_subset(L, 3);
+    const char *s = luaL_checkstring(L, 3);
+    if(!strcmp(s,"timeslices")) sub = NULL;
+    else sub = qopqdp_check_subset(L, 3);
   }
-  QLA_Real redot;
-  QDP_r_eq_re_D_dot_D(&redot, q1->df, q2->df, sub);
-  lua_pushnumber(L, redot);
+  if(sub) {
+    QLA_Real redot;
+    QDP_r_eq_re_D_dot_D(&redot, q1->df, q2->df, sub);
+    lua_pushnumber(L, redot);
+  } else { // timeslices
+    int nt = QDP_coord_size(3);
+    QLA_Real redot[nt];
+    QDP_Subset *ts = qhmcqdp_get_timeslices();
+    QDP_r_eq_re_D_dot_D_multi(redot, q1->df, q2->df, ts, nt);
+    push_double_array(L, nt, redot);
+  }
+  return 1;
+}
+
+// 1: wquark
+// 2: wquark
+// 3: (optional) subset
+static int
+qopqdp_wquark_imdot(lua_State *L)
+{
+  int narg = lua_gettop(L);
+  qassert(narg==2 || narg==3);
+  wquark_t *q1 = qopqdp_wquark_check(L, 1);
+  wquark_t *q2 = qopqdp_wquark_check(L, 2);
+  QDP_Subset sub = QDP_all;
+  if(narg!=2) {
+    const char *s = luaL_checkstring(L, 3);
+    if(!strcmp(s,"timeslices")) sub = NULL;
+    else sub = qopqdp_check_subset(L, 3);
+  }
+  if(sub) {
+    QLA_Complex dot;
+    QDP_c_eq_D_dot_D(&dot, q1->df, q2->df, sub);
+    lua_pushnumber(L, QLA_imag(dot));
+  } else { // timeslices
+    int nt = QDP_coord_size(3);
+    QLA_Complex dot[nt];
+    QDP_Subset *ts = qhmcqdp_get_timeslices();
+    QDP_c_eq_D_dot_D_multi(dot, q1->df, q2->df, ts, nt);
+    double imdot[nt];
+    for(int i=0; i<nt; i++) imdot[i] = QLA_imag(dot[i]);
+    push_double_array(L, nt, imdot);
+  }
   return 1;
 }
 
@@ -196,6 +251,23 @@ qopqdp_wquark_combine(lua_State *L)
   for(int i=1; i<nqs; i++) {
     QDP_D_peq_r_times_D(qd->df, &qc[i], qs[i]->df, sub);
   }
+  return 0;
+}
+
+// 1: wquark
+// 2: gamma
+// 3: wquark
+// TODO 4: (optional) options ("peq")
+static int
+qopqdp_wquark_gamma(lua_State *L)
+{
+  int narg = lua_gettop(L);
+  qassert(narg==3);
+  wquark_t *qd = qopqdp_wquark_check(L, 1); //output quark field
+  int g = luaL_checkint(L, 2);
+  wquark_t *qs = qopqdp_wquark_check(L, 3); //output quark field
+  QDP_Subset sub = QDP_all;
+  QDP_D_eq_gamma_times_D(qd->df, qs->df, g, sub);
   return 0;
 }
 
@@ -258,7 +330,9 @@ static struct luaL_Reg wquark_reg[] = {
   { "point",      qopqdp_wquark_point },
   { "norm2",      qopqdp_wquark_norm2 },
   { "Re_dot",     qopqdp_wquark_redot },
+  { "Im_dot",     qopqdp_wquark_imdot },
   { "combine",    qopqdp_wquark_combine },
+  { "gamma",      qopqdp_wquark_gamma },
   { "smearGauss", qopqdp_wquark_smearGauss },
   { NULL, NULL}
 };

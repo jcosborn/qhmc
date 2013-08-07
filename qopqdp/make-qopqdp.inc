@@ -1,7 +1,7 @@
 HOST := $(shell hostname)
 BGQ := $(filter cetus% vesta% mira%,$(HOST))
 ifneq "$(BGQ)" ""
-  CC = /bgsys/drivers/ppcfloor/comm/xl.legacy.ndebug/bin/mpixlc_r
+  CC = mpixlc_r
   COPT = -O3 -qinfo=pro -g 
 else
   CC = mpicc
@@ -19,13 +19,13 @@ endif
 
 #DEFINES = -DQHMC_REPRO_UNIFORM
 
-TAG = -bgq
+#TAG = -bgq
 SCIDAC = $(HOME)/lqcd/install
 QMPDIR = $(SCIDAC)/qmp$(TAG)
 QIODIR = $(SCIDAC)/qio$(TAG)
 QLADIR = $(SCIDAC)/qla$(TAG)
 QDPDIR = $(SCIDAC)/qdp$(TAG)
-QOPDIR = $(SCIDAC)/qopqdp$(TAG)
+QOPDIR = $(SCIDAC)/qopqdp-cvs$(TAG)
 
 IQMP = -I$(QMPDIR)/include
 LQMP = -L$(QMPDIR)/lib -lqmp
