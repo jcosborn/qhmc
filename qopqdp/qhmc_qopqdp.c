@@ -19,83 +19,6 @@ fini_qopqdp(void)
   QDP_finalize();
 }
 
-void
-get_bool_array(lua_State *L, int idx, int n, int *a)
-{
-  luaL_checktype(L, idx, LUA_TTABLE);
-  qassert(n==lua_objlen(L, idx));
-  for(int i=0; i<n; i++) {
-    lua_rawgeti(L, idx, i+1);
-    a[i] = lua_toboolean(L, -1);
-    lua_pop(L, 1);
-  }
-}
-
-void
-get_int_array(lua_State *L, int idx, int n, int *a)
-{
-  luaL_checktype(L, idx, LUA_TTABLE);
-  qassert(n==lua_objlen(L, idx));
-  for(int i=0; i<n; i++) {
-    lua_rawgeti(L, idx, i+1);
-    a[i] = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-  }
-}
-
-void
-push_int_array(lua_State *L, int n, int *a)
-{
-  lua_createtable(L, n, 0);
-  for(int i=0; i<n; i++) {
-    lua_pushinteger(L, a[i]);
-    lua_rawseti(L, -2, i+1);
-  }
-}
-
-void
-get_float_array(lua_State *L, int idx, int n, float *a)
-{
-  luaL_checktype(L, idx, LUA_TTABLE);
-  qassert(n==lua_objlen(L, idx));
-  for(int i=0; i<n; i++) {
-    lua_rawgeti(L, idx, i+1);
-    a[i] = lua_tonumber(L, -1);
-    lua_pop(L, 1);
-  }
-}
-
-void
-get_double_array(lua_State *L, int idx, int n, double *a)
-{
-  luaL_checktype(L, idx, LUA_TTABLE);
-  qassert(n==lua_objlen(L, idx));
-  for(int i=0; i<n; i++) {
-    lua_rawgeti(L, idx, i+1);
-    a[i] = lua_tonumber(L, -1);
-    lua_pop(L, 1);
-  }
-}
-
-void
-push_double_array(lua_State *L, int n, double *a)
-{
-  lua_createtable(L, n, 0);
-  for(int i=0; i<n; i++) {
-    lua_pushnumber(L, a[i]);
-    lua_rawseti(L, -2, i+1);
-  }
-}
-
-const char *
-tableGetString(lua_State *L, int idx, char *key)
-{
-  lua_getfield(L, idx, key);
-  const char *s = luaL_checkstring(L, -1);
-  lua_pop(L, 1);
-  return s;
-}
-
 int
 slice_func(int x[], void *args)
 {
@@ -104,8 +27,8 @@ slice_func(int x[], void *args)
 }
 
 QDP_Subset *qhmcqdp_timeslices = NULL;
-QDP_Subset *
 
+QDP_Subset *
 qhmcqdp_get_timeslices(void)
 {
   if(qhmcqdp_timeslices==NULL) {
@@ -138,13 +61,21 @@ qopqdp_check_subset(lua_State *L, int idx)
   lua_pushvalue(L, idx);
   const char *s = luaL_checkstring(L, -1);
   lua_pop(L, 1);
-  QDP_Subset sub = QDP_all;
+  QDP_Subset sub = NULL;
   switch(s[0]) {
-  case 'a': break;
+  case 'a': sub = QDP_all; break;
   case 'e': sub = QDP_even; break;
   case 'o': sub = QDP_odd; break;
-  default: qerror("unknown subset %s\n", s);
+  case 't': 
+    if(strncmp(s,"timeslice",9)==0) {
+      int t;
+      int n = sscanf(s+9,"%i",&t);
+      if(n && t>=0 && t<QDP_coord_size(QDP_ndim()-1))
+	sub = qhmcqdp_get_timeslices()[t];
+    }
+    break;
   }
+  if(sub==NULL) qerror("unknown subset %s\n", s);
   return sub;
 }
 

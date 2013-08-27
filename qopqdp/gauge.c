@@ -101,16 +101,15 @@ gauge_random(NCPROT QLA_ColorMatrix(*m), int i, void *args)
   QLA_RandomState *s = &((QLA_RandomState *)args)[i];
   QLA_M_eq_gaussian_S(&m1, s);
   QLA_M_eq_Ma_times_M(&m2, &m1, &m1);
-  QLA_M_eq_sqrt_M(&m3, &m2);
-  QLA_M_eq_inverse_M(&m2, &m3);
-  QLA_M_eq_M_times_M(&m3, &m1, &m2);
-  QLA_C_eq_det_M(&c, &m3);
+  QLA_M_eq_invsqrt_M(&m3, &m2);
+  QLA_M_eq_M_times_M(&m2, &m1, &m3);
+  QLA_C_eq_det_M(&c, &m2);
   QLA_DF_c_eq_c(d1, c);
   d2 = QLA_clog(&d1);
   QLA_c_eq_r_times_c(d1, -1./QLA_Nc, d2);
   d2 = QLA_cexp(&d1);
   QLA_FD_c_eq_c(c, d2);
-  QLA_M_eq_C_times_M(m, &c, &m3);
+  QLA_M_eq_C_times_M(m, &c, &m2);
 }
 
 static void

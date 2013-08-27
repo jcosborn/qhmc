@@ -1,3 +1,5 @@
+#include "qhmc_common.h"
+
 #ifdef HAVE_LFS
 #include "src/lfs.h"
 #else

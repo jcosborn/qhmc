@@ -1,7 +1,7 @@
 include ../make.inc
 include make-qopqdp.inc
 
-CFLAGS = $(COPT) $(QOPQDPINC) $(LUAINC)
+CFLAGS = $(COPT) $(QOPQDPINC) $(LUAINC) -I../main
 
 HDRS = qhmc_qopqdp.h qhmc_qopqdp_common.h
 OBJS = qhmc_qopqdp.o misc.o reader.o writer.o \

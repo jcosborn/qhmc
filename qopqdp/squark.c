@@ -42,6 +42,21 @@ qopqdp_squark_gc(lua_State *L)
 }
 
 static int
+qopqdp_squark_clone(lua_State *L)
+{
+  int narg = lua_gettop(L);
+  qassert(narg==1 || narg==2);
+  squark_t *q1 = qopqdp_squark_create_unset(L);
+  squark_t *q2 = qopqdp_squark_check(L, 1);
+  QDP_Subset sub = QDP_all;
+  if(narg!=1) {
+    sub = qopqdp_check_subset(L, 2);
+  }
+  QDP_V_eq_V(q1->cv, q2->cv, sub);
+  return 1;
+}
+
+static int
 qopqdp_squark_zero(lua_State *L)
 {
   int narg = lua_gettop(L);
@@ -53,6 +68,28 @@ qopqdp_squark_zero(lua_State *L)
   }
   QDP_V_eq_zero(q->cv, sub);
   return 0;
+}
+
+static int
+qopqdp_squark_getSite(lua_State *L)
+{
+  int narg = lua_gettop(L);
+  qassert(narg==2);
+  squark_t *q = qopqdp_squark_check(L, 1);
+  int nd; get_table_len(L, 2, &nd);
+  int site[nd]; get_int_array(L, 2, nd, site);
+  QLA_ColorVector qcv;
+  int node = QDP_node_number(site);
+  if(node==QDP_this_node) {
+    int index = QDP_index(site);
+    QLA_ColorVector *qcvp = QDP_site_ptr_readonly_V(q->cv, index);
+    QLA_V_eq_V(&qcv, qcvp);
+  } else {
+    QLA_V_eq_zero(&qcv);
+  }
+  QMP_sum_double_array((double *)&qcv, 2*QLA_Nc);
+  push_complex_array(L, QLA_Nc, (qhmc_complex_t *)&qcv);
+  return 1;
 }
 
 static int
@@ -185,6 +222,41 @@ qopqdp_squark_redot(lua_State *L)
   return 1;
 }
 
+// 1: squark
+// 2: squark
+// 3: (optional) subset
+static int
+qopqdp_squark_dot(lua_State *L)
+{
+  int narg = lua_gettop(L);
+  qassert(narg==2 || narg==3);
+  squark_t *q1 = qopqdp_squark_check(L, 1);
+  squark_t *q2 = qopqdp_squark_check(L, 2);
+  QDP_Subset sub = QDP_all;
+  if(narg!=2) {
+    const char *s = luaL_checkstring(L, 3);
+    if(!strcmp(s,"timeslices")) sub = NULL;
+    else sub = qopqdp_check_subset(L, 3);
+  }
+  if(sub) {
+    QLA_Complex dot;
+    QDP_c_eq_V_dot_V(&dot, q1->cv, q2->cv, sub);
+    qhmc_complex_create(L, QLA_real(dot), QLA_imag(dot));
+  } else { // timeslices
+    int nt = QDP_coord_size(3);
+    QLA_Complex dot[nt];
+    QDP_Subset *ts = qhmcqdp_get_timeslices();
+    QDP_c_eq_V_dot_V_multi(dot, q1->cv, q2->cv, ts, nt);
+    qhmc_complex_t qdot[nt];
+    for(int i=0; i<nt; i++) {
+      qdot[i].r = QLA_real(dot[i]);
+      qdot[i].i = QLA_imag(dot[i]);
+    }
+    push_complex_array(L, nt, qdot);
+  }
+  return 1;
+}
+
 static int
 qopqdp_squark_combine(lua_State *L)
 {
@@ -195,15 +267,24 @@ qopqdp_squark_combine(lua_State *L)
   squark_t *qs[nqs]; qopqdp_squark_array_check(L, 2, nqs, qs);
   int nc; get_table_len(L, 3, &nc);
   qassert(nqs==nc);
-  double c[nc]; get_double_array(L, 3, nc, c);
-  QLA_Real qc[nc]; for(int i=0; i<nc; i++) qc[i] = c[i];
   QDP_Subset sub = QDP_all;
   if(narg>3) {
     sub = qopqdp_check_subset(L, 4);
   }
-  QDP_V_eq_r_times_V(qd->cv, &qc[0], qs[0]->cv, sub);
-  for(int i=1; i<nqs; i++) {
-    QDP_V_peq_r_times_V(qd->cv, &qc[i], qs[i]->cv, sub);
+  for(int i=0; i<nqs; i++) {
+    lua_pushinteger(L, i+1);
+    lua_gettable(L, 3);
+    if(lua_type(L,-1)==LUA_TNUMBER) {
+      QLA_Real r = lua_tonumber(L, -1);
+      if(i==0) QDP_V_eq_r_times_V(qd->cv, &r, qs[0]->cv, sub);
+      else QDP_V_peq_r_times_V(qd->cv, &r, qs[i]->cv, sub);
+    } else { // complex
+      qhmc_complex_t *c = qhmc_complex_check(L, -1);
+      QLA_Complex z;
+      QLA_c_eq_r_plus_ir(z, c->r, c->i);
+      if(i==0) QDP_V_eq_c_times_V(qd->cv, &z, qs[0]->cv, sub);
+      else QDP_V_peq_c_times_V(qd->cv, &z, qs[i]->cv, sub);
+    }
   }
   return 0;
 }
@@ -212,7 +293,7 @@ static int
 qopqdp_squark_symshift(lua_State *L)
 {
   int narg = lua_gettop(L);
-  qassert(narg==3);
+  qassert(narg==4);
   squark_t *qd = qopqdp_squark_check(L, 1);
   squark_t *qs = qopqdp_squark_check(L, 2);
   gauge_t *g = qopqdp_gauge_check(L, 3);
@@ -228,31 +309,104 @@ qopqdp_squark_symshift(lua_State *L)
   return 0;
 }
 
+/* ESW additions for staggered quark rephasing */
+
+// Define a global parameter to store a phase.
+// This being global is sadly unavoidable.
+// It's how the gauge field rephasing is also done,
+// so it's presumably a safe method to use.
+int phase_squark_esw;
+
+// Define a global parameter to store a relative location.
+int *relative_loc_esw;
+
+// Here's a function used to modify the source field with vectors.
+// Based on void point_V in qdp-1.9.1/examples/sample_ks.c
+void private_squark_rephase(QLA_ColorVector *s, int coords[])
+{
+  // Build up the phase.
+  int phase = 0;
+  int bits = phase_squark_esw;
+  for (int i = 0; bits; i++)
+    {
+      // if the coordinate minus the relative coordinate is odd,
+      // and if the phase flag is set, add 1.
+      // if the coordinate minus the relative coordinate is odd,
+      // and if the phase flag is not set, add 0.
+      // if the coordinate minus the relative coordinate is even,
+      // always add 0.
+
+      if(bits&1) {
+	phase += coords[i] - relative_loc_esw[i];
+      }
+      bits >>= 1;
+    }
+
+  if ((phase%2) == 1) // if the overall phase exponent is odd
+    {
+      QLA_V_eqm_V(s, s);
+    }
+}
+
+static int
+qopqdp_squark_rephase(lua_State *L)
+{
+  int narg = lua_gettop(L); // Get the number of arguments.
+  qassert(narg==3);
+  squark_t *qd = qopqdp_squark_check(L, 1); // Check for a staggered quark.
+  int phase_flag = luaL_checkint(L, 2); // Check for the phase flag.
+  int nd; get_table_len(L, 3, &nd); // Get the length of the relative coordinate.
+  int r0[nd];
+  get_int_array(L, 3, nd, r0);
+  relative_loc_esw = r0;
+
+  // The phase flag is defined bit-wise.
+  // 0 = no phase, 1 = phase
+  // (x4_sign -- time) (x3_sign) (x2_sign) (x1_sign)
+  phase_squark_esw = phase_flag;
+
+  // Apply the phase.
+  QDP_V_eq_func(qd->cv, private_squark_rephase, QDP_all);
+
+  return 0;
+}
+
 static struct luaL_Reg squark_reg[] = {
-  { "__gc",    qopqdp_squark_gc },
-  { "zero",    qopqdp_squark_zero },
-  { "point",   qopqdp_squark_point },
-  { "random",  qopqdp_squark_random },
-  { "randomU1",qopqdp_squark_randomU1 },
-  { "set",     qopqdp_squark_set },
-  { "norm2",   qopqdp_squark_norm2 },
-  { "Re_dot",  qopqdp_squark_redot },
-  { "combine", qopqdp_squark_combine },
-  { "symshift",qopqdp_squark_symshift },
+  { "__gc",     qopqdp_squark_gc },
+  { "clone",    qopqdp_squark_clone },
+  { "zero",     qopqdp_squark_zero },
+  { "getSite",  qopqdp_squark_getSite },
+  { "point",    qopqdp_squark_point },
+  { "random",   qopqdp_squark_random },
+  { "randomU1", qopqdp_squark_randomU1 },
+  { "set",      qopqdp_squark_set },
+  { "norm2",    qopqdp_squark_norm2 },
+  { "Re_dot",   qopqdp_squark_redot },
+  { "dot",      qopqdp_squark_dot },
+  { "combine",  qopqdp_squark_combine },
+  { "symshift", qopqdp_squark_symshift },
+  { "rephase",  qopqdp_squark_rephase }, // ESW addition 8/23/2013
   { NULL, NULL}
 };
 
 squark_t *
-qopqdp_squark_create(lua_State* L)
+qopqdp_squark_create_unset(lua_State *L)
 {
   squark_t *q = lua_newuserdata(L, sizeof(squark_t));
   q->cv = QDP_create_V();
-  QDP_V_eq_zero(q->cv, QDP_all);
   if(luaL_newmetatable(L, mtname)) {
     lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");
     luaL_register(L, NULL, squark_reg);
   }
   lua_setmetatable(L, -2);
+  return q;
+}
+
+squark_t *
+qopqdp_squark_create(lua_State *L)
+{
+  squark_t *q = qopqdp_squark_create_unset(L);
+  QDP_V_eq_zero(q->cv, QDP_all);
   return q;
 }

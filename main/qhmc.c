@@ -19,8 +19,10 @@ fini_libs(void)
 }
 
 void
-open_qhmc(lua_State* L) {
+open_qhmc(lua_State* L)
+{
   luaopen_lfs(L);
+  open_qhmc_complex(L);
   open_qopqdp(L);
 #if 1  // avoid loading 'lfs' since it is statically linked
   int rc = luaL_dostring(L, "table.insert(package.searchers,1, \

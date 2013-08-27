@@ -1,21 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <lua.h>
-#include <lualib.h>
-#include <lauxlib.h>
 #define QDP_Precision 'D'
 #define QOP_Precision 'D'
 #include <qop.h>
+#include "qhmc_common.h"
 #include "qhmc_qopqdp.h"
-
-#if 0
-#define lua_objlen lua_rawlen
-#define luaL_register(L,n,l) do { \
-    if(n) { luaL_newlibtable(L,l); lua_pushvalue(L,-1); lua_setglobal(L,n); } \
-    luaL_setfuncs(L,l,0); \
-  } while(0)
-#endif
 
 #if QOP_Colors == 'N'
 
@@ -104,52 +94,12 @@
 #define QOP_D3_wilsonMgSolve(...) ((void)0)
 #endif
 
-#define printf0 if(QDP_this_node==0) printf
-#define printerr(...) fprintf(stderr, __VA_ARGS__)
-#define printerr0(...) if(QDP_this_node==0) printerr(__VA_ARGS__)
-#define ABORT(code) QDP_abort(code)
-#define TRACE printf0("%s %s %i\n", __FILE__, __func__, __LINE__);
-
-#define get_table_len(L, idx, n) luaL_checktype(L, idx, LUA_TTABLE); *(n) = lua_objlen(L, idx)
-#define qerror(...) // FIXME
-#define qassert(x) {\
-    if(!(x)) {\
-      TRACE;\
-      printf0("assert failed (%s)\n", #x);\
-      QDP_abort(1);\
-    }\
-  }
-
-#define tableLoopKeys(L, idx)		\
-  qassert(lua_type(L,idx)==LUA_TTABLE); \
-  lua_pushnil(L);			\
-  while(lua_next(L,idx)) {		\
-    lua_pushvalue(L, -2);		\
-    const char *tableLoopKey = lua_tostring(L, -1);
-#define tableLoopKeysIfKeySetInt(L, key, var)			\
-    if(strcmp(tableLoopKey,key)==0) (var) = lua_tointeger(L,-2)
-#define tableLoopKeysIfKeySetDouble(L, key, var)			\
-    if(strcmp(tableLoopKey,key)==0) (var) = lua_tonumber(L,-2)
-#define tableLoopKeysEnd(L) \
-  /*else {					\
-      /-* error *-/				\
-    }*/ \
-    lua_pop(L, 2); \
-  }
-#define tableGetField(L, idx, key) lua_getfield(L, idx, key)
-#define tableGetIndex(L, idx, key) lua_rawgeti(L, idx, key)
-
+#undef if0
+#define if0 if(QDP_this_node==0)
 
 extern QLA_RandomState qopqdp_nrs;
 extern QDP_RandomState *qopqdp_srs;
 
-void get_bool_array(lua_State *L, int idx, int n, int *a);
-void get_int_array(lua_State *L, int idx, int n, int *a);
-void push_int_array(lua_State *L, int n, int *a);
-void get_float_array(lua_State *L, int idx, int n, float *a);
-void get_double_array(lua_State *L, int idx, int n, double *a);
-void push_double_array(lua_State *L, int n, double *a);
-const char *tableGetString(lua_State *L, int idx, char *key);
 QOP_evenodd_t qopqdp_check_evenodd(lua_State *L, int idx);
 QDP_Subset qopqdp_check_subset(lua_State *L, int idx);
 QDP_Subset *qhmcqdp_get_timeslices(void);
@@ -263,6 +213,7 @@ typedef struct {
   QDP_ColorVector *cv;
 } squark_t;
 squark_t *qopqdp_squark_create(lua_State *L);
+squark_t *qopqdp_squark_create_unset(lua_State *L);
 squark_t *qopqdp_squark_check(lua_State *L, int idx);
 void qopqdp_squark_array_check(lua_State *L, int idx, int n, squark_t *q[n]);
 

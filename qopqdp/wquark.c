@@ -231,6 +231,41 @@ qopqdp_wquark_imdot(lua_State *L)
   return 1;
 }
 
+// 1: wquark
+// 2: wquark
+// 3: (optional) subset
+static int
+qopqdp_wquark_dot(lua_State *L)
+{
+  int narg = lua_gettop(L);
+  qassert(narg==2 || narg==3);
+  wquark_t *q1 = qopqdp_wquark_check(L, 1);
+  wquark_t *q2 = qopqdp_wquark_check(L, 2);
+  QDP_Subset sub = QDP_all;
+  if(narg!=2) {
+    const char *s = luaL_checkstring(L, 3);
+    if(!strcmp(s,"timeslices")) sub = NULL;
+    else sub = qopqdp_check_subset(L, 3);
+  }
+  if(sub) {
+    QLA_Complex dot;
+    QDP_c_eq_D_dot_D(&dot, q1->df, q2->df, sub);
+    qhmc_complex_create(L, QLA_real(dot), QLA_imag(dot));
+  } else { // timeslices
+    int nt = QDP_coord_size(3);
+    QLA_Complex dot[nt];
+    QDP_Subset *ts = qhmcqdp_get_timeslices();
+    QDP_c_eq_D_dot_D_multi(dot, q1->df, q2->df, ts, nt);
+    qhmc_complex_t qdot[nt];
+    for(int i=0; i<nt; i++) {
+      qdot[i].r = QLA_real(dot[i]);
+      qdot[i].i = QLA_imag(dot[i]);
+    }
+    push_complex_array(L, nt, qdot);
+  }
+  return 1;
+}
+
 static int
 qopqdp_wquark_combine(lua_State *L)
 {
@@ -331,6 +366,7 @@ static struct luaL_Reg wquark_reg[] = {
   { "norm2",      qopqdp_wquark_norm2 },
   { "Re_dot",     qopqdp_wquark_redot },
   { "Im_dot",     qopqdp_wquark_imdot },
+  { "dot",        qopqdp_wquark_dot },
   { "combine",    qopqdp_wquark_combine },
   { "gamma",      qopqdp_wquark_gamma },
   { "smearGauss", qopqdp_wquark_smearGauss },

@@ -16,11 +16,12 @@ LDLIBS = $(QOPQDPLIBS) $(LFSOBJS) $(LUALIBS)
 DEPS = $(QOPQDPDEPS) $(LFSDEPS) $(LUADEPS)
 
 PROGS = qhmc
-OBJS = lua.o qhmc.o
+OBJS = lua.o qhmc.o qhmc_common.o qhmc_complex.o
 
 all: $(PROGS)
 $(PROGS): $(OBJS) $(DEPS)
-$(OBJS): qhmc.h
+$(OBJS): qhmc.h qhmc_common.h
+qhmc_complex.o: qhmc_complex.h
 
 clean:
 	-rm -f $(OBJS) $(PROGS)

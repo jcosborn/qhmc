@@ -380,8 +380,7 @@ qopqdp_wilson_solve(lua_State *L)
   //printf("precNE = %i\n", precNE);
   if(narg>=nextarg && !lua_isnil(L,nextarg)) {
     if(!lua_istable(L,nextarg)) {
-      printf0("expecting solver paramter table\n");
-      qerror(1);
+      qerror0("expecting solver paramter table\n");
     }
 #define seti(s) lua_getfield(L,nextarg,#s);if(!lua_isnil(L,-1))s=luaL_checkint(L,-1);lua_pop(L,1)
     //seti(prec);
