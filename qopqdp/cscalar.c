@@ -44,13 +44,17 @@ qopqdp_cscalar_gc(lua_State *L)
 static int
 qopqdp_cscalar_zero(lua_State *L)
 {
-  int narg = lua_gettop(L);
-  qassert(narg==1 || narg==2);
-  cscalar_t *s = qopqdp_cscalar_check(L, 1);
-  QDP_Subset sub = QDP_all;
-  if(narg!=1) {
-    sub = qopqdp_check_subset(L, 2);
-  }
+  //int narg = lua_gettop(L);
+  //qassert(narg==1 || narg==2);
+  START_ARGS;
+  //cscalar_t *s = qopqdp_cscalar_check(L, 1);
+  GET_CSCALAR(s);
+  //QDP_Subset sub = QDP_all;
+  //if(narg!=1) {
+  //sub = qopqdp_check_subset(L, 2);
+  //}
+  OPT_SUBSET(sub, QDP_all);
+  END_ARGS;
   QDP_C_eq_zero(s->c, sub);
   return 0;
 }
@@ -82,7 +86,7 @@ qopqdp_cscalar_random(lua_State *L)
   cscalar_t *s = qopqdp_cscalar_check(L, 1);
   QDP_Subset sub = QDP_all;
   if(narg!=1) {
-    sub = qopqdp_check_subset(L, 2);
+    sub = qopqdp_opt_subset(L, (int[]){2}, 1, NULL);
   }
   QDP_C_eq_gaussian_S(s->c, qopqdp_srs, sub);
   QLA_Real r = sqrt(0.5); // normalize to sigma^2 = 1/2
@@ -106,7 +110,7 @@ qopqdp_cscalar_randomU1(lua_State *L)
   cscalar_t *s = qopqdp_cscalar_check(L, 1);
   QDP_Subset sub = QDP_all;
   if(narg!=1) {
-    sub = qopqdp_check_subset(L, 2);
+    sub = qopqdp_opt_subset(L, (int[]){2}, 1, NULL);
   }
   QDP_C_eq_gaussian_S(s->c, qopqdp_srs, sub);
   QDP_C_eq_funci(s->c, lnormalize_C, sub);

@@ -2,11 +2,11 @@
 
 fs=`\ls -1 "$@" |sort -n -t . -k 2`
 echo $fs
-tag="plaq ss"
+tag="MEASplaq"
 
 get() {
   for f in $fs; do
-    grep "$tag" $f |tail -n +2 |awk '{print$'$1'}'
+    grep "$tag" $f |awk '{print$'$1'}'
   done
 }
 

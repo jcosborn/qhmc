@@ -532,15 +532,18 @@ qopqdp_wilson_force(lua_State *L)
   double eps[ne]; get_double_array(L, 6, ne, eps);
   int prec = 2;
   int deriv = 0;
+  int all = 0;
   if(narg==7) { // options table
     tableLoopKeys(L, 7) {
       tableLoopKeysIfKeySetInt(L, "prec", prec);
       else tableLoopKeysIfKeySetInt(L, "deriv", deriv);
+      else tableLoopKeysIfKeySetInt(L, "all", all);
       tableLoopKeysEnd(L);
     }
   }
 
   QOP_info_t info;
+  prec = 2; // 1 not supported yet
   if(prec==1) {
 #if 0
     wilson_set(h, 1);
@@ -578,9 +581,20 @@ qopqdp_wilson_force(lua_State *L)
       dfl[i] = ql[i]->df;
       dfr[i] = qr[i]->df;
     }
-    for(int i=0; i<f->nd; i++) QDP_M_eq_zero(f->force[i], QDP_all);
+    //for(int i=0; i<f->nd; i++) QDP_M_eq_zero(f->force[i], QDP_all);
     if(deriv) {
-      QOP_wilson_deriv_prec_multi_qdp(&info, w->fl, f->force, qks, qeps, dfl, dfr, nql);
+      rephase_F(f);
+      if(w->coeffs.aniso!=1) {
+	QLA_Real a = 1/w->coeffs.aniso;
+	for(int i=0; i<f->nd-1; i++) {
+	  QDP_M_eq_r_times_M(f->force[i], &a, f->force[i], QDP_all);
+	}
+      }
+      if(all) {
+	QOP_wilson_deriv_multi_qdp(&info, w->fl, f->force, qeps, dfl, dfr, nql);
+      } else {
+	QOP_wilson_deriv_prec_multi_qdp(&info, w->fl, f->force, qks, qeps, dfl, dfr, nql);
+      }
       rephase_F(f);
       if(w->coeffs.aniso!=1) {
 	QLA_Real a = w->coeffs.aniso;
@@ -589,7 +603,11 @@ qopqdp_wilson_force(lua_State *L)
 	}
       }
     } else {
-      QOP_wilson_force_prec_multi_qdp(&info, w->fl, f->force, qks, qeps, dfl, dfr, nql);
+      if(all) {
+	QOP_wilson_force_multi_qdp(&info, w->fl, f->force, qeps, dfl, dfr, nql);
+      } else {
+	QOP_wilson_force_prec_multi_qdp(&info, w->fl, f->force, qks, qeps, dfl, dfr, nql);
+      }
     }
   }
 

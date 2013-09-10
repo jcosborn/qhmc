@@ -52,6 +52,23 @@ qopqdp_force_gc(lua_State *L)
 }
 
 static int
+qopqdp_force_clone(lua_State *L)
+{
+  int narg = lua_gettop(L);
+  qassert(narg==1 || narg==2);
+  force_t *f1 = qopqdp_force_create(L);
+  force_t *f2 = qopqdp_force_check(L, 1);
+  QDP_Subset sub = QDP_all;
+  if(narg!=1) {
+    sub = qopqdp_check_subset(L, 2);
+  }
+  for(int i=0; i<f1->nd; i++) {
+    QDP_M_eq_M(f1->force[i], f2->force[i], sub);
+  }
+  return 1;
+}
+
+static int
 qopqdp_force_zero(lua_State *L)
 {
   qassert(lua_gettop(L)==1);
@@ -365,17 +382,18 @@ check_force(force_t *f, gauge_t *g, double (*act)(gauge_t *g, void *), void *arg
 #endif
 
 static struct luaL_Reg force_reg[] = {
-  { "__gc",    qopqdp_force_gc },
-  { "zero",    qopqdp_force_zero },
-  { "set",     qopqdp_force_set },
-  { "random",  qopqdp_force_random },
-  { "scale",   qopqdp_force_scale },
-  { "norm2",   qopqdp_force_norm2 },
-  { "infnorm", qopqdp_force_infnorm },
+  { "__gc",       qopqdp_force_gc },
+  { "clone",      qopqdp_force_clone },
+  { "zero",       qopqdp_force_zero },
+  { "set",        qopqdp_force_set },
+  { "random",     qopqdp_force_random },
+  { "scale",      qopqdp_force_scale },
+  { "norm2",      qopqdp_force_norm2 },
+  { "infnorm",    qopqdp_force_infnorm },
   { "derivForce", qopqdp_force_derivForce },
-  { "update",  qopqdp_force_update },
-  { "time",    qopqdp_force_time },
-  { "flops",   qopqdp_force_flops },
+  { "update",     qopqdp_force_update },
+  { "time",       qopqdp_force_time },
+  { "flops",      qopqdp_force_flops },
   { NULL, NULL}
 };
 

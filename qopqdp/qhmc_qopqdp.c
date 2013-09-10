@@ -56,26 +56,34 @@ qopqdp_check_evenodd(lua_State *L, int idx)
 }
 
 QDP_Subset
-qopqdp_check_subset(lua_State *L, int idx)
+qopqdp_opt_subset(lua_State *L, int *idx, int reqd, QDP_Subset def)
 {
-  lua_pushvalue(L, idx);
-  const char *s = luaL_checkstring(L, -1);
-  lua_pop(L, 1);
-  QDP_Subset sub = NULL;
-  switch(s[0]) {
-  case 'a': sub = QDP_all; break;
-  case 'e': sub = QDP_even; break;
-  case 'o': sub = QDP_odd; break;
-  case 't': 
-    if(strncmp(s,"timeslice",9)==0) {
-      int t;
-      int n = sscanf(s+9,"%i",&t);
-      if(n && t>=0 && t<QDP_coord_size(QDP_ndim()-1))
-	sub = qhmcqdp_get_timeslices()[t];
-    }
-    break;
+  lua_pushvalue(L, *idx);
+  const char *s;
+  if(reqd) {
+    s = luaL_checkstring(L, -1);
+  } else {
+    s = luaL_optstring(L, -1, NULL);
   }
-  if(sub==NULL) qerror("unknown subset %s\n", s);
+  lua_pop(L, 1);
+  QDP_Subset sub = def;
+  if(s) {
+    switch(s[0]) {
+    case 'a': sub = QDP_all; break;
+    case 'e': sub = QDP_even; break;
+    case 'o': sub = QDP_odd; break;
+    case 't': 
+      if(strncmp(s,"timeslice",9)==0) {
+	int t;
+	int n = sscanf(s+9,"%i",&t);
+	if(n && t>=0 && t<QDP_coord_size(QDP_ndim()-1))
+	  sub = qhmcqdp_get_timeslices()[t];
+      }
+      break;
+    }
+    if(sub==NULL) qerror("unknown subset %s\n", s);
+    (*idx)++;
+  }
   return sub;
 }
 

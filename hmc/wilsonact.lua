@@ -253,6 +253,7 @@ function actmt.updateMomentum(a, f, g, teps, ti)
   local tmin = a.rhmc[imin].MD
 
   local t0 = clock()
+  tmin.ff.f:zero()
   if a.smear then
     a.w:force(tmin.ff.f, pt, qt, ms, c, {prec=tmin.ffprec,deriv=1})
     smearForce(tmin.ff.f, g, a.smear)
@@ -306,7 +307,7 @@ function actmt.makeprop(a, g, mass, resid, opts)
       -- point({coord},color,spin,re,im)
       src:point({0,0,0,0},color,spin,1,0)
       printf("src norm2: %g\n", src:norm2())
-      if(opts.ngauss) src:smearGauss(g, opts.gaussalpha, opts.ngauss);
+      if(opts.ngauss) then src:smearGauss(g, opts.gaussalpha, opts.ngauss) end
       printf("src norm2: %g\n", src:norm2())
       dest[#dest+1] = a.w:quark()
       t0 = qopqdp.dtime()

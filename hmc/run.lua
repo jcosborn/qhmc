@@ -3,6 +3,7 @@ require 'gaugeact'
 require 'asqtadact'
 require 'hisqact'
 require 'wilsonact'
+require 'wilson2fact'
 require 'fields'
 require 'hmc'
 
@@ -21,6 +22,8 @@ function setupacts(p)
   acts.g = gaugeact(p)
   if p.fermact.type == "wilson" then
     acts.f = wilsonact(acts.g, p.fermact)
+  elseif p.fermact.type == "wilson2f" then
+    acts.f = wilson2fact(acts.g, p.fermact)
   elseif p.fermact.type == "hisq" then
     acts.f = hisqact(acts.g, 1, p.fermact.rhmc)
   else
@@ -51,7 +54,7 @@ local function measure(a, r)
   local t0 = clock()
 
   local ps,pt = a.fields.G:plaq()
-  printf("plaq ss: %-8g  st: %-8g  tot: %-8g\n", ps, pt, 0.5*(ps+pt))
+  printf("MEASplaq ss: %-8g  st: %-8g  tot: %-8g\n", ps, pt, 0.5*(ps+pt))
 
   local plr,pli = a.fields.G:ploop()
   local plrs,plis= 0,0
@@ -62,13 +65,13 @@ local function measure(a, r)
   end
   plrs,plis=plrs/(#plr-1),plis/(#pli-1)
   --printf("ploop: %s\n", tostring(plp))
-  printf("ploop: spatial: %g +i %g temporal: %g +i %g\n", plrs,plis,plrt,plit)
+  printf("MEASploop: spatial: (%g,%g) temporal: (%g,%g)\n",plrs,plis,plrt,plit)
 
   for i,v in ipairs(r.pbp) do
     for j=1,v.reps do
       local cc,nrm2 = a.f:pbp(a.fields.G, v.mass, v.resid, v.opts)
       --printf("pbp nrm2 %g : %g\n", v.mass, nrm2)
-      printf("pbp mass %g : %g\n", v.mass, cc)
+      printf("MEASpbp mass %g : %g\n", v.mass, cc)
     end
   end
 

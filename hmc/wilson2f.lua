@@ -1,7 +1,9 @@
 package.path = (userpath or "") .. "./?.lua;./hmc/?.lua;" .. arg[0]:gsub("[^/]*.lua","?.lua;") .. package.path
 require 'common'
 require 'run'
-require 'mg'
+require 'ratfunsqrt'
+--require 'ratfuntest'
+--require 'mg'
 
 trace(doTrace)
 --noMG = true
@@ -14,26 +16,25 @@ local u0 = u0 or 1
 local aniso = aniso or {}
 local nf = nf or 2
 local mass = mass or 0.0
+local diquark2 = diquark2 or 0.0
 --local rho = rho or 0.02
 local clov = clov or 0
 local clov_s = clov_s or clov
 local clov_t = clov_t or clov
-_G.mass = mass
+--_G.mass = mass
 
 aniso.xi0 = aniso.xi0 or 1
 aniso.nu = aniso.nu or 1
 aniso.gmom = aniso.gmom or 1
 
 local rhmc = {}
-local hmcmasses = {mass, mass2}
+local hmcmasses = { mass }
+--local hmcmasses = {mass, mass2}
 --local hmcmasses = { mass, 1.4*mass }
 local seed = seed or os.time()
 
---local inlat = inlat or nil
 local inlat = inlat or nil
---local inlat = "l84f8b40m04a.2700.scidac"
 local outlat = outlat or nil
---local outlat = "f8x88b40m01.100"
 local warmup = warmup or 0
 local ntraj = ntraj or 10
 local tau = tau or 1
@@ -76,7 +77,7 @@ end
 
 --[[
 --mf: fermionic mass
---mb: bosonic mass (Hasenbusch mass preconditioning, or Pauli-Villars field in DWF)
+--mb: bosonic mass (Hasenbusch mass preconditioning)
 --]]--
 function setpseudo(rhmc, mf, mb)
   if mb then
@@ -86,11 +87,19 @@ function setpseudo(rhmc, mf, mb)
       MD = {mf, mb}
     }
   else
-    rhmc[#rhmc+1] = {
-      GR = { mf },
-      FA = { mf },
-      MD = { mf }
-    }
+    local gr = {mass=mf,diquark2=diquark2}
+    local fa = {mass=mf,diquark2=diquark2}
+    local md = {mass=mf,diquark2=diquark2}
+    for i=1,#GRcoeffs do
+      gr[i] = { GRcoeffs[i], GRshifts[i] }
+    end
+    for i=1,#FAcoeffs do
+      fa[i] = { FAcoeffs[i], FAshifts[i] }
+    end
+    for i=1,#MDcoeffs do
+      md[i] = { MDcoeffs[i], MDshifts[i] }
+    end
+    rhmc[#rhmc+1] = { GR=gr, FA=fa, MD=md }
   end
 end
 
@@ -117,7 +126,7 @@ p.gmom_var = { 1, 1, 1, aniso.gmom }
 --p.gaugeact = {type="symanzik_1loop_hisq", u0=p.u0, nf=p.nf}
 p.gaugeact = {type="plaquette"}
 p.npseudo = npseudo
-p.fermact = {type="wilson", rhmc=rhmc}
+p.fermact = {type="wilson2f", rhmc=rhmc}
 p.fermact.smear = smear
 p.fermact.coeffs = {clov_s=clov_s, clov_t=clov_t, aniso=aniso.nu/aniso.xi0}
 

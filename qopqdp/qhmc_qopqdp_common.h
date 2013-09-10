@@ -101,8 +101,11 @@ extern QLA_RandomState qopqdp_nrs;
 extern QDP_RandomState *qopqdp_srs;
 
 QOP_evenodd_t qopqdp_check_evenodd(lua_State *L, int idx);
-QDP_Subset qopqdp_check_subset(lua_State *L, int idx);
+QDP_Subset qopqdp_opt_subset(lua_State *L, int *idx, int reqd, QDP_Subset def);
 QDP_Subset *qhmcqdp_get_timeslices(void);
+#define qopqdp_check_subset(L,i) qopqdp_opt_subset(L,(int[]){i},1,NULL)
+#define GET_SUBSET(s) QDP_Subset s = qopqdp_opt_subset(L,&nextarg,1,NULL)
+#define OPT_SUBSET(s,d) QDP_Subset s = qopqdp_opt_subset(L,&nextarg,0,d)
 
 QLA_Real infnorm_M(QDP_ColorMatrix *m, QDP_Subset s);
 int check_uniform_M(QDP_ColorMatrix *m, QDP_Subset s);
@@ -142,6 +145,7 @@ typedef struct {
 cscalar_t *qopqdp_cscalar_create(lua_State *L);
 cscalar_t *qopqdp_cscalar_check(lua_State *L, int idx);
 void qopqdp_cscalar_array_check(lua_State *L, int idx, int n, cscalar_t *s[n]);
+#define GET_CSCALAR(s) cscalar_t *s = qopqdp_cscalar_check(L,nextarg); nextarg++
 
 
 typedef struct {
@@ -240,6 +244,7 @@ typedef struct {
   QDP_DiracFermion *df;
 } wquark_t;
 wquark_t *qopqdp_wquark_create(lua_State *L);
+wquark_t *qopqdp_wquark_create_unset(lua_State *L);
 wquark_t *qopqdp_wquark_check(lua_State *L, int idx);
 void qopqdp_wquark_array_check(lua_State *L, int idx, int n, wquark_t *q[n]);
 

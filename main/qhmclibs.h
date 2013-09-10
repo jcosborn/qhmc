@@ -1,5 +1,7 @@
 #include "qhmc_common.h"
 
+int luaopen_bc(lua_State *L);
+
 #ifdef HAVE_LFS
 #include "src/lfs.h"
 #else

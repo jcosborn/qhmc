@@ -9,7 +9,7 @@ ifneq ($(strip $(HAVE_QOPQDP)),)
   DIRS += qopqdp
   include qopqdp/make-qopqdp.inc
 endif
-SUBDIRS = $(DIRS) main
+SUBDIRS = $(DIRS) lbc main
 
 .PHONY: all clean realclean lua $(SUBDIRS)
 

@@ -42,6 +42,21 @@ qopqdp_wquark_gc(lua_State *L)
 }
 
 static int
+qopqdp_wquark_clone(lua_State *L)
+{
+  int narg = lua_gettop(L);
+  qassert(narg==1 || narg==2);
+  wquark_t *q1 = qopqdp_wquark_create_unset(L);
+  wquark_t *q2 = qopqdp_wquark_check(L, 1);
+  QDP_Subset sub = QDP_all;
+  if(narg!=1) {
+    sub = qopqdp_check_subset(L, 2);
+  }
+  QDP_D_eq_D(q1->df, q2->df, sub);
+  return 1;
+}
+
+static int
 qopqdp_wquark_zero(lua_State *L)
 {
   int narg = lua_gettop(L);
@@ -358,6 +373,7 @@ qopqdp_wquark_smearGauss(lua_State *L)
 
 static struct luaL_Reg wquark_reg[] = {
   { "__gc",       qopqdp_wquark_gc },
+  { "clone",      qopqdp_wquark_clone },
   { "zero",       qopqdp_wquark_zero },
   { "random",     qopqdp_wquark_random },
   { "randomU1",   qopqdp_wquark_randomU1 },
@@ -374,16 +390,23 @@ static struct luaL_Reg wquark_reg[] = {
 };
 
 wquark_t *
-qopqdp_wquark_create(lua_State* L)
+qopqdp_wquark_create_unset(lua_State *L)
 {
   wquark_t *q = lua_newuserdata(L, sizeof(wquark_t));
   q->df = QDP_create_D();
-  QDP_D_eq_zero(q->df, QDP_all);
   if(luaL_newmetatable(L, mtname)) {
     lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");
     luaL_register(L, NULL, wquark_reg);
   }
   lua_setmetatable(L, -2);
+  return q;
+}
+
+wquark_t *
+qopqdp_wquark_create(lua_State *L)
+{
+  wquark_t *q = qopqdp_wquark_create_unset(L);
+  QDP_D_eq_zero(q->df, QDP_all);
   return q;
 }

@@ -349,8 +349,8 @@ exp_deriv_site(QLA_ColorMatrix *deriv, QLA_Real *r,
   QLA_ColorMatrix B1, B2;
   get_Bs(&Q, &Q2, &B1, &B2, &f0, &f1, &f2);
 
-  QLA_Complex qf0, qf1, qf2;
-  QLA_c_eq_c99(qf0, f0);
+  QLA_Complex /*qf0,*/ qf1, qf2;
+  //QLA_c_eq_c99(qf0, f0);
   QLA_c_eq_c99(qf1, f1);
   QLA_c_eq_c99(qf2, f2);
  

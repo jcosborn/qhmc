@@ -22,6 +22,7 @@ void
 open_qhmc(lua_State* L)
 {
   luaopen_lfs(L);
+  luaopen_bc(L);
   open_qhmc_complex(L);
   open_qopqdp(L);
 #if 1  // avoid loading 'lfs' since it is statically linked

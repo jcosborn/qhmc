@@ -48,6 +48,10 @@
 #define tableGetField(L, idx, key) lua_getfield(L, idx, key)
 #define tableGetIndex(L, idx, key) lua_rawgeti(L, idx, key)
 
+#define START_ARGS int nextarg=1, nargs=lua_gettop(L)
+#define GET_DOUBLE(v) double v=lua_tonumber(L,nextarg); nextarg++
+#define GET_TABLE_LEN_INDEX(l,i) int l,i=nextarg; get_table_len(L,i,&l); nextarg++
+#define END_ARGS qassert(nextarg==nargs+1)
 
 void get_bool_array(lua_State *L, int idx, int n, int *a);
 void get_int_array(lua_State *L, int idx, int n, int *a);
