@@ -86,9 +86,9 @@ qopqdp_hisq_set_opts(void)
   opt[0].value = 0;
   QOP_hisq_force_set_opts(opt, 1);
 #ifdef __bg__
-  QDP_set_block_size(64);
+  //QDP_set_block_size(64);
 #else
-  QDP_set_block_size(1024);
+  //QDP_set_block_size(1024);
 #endif
   opt[0].tag = "use_fat7_lepage";
   opt[0].value = 1;
