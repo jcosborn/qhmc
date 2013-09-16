@@ -291,15 +291,31 @@ qopqdp_wquark_combine(lua_State *L)
   wquark_t *qs[nqs]; qopqdp_wquark_array_check(L, 2, nqs, qs);
   int nc; get_table_len(L, 3, &nc); // input coefficients
   qassert(nqs==nc);
-  double c[nc]; get_double_array(L, 3, nc, c);
-  QLA_Real qc[nc]; for(int i=0; i<nc; i++) qc[i] = c[i];
+  //double c[nc]; get_double_array(L, 3, nc, c);
+  //QLA_Real qc[nc]; for(int i=0; i<nc; i++) qc[i] = c[i];
   QDP_Subset sub = QDP_all;
   if(narg>3) {
     sub = qopqdp_check_subset(L, 4);
   }
-  QDP_D_eq_r_times_D(qd->df, &qc[0], qs[0]->df, sub);
-  for(int i=1; i<nqs; i++) {
-    QDP_D_peq_r_times_D(qd->df, &qc[i], qs[i]->df, sub);
+  for(int i=0; i<nqs; i++) {
+    lua_rawgeti(L, 3, i+1);
+    if(lua_type(L,-1)==LUA_TNUMBER) {
+      QLA_Real c = lua_tonumber(L, -1);
+      if(i==0) {
+	QDP_D_eq_r_times_D(qd->df, &c, qs[0]->df, sub);
+      } else {
+	QDP_D_peq_r_times_D(qd->df, &c, qs[i]->df, sub);
+      }
+    } else { // assume complex
+      qhmc_complex_t *qc = qhmc_complex_check(L, -1);
+      QLA_Complex c;
+      QLA_c_eq_r_plus_ir(c, qc->r, qc->i);
+      if(i==0) {
+	QDP_D_eq_c_times_D(qd->df, &c, qs[0]->df, sub);
+      } else {
+	QDP_D_peq_c_times_D(qd->df, &c, qs[i]->df, sub);
+      }
+    }
   }
   return 0;
 }

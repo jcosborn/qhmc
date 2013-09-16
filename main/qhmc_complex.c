@@ -120,6 +120,14 @@ qhmc_complex_div(lua_State *L)
 }
 
 static int
+qhmc_complex_unm(lua_State *L)
+{
+  qhmc_complex_t *c1 = qhmc_complex_check(L,1);
+  qhmc_complex_create(L, -c1->r, -c1->i);
+  return 1;
+}
+
+static int
 qhmc_complex_index(lua_State *L)
 {
   size_t len;
@@ -209,7 +217,7 @@ static struct luaL_Reg qhmc_complex_mt_reg[] = {
   { "__mul",      qhmc_complex_mul },
   { "__div",      qhmc_complex_div },
   //{ "__pow",      qhmc_complex_pow },
-  //{ "__unm",      qhmc_complex_unm },
+  { "__unm",      qhmc_complex_unm },
   //{ "__eq",       qhmc_complex_eq },
   { "__index",    qhmc_complex_index },
   { "__newindex", qhmc_complex_newindex },

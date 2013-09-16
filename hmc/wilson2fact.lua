@@ -1,5 +1,5 @@
 require 'smear'
-require 'cgms'
+require 'cgms3'
 
 local vecmt = {}
 local function vector(v)
@@ -37,6 +37,11 @@ end
 function vecmt.Re_dot(v, a)
   local r = v[1]:Re_dot(a[1])
   for i=2,#v do r = r + v[i]:Re_dot(a[i]) end
+  return r
+end
+function vecmt.dot(v, a)
+  local r = v[1]:dot(a[1])
+  for i=2,#v do r = r + v[i]:dot(a[i]) end
   return r
 end
 function vecmt.combine(v, a, c)

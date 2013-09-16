@@ -1,5 +1,11 @@
 #!/bin/sh
 
+p='$i'
+if [ "X$1" = "X-p" ]; then
+  p="$2"
+  shift 2
+fi
+
 tag=$1
 shift
 if [ "X$tag" = "X" ]; then
@@ -21,15 +27,16 @@ awk '
 {
   for(i=1; i<=NF; i++) {
     n[i] += 1;
-    s[i] += $i;
-    s2[i] += $i*$i;
+    v = '$p';
+    s[i] += v;
+    s2[i] += v*v;
     l[i] = $i;
   }
 }
 END{
   printf("# N = %i\n", n[1]);
   for(i=1; n[i]>0; i++) {
-    if(match(l[i],"[[:alpha:]]")>0) {
+    if(match(l[i],"[a-zA-Z:=]")>0) {
       printf("%s ", l[i]);
     } else {
       printf("%-12.6g ", s[i]/n[i]);
@@ -37,7 +44,7 @@ END{
   }
   printf("\n");
   for(i=1; n[i]>0; i++) {
-    if(match(l[i],"[[:alpha:]]")>0) {
+    if(match(l[i],"[a-zA-Z:=]")>0) {
       printf("%*c ", length(l[i]), " ");
     } else {
       a = s[i]/n[i];

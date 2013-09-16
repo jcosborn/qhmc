@@ -57,9 +57,9 @@ qopqdp_wilson_set_opts(void)
   //opt[0].value = 0;
   //QOP_wilson_force_set_opts(opt, 1);
 #ifdef __bg__
-  QDP_set_block_size(64);
+  //QDP_set_block_size(64);
 #else
-  QDP_set_block_size(1024);
+  //QDP_set_block_size(1024);
 #endif
 }
 

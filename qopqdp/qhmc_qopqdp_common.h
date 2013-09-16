@@ -157,6 +157,8 @@ typedef struct {
 gauge_t *qopqdp_gauge_create(lua_State *L);
 gauge_t *qopqdp_gauge_check(lua_State *L, int idx);
 void qopqdp_gauge_array_check(lua_State *L, int idx, int n, gauge_t *g[n]);
+void qopqdp_makeSU(NCPROT QLA_ColorMatrix(*m), int idx, void *args);
+int qopqdp_gauge_coulomb(lua_State* L);
 
 
 typedef struct {

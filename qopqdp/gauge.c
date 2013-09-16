@@ -370,8 +370,8 @@ qopqdp_gauge_checkSU(lua_State *L)
   return 2;
 }
 
-static void
-makeSU(NCPROT QLA_ColorMatrix(*m), int idx, void *args)
+void
+qopqdp_makeSU(NCPROT QLA_ColorMatrix(*m), int idx, void *args)
 {
   QLA_D_Complex d1,d2;
   QLA_ColorMatrix(m1);
@@ -440,7 +440,7 @@ qopqdp_gauge_makeSU(lua_State *L)
     get_gauge_links(g);
   } else {
     for(int i=0; i<g->nd; i++) {
-      QDP_M_eq_funcia(g->links[i], makeSU, NULL, QDP_all);
+      QDP_M_eq_funcia(g->links[i], qopqdp_makeSU, NULL, QDP_all);
     }
   }
   return 0;
@@ -958,6 +958,7 @@ static struct luaL_Reg gauge_reg[] = {
   { "force",   qopqdp_gauge_force },
   { "update",  qopqdp_gauge_update },
   { "loop",    qopqdp_gauge_loop },
+  { "coulomb", qopqdp_gauge_coulomb },
   { NULL, NULL}
 };
 

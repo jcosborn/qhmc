@@ -21,6 +21,9 @@ local diquark2 = diquark2 or 0.0
 local clov = clov or 0
 local clov_s = clov_s or clov
 local clov_t = clov_t or clov
+blocksize = 65536
+oldBlocksize = qopqdp.blocksize(blocksize)
+printf("blocksize: %i  old: %i\n", blocksize, oldBlocksize)
 --_G.mass = mass
 
 aniso.xi0 = aniso.xi0 or 1

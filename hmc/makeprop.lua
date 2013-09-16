@@ -15,8 +15,12 @@ qopqdp.verbosity(0)
 wr = qopqdp.writer("test.out", "<metadata/>")
 
 function getplaq(g)
-  local ps,pt = g:plaq()
-  printf("plaq ss: %-8g  st: %-8g  tot: %-8g\n", ps, pt, 0.5*(ps+pt))
+  local ps,pt = g:action{plaq=1}
+  local lat = qopqdp.lattice()
+  local nd,vol = #lat,1
+  for i=1,nd do vol=vol*lat[i] end
+  local s = 0.25*nd*(nd-1)*vol
+  printf("plaq ss: %-8g  st: %-8g  tot: %-8g\n", ps/s, pt/s, 0.5*(ps+pt)/s)
 end
 
 g = qopqdp.gauge()
@@ -27,6 +31,12 @@ else
   --g:unit()
   g:random()
 end
+
+getplaq(g)
+-- coulomb(j_decay, error, max iterations, overrelaxation param)
+-- note that here 0->x, ..., 3->t
+g:coulomb(3, 1e-7, 1000, 1.2)
+getplaq(g)
 
 w = qopqdp.wilson()
 w:printcoeffs()

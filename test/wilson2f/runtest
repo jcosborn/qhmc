@@ -2,14 +2,14 @@
 
 qhmc="../../main/qhmc"
 hmc="../../hmc"
-export OMP_NUM_THREADS=2
+export OMP_NUM_THREADS=4
 run="mpirun -np 1"
 
 opts="nx=4;nt=8"
-opts="$opts;beta=5.5;mass=-0.1;ngsteps=192;nfsteps={32}"
-opts="$opts;diquark2=0.0"
+opts="$opts;beta=5.5;mass=-0.1;ngsteps=100;nfsteps={20}"
+#opts="$opts;diquark2=1."
 #opts="$opts;aniso={xi0=2.38,nu=1,gmom=2.4}"
-opts="$opts;ntraj=100"
+opts="$opts;ntraj=1"
 opts="$opts;noMG=true"
 opts="$opts;warmup=0"
 opts="$opts;seed=1316844761"
@@ -21,6 +21,7 @@ test() {
   stamp=`date +%Y%m%d%H%M%S`
   echo $opts > $t.$stamp 
   $run $qhmc -e "$opts" $hmc/wilson2f.lua >> $t.$stamp
+  #$run $qhmc -e "$opts" $hmc/wilson2f.lua
 }
 
 ref() {
@@ -28,6 +29,7 @@ ref() {
   stamp=`date +%Y%m%d%H%M%S`
   echo $opts > $t.$stamp
   $run $qhmc -e "$opts" $hmc/wilson.lua >> $t.$stamp
+  #$run $qhmc -e "$opts" $hmc/wilson.lua
 }
 
 #ref

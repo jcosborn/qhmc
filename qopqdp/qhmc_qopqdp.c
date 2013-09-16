@@ -137,19 +137,49 @@ qopqdp_lattice(lua_State *L)
 static int
 qopqdp_profile(lua_State* L)
 {
-  qassert(lua_gettop(L)==1);
-  int v = luaL_checkinteger(L, 1);
-  QDP_profcontrol(v);
-  return 0;
+  int nargs = lua_gettop(L);
+  qassert(nargs>=0 || nargs<=1);
+  int r;
+  if(nargs==0) {
+    r = QDP_profcontrol(0);
+    QDP_profcontrol(r);
+  } else {
+    int v = luaL_checkinteger(L, 1);
+    r = QDP_profcontrol(v);
+  }
+  lua_pushinteger(L, r);
+  return 1;
 }
 
 static int
 qopqdp_verbosity(lua_State* L)
 {
-  qassert(lua_gettop(L)==1);
-  int v = luaL_checkinteger(L, 1);
-  QOP_verbose(v);
-  return 0;
+  int nargs = lua_gettop(L);
+  qassert(nargs>=0 || nargs<=1);
+  int r;
+  if(nargs==0) {
+    r = QOP_verbose(0);
+    QOP_verbose(r);
+  } else {
+    int v = luaL_checkinteger(L, 1);
+    r = QOP_verbose(v);
+  }
+  lua_pushinteger(L, r);
+  return 1;
+}
+
+static int
+qopqdp_blocksize(lua_State* L)
+{
+  int nargs = lua_gettop(L);
+  qassert(nargs>=0 || nargs<=1);
+  int r = QDP_get_block_size();
+  lua_pushinteger(L, r);
+  if(nargs==1) {
+    int v = luaL_checkinteger(L, 1);
+    QDP_set_block_size(v);
+  }
+  return 1;
 }
 
 static void
@@ -306,6 +336,7 @@ static struct luaL_Reg qopqdp_reg[] = {
   { "lattice",   qopqdp_lattice },
   { "profile",   qopqdp_profile },
   { "verbosity", qopqdp_verbosity },
+  { "blocksize", qopqdp_blocksize },
   { "seed",      qopqdp_seed },
   { "random",    qopqdp_random },
   { "cscalar",   qopqdp_cscalar },
