@@ -1,5 +1,5 @@
 require 'smear'
-require 'cgms3'
+require 'cgms2'
 
 local vecmt = {}
 local function vector(v)

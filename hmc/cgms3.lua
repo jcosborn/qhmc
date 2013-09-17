@@ -58,10 +58,13 @@ function cgms2(x, src, op, shifts, resid, opts, subset)
     --printf("%i\t%g\n", its, rsq)
     if its >= maxits or rsq < rsqstop then break end
 
+    rs[nx] = r[nx]:norm2(subset)
+    if rs[nx]<rsqstop then nx=nx-1 end
+
     a[imin] = rsq / oldrsq
     for i=1,nx do
       if i~=imin then
-	rs[i] = r[i]:norm2(subset)
+	--rs[i] = r[i]:norm2(subset)
 	--printf("%i\t%g\n", i, rs[i])
 	--local t = math.sqrt(rs[i]*rsq)/rso[i]
 	a[i] = -Ap[i]:Re_dot(r[imin])/pAp[i]

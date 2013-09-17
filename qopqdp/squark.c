@@ -298,14 +298,17 @@ qopqdp_squark_symshift(lua_State *L)
   squark_t *qs = qopqdp_squark_check(L, 2);
   gauge_t *g = qopqdp_gauge_check(L, 3);
   int mu = luaL_checkint(L, 4) - 1;
-  QDP_ColorVector *t = QDP_create_V();
-  QDP_ColorVector *t2 = QDP_create_V();
-  QDP_V_eq_sV(t, qs->cv, QDP_neighbor[mu], QDP_forward, QDP_all);
-  QDP_V_eq_Ma_times_V(t2, g->links[mu], qs->cv, QDP_all);
-  QDP_V_eq_M_times_V(qd->cv, g->links[mu], t, QDP_all);
-  QDP_V_peq_V(qd->cv, t2, QDP_all);
-  QDP_destroy_V(t);
-  QDP_destroy_V(t2);
+  QDP_ColorVector *tf = QDP_create_V();
+  QDP_ColorVector *tb1 = QDP_create_V();
+  QDP_ColorVector *tb2 = QDP_create_V();
+  QDP_V_eq_sV(tf, qs->cv, QDP_neighbor[mu], QDP_forward, QDP_all);
+  QDP_V_eq_Ma_times_V(tb1, g->links[mu], qs->cv, QDP_all);
+  QDP_V_eq_sV(tb2, tb1, QDP_neighbor[mu], QDP_backward, QDP_all);
+  QDP_V_eq_M_times_V(qd->cv, g->links[mu], tf, QDP_all);
+  QDP_V_peq_V(qd->cv, tb2, QDP_all);
+  QDP_destroy_V(tf);
+  QDP_destroy_V(tb1);
+  QDP_destroy_V(tb2);
   return 0;
 }
 

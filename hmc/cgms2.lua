@@ -83,7 +83,7 @@ function cgms(x, src, op, shifts, resid, opts)
       op(r, x[i])
       r:combine({r,x[i],src},{-1,-shifts[i],1})
       local rsq = r:norm2()
-      printf("%i\t%i\t%g\n", i, it, rsq)
+      --printf("%i\t%i\t%g\n", i, it, rsq)
       --break
       if rsq<=rsqstop then break end
       local res = math.sqrt(rsqstop/rsq)
