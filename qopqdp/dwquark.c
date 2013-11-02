@@ -207,13 +207,19 @@ static struct luaL_Reg dwquark_reg[] = {
 };
 
 dwquark_t *
-qopqdp_dwquark_create(lua_State* L, int ls)
+qopqdp_dwquark_create(lua_State* L, int ls, int nc, lattice_t *lat)
 {
+#define NC nc
+  if(nc==0) nc = DEFAULTNC;
+  QDP_Lattice *qlat = QDP_get_default_lattice();
+  if(lat) qlat = lat->qlat;
   dwquark_t *q = lua_newuserdata(L, sizeof(dwquark_t));
   q->ls = ls;
   q->df = malloc(ls*sizeof(*q->df));
+  q->qlat = qlat;
+  q->nc = nc;
   for(int s=0; s<ls; s++) {
-    q->df[s] = QDP_create_D();
+    q->df[s] = QDP_create_D_L(qlat);
     QDP_D_eq_zero(q->df[s], QDP_all);
   }
   if(luaL_newmetatable(L, mtname)) {
@@ -223,4 +229,5 @@ qopqdp_dwquark_create(lua_State* L, int ls)
   }
   lua_setmetatable(L, -2);
   return q;
+#undef NC
 }

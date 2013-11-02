@@ -125,6 +125,7 @@ rephase_F(force_t *f)
 static void
 wilson_set(wilson_t *w, int prec)
 {
+#define NC QDP_get_nc(g->links[0])
   if((prec==1&&w->ffl)||(prec==2&&w->fl)) {
     return;
   }
@@ -166,6 +167,7 @@ wilson_set(wilson_t *w, int prec)
   }
   w->time = info.final_sec;
   w->flops = info.final_flop;
+#undef NC
 }
 
 // 1: wilson
@@ -345,6 +347,7 @@ qopqdp_wilson_precDdag(lua_State *L)
 static int
 qopqdp_wilson_solve(lua_State *L)
 {
+#define NC QDP_get_nc(qs->df)
   int narg = lua_gettop(L);
   qassert(narg>=5 && narg<=7);
   wilson_t *w = qopqdp_wilson_check(L, 1);
@@ -380,7 +383,7 @@ qopqdp_wilson_solve(lua_State *L)
   //printf("precNE = %i\n", precNE);
   if(narg>=nextarg && !lua_isnil(L,nextarg)) {
     if(!lua_istable(L,nextarg)) {
-      qerror0("expecting solver paramter table\n");
+      qlerror0(L,1,"expecting solver paramter table\n");
     }
 #define seti(s) lua_getfield(L,nextarg,#s);if(!lua_isnil(L,-1))s=luaL_checkint(L,-1);lua_pop(L,1)
     //seti(prec);
@@ -510,6 +513,7 @@ qopqdp_wilson_solve(lua_State *L)
   w->flops = info.final_flop;
   w->its = resarg.final_iter;
   return 0;
+#undef NC
 }
 
 static int
@@ -620,7 +624,7 @@ static int
 qopqdp_wilson_quark(lua_State* L)
 {
   qassert(lua_gettop(L)==1);
-  qopqdp_wquark_create(L);
+  qopqdp_wquark_create(L, 0, NULL);
   return 1;
 }
 

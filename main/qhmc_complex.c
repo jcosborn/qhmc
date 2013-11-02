@@ -164,7 +164,7 @@ qhmc_complex_newindex(lua_State *L)
       return 0;
     }
   }
-  qerror0("invalid complex element (%s)\n", key);
+  qlerror0(L,1,"invalid complex element (%s)\n", key);
   return 0;
 }
 
@@ -187,6 +187,14 @@ qhmc_complex_set(lua_State *L)
   qhmc_complex_t *c = qhmc_complex_check(L, 1);
   qhmc_complex_get_as(L, 2, c);
   return 0;
+}
+
+static int
+qhmc_complex_conj(lua_State *L)
+{
+  qhmc_complex_t *c = qhmc_complex_check(L, 1);
+  qhmc_complex_create(L, c->r, -c->i);
+  return 1;
 }
 
 static int
@@ -223,6 +231,7 @@ static struct luaL_Reg qhmc_complex_mt_reg[] = {
   { "__newindex", qhmc_complex_newindex },
   { "__tostring", qhmc_complex_tostring },
   { "set",        qhmc_complex_set },
+  { "conj",       qhmc_complex_conj },
   { "peq",        qhmc_complex_peq },
   { "meq",        qhmc_complex_meq },
   { NULL, NULL}

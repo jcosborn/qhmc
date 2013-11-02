@@ -97,7 +97,7 @@ sylsolve_site(NCPROT QLA_ColorMatrix(*x), QLA_ColorMatrix(*a),
 	      QLA_ColorMatrix(*b), QLA_ColorMatrix(*c))
 {
   //timebase_t tb3 = timer();
-  int nc1 = QOP_Nc;
+  int nc1 = QLA_Nc;
   int nc2 = nc1*nc1;
   //printf("%i  %i\n", nc1, nc2);
   QLA_N_ColorMatrix(nc2, A);
@@ -121,6 +121,7 @@ sylsolve_site(NCPROT QLA_ColorMatrix(*x), QLA_ColorMatrix(*a),
   }
   //timebase_t tb4 = timer();
   //QLA_N_ColorMatrix(nc2, Ai);
+#ifdef HAVENCN
 #if QOP_Precision == 'F'
   //QLA_FN_M_eq_inverse_M(nc2, &Ai, &A);
   //QLA_FN_V_eq_M_times_V(nc2, X, &Ai, B);
@@ -129,6 +130,9 @@ sylsolve_site(NCPROT QLA_ColorMatrix(*x), QLA_ColorMatrix(*a),
   //QLA_DN_M_eq_inverse_M(nc2, &Ai, &A);
   //QLA_DN_V_eq_M_times_V(nc2, X, &Ai, B);
   QLA_DN_V_eq_M_inverse_V(nc2, X, &A, B);
+#endif
+#else
+  qerror0(1,"can't use unitary projection without Nc=N libraries\n");
 #endif
   //timebase_t tb5 = timer();
   //tb0 += tb5 - tb3;
@@ -196,7 +200,8 @@ projectU_deriv(QDP_ColorMatrix *deriv, QDP_ColorMatrix *proj,
 #undef NC
 }
 
-#if QDP_Colors == 3
+#ifdef HAVENC3
+#define NC 3
 void 
 traceless_herm_M_evalues(QLA_ColorMatrix *Q, double _Complex *u, double _Complex *w, 
 			   double _Complex *q1, double _Complex *q2, double _Complex *q3) {
@@ -226,9 +231,11 @@ traceless_herm_M_evalues(QLA_ColorMatrix *Q, double _Complex *u, double _Complex
   *q3 = -*u - *w;
 }
 
-void
-get_Bs(QLA_ColorMatrix *Q, QLA_ColorMatrix *Q2, QLA_ColorMatrix *B1, QLA_ColorMatrix *B2,
-       double _Complex *f0, double _Complex *f1, double _Complex *f2) {
+static void
+get_Bs(QLA_ColorMatrix *Q, QLA_ColorMatrix *Q2, QLA_ColorMatrix *B1,
+       QLA_ColorMatrix *B2, double _Complex *f0, double _Complex *f1,
+       double _Complex *f2)
+{
 
   double _Complex u, w, q1, q2, q3;
   traceless_herm_M_evalues(Q, &u, &w, &q1, &q2, &q3);
@@ -324,225 +331,229 @@ get_Bs(QLA_ColorMatrix *Q, QLA_ColorMatrix *Q2, QLA_ColorMatrix *B1, QLA_ColorMa
   QLA_M_peq_c_times_M(B2, &qb21, Q); 
   QLA_M_peq_c_times_M(B2, &qb22, Q2);
 }
-
+#undef NC
 #endif
 
+#define NC nc
 void
-exp_deriv_site(QLA_ColorMatrix *deriv, QLA_Real *r, 
-	       QLA_ColorMatrix *M, QLA_ColorMatrix *chain) {
-  
+exp_deriv_site(NCPROT QLA_ColorMatrix *deriv, QLA_Real *r, 
+	       QLA_ColorMatrix *M, QLA_ColorMatrix *chain)
+{
   QLA_ColorMatrix tmp;
   QLA_ColorMatrix A;
   QLA_M_eq_r_times_M(&A, r, M);
   
+#ifdef HAVENC3
   // special SU(3) case
-#if QDP_Colors == 3
-  
-  QLA_Complex minus_i;
-  QLA_c_eq_r_plus_ir(minus_i, 0, -1);
-  
-  QLA_ColorMatrix Q, Q2;
-  QLA_M_eq_C_times_M(&Q, &minus_i, &A);
-  QLA_M_eq_M_times_M(&Q2, &Q, &Q);
+  if(QLA_Nc==3) {
+    QLA_Complex minus_i;
+    QLA_c_eq_r_plus_ir(minus_i, 0, -1);
 
-  double _Complex f0, f1, f2;
-  QLA_ColorMatrix B1, B2;
-  get_Bs(&Q, &Q2, &B1, &B2, &f0, &f1, &f2);
+    QLA_ColorMatrix Q, Q2;
+    QLA_M_eq_C_times_M(&Q, &minus_i, &A);
+    QLA_M_eq_M_times_M(&Q2, &Q, &Q);
 
-  QLA_Complex /*qf0,*/ qf1, qf2;
-  //QLA_c_eq_c99(qf0, f0);
-  QLA_c_eq_c99(qf1, f1);
-  QLA_c_eq_c99(qf2, f2);
+    double _Complex f0, f1, f2;
+    QLA_ColorMatrix B1, B2;
+    get_Bs(&Q, &Q2, &B1, &B2, &f0, &f1, &f2);
+
+    QLA_Complex /*qf0,*/ qf1, qf2;
+    //QLA_c_eq_c99(qf0, f0);
+    QLA_c_eq_c99(qf1, f1);
+    QLA_c_eq_c99(qf2, f2);
  
-  // derivative  
-  QLA_Complex trB1M, trB2M;
-  QLA_ColorMatrix prod, mat;
-  QLA_M_eq_Ma (&mat, chain);
+    // derivative  
+    QLA_Complex trB1M, trB2M;
+    QLA_ColorMatrix prod, mat;
+    QLA_M_eq_Ma (&mat, chain);
 
-  //tr(B_1 M)
-  QLA_M_eq_M_times_M (&prod, &B1, &mat); //B_1 M
-  QLA_C_eq_trace_M   (&trB1M, &prod);
+    //tr(B_1 M)
+    QLA_M_eq_M_times_M (&prod, &B1, &mat); //B_1 M
+    QLA_C_eq_trace_M   (&trB1M, &prod);
   
-  //tr(B_2 M);
-  QLA_M_eq_M_times_M (&prod, &B2, &mat); //B_2 M
-  QLA_C_eq_trace_M   (&trB2M, &prod);
+    //tr(B_2 M);
+    QLA_M_eq_M_times_M (&prod, &B2, &mat); //B_2 M
+    QLA_C_eq_trace_M   (&trB2M, &prod);
   
-  // deriv = Tr(B_1 M) Q
-  QLA_M_eq_c_times_M (&tmp, &trB1M, &Q);
+    // deriv = Tr(B_1 M) Q
+    QLA_M_eq_c_times_M (&tmp, &trB1M, &Q);
   
-  // deriv += Tr(B_2 M) Q^2
-  QLA_M_peq_c_times_M (&tmp, &trB2M, &Q2);
+    // deriv += Tr(B_2 M) Q^2
+    QLA_M_peq_c_times_M (&tmp, &trB2M, &Q2);
   
-  // deriv += f1 M
-  QLA_M_peq_c_times_M (&tmp, &qf1, &mat);
+    // deriv += f1 M
+    QLA_M_peq_c_times_M (&tmp, &qf1, &mat);
   
-  // deriv += f2 Q M
-  QLA_M_eq_M_times_M  (&prod, &Q, &mat); // Q M
-  QLA_M_peq_c_times_M (&tmp, &qf2, &prod); 
+    // deriv += f2 Q M
+    QLA_M_eq_M_times_M  (&prod, &Q, &mat); // Q M
+    QLA_M_peq_c_times_M (&tmp, &qf2, &prod); 
   
-  // deriv += f2 M Q
-  QLA_M_eq_M_times_M  (&prod, &mat, &Q); // M Q
-  QLA_M_peq_c_times_M (&tmp, &qf2, &prod);
+    // deriv += f2 M Q
+    QLA_M_eq_M_times_M  (&prod, &mat, &Q); // M Q
+    QLA_M_peq_c_times_M (&tmp, &qf2, &prod);
 
-  QLA_M_eq_c_times_M  (&tmp, &minus_i, &tmp);
-  
-  QLA_M_eq_Ma(deriv, &tmp);
+    QLA_M_eq_c_times_M  (&tmp, &minus_i, &tmp);
 
- // special SU(2) case
-#elif QDP_Colors == 2
-  QLA_Complex Tr, det;
-  QLA_c_eq_c_times_c(det, QLA_elem_M(A,0,0),QLA_elem_M(A,1,1));
-  QLA_c_meq_c_times_c(det, QLA_elem_M(A,0,1), QLA_elem_M(A,1,0));
-
-  QLA_C_eq_trace_M(&Tr, &A);
-
-  if (QLA_real(Tr) == 0 && QLA_imag(Tr) == 0) {
-    
-    double _Complex t, t2;
-    double _Complex cosht, sinht, sinht_t;
-
-    t = csqrt(-QLA_real(det) - _Complex_I * QLA_imag(det)); 
-    t2 = t * t;
-
-    if(creal(t) == 0 && cimag(t) == 0) {
-      cosht = 1;
-      sinht = 0;
-      sinht_t = 1;
-    } else {
-      cosht = ccosh(t);
-      sinht = csinh(t);
-      sinht_t = sinht / t;
-    }
-
-    double _Complex f0, f1;
-    f0 = cosht;
-    f1 = sinht_t;
-
-    double _Complex f1t, f0t2, f1t2;
-    if (cabs(t) > 0.05) {
-      f1t = (f0-f1) / t;
-      f1t2 = f1t / t;
-    }
-    else { //when |t| <= 0.05, the truncation error is O(10^{-14})
-      f1t = t / 3.0 * (1+t2/10*(1+t2/28));
-      f1t2 = 1.0 / 3.0 * (1+t2/10*(1+t2/28));
-    }
-    f0t2 = f1;
-
-    QLA_Complex qf1;
-    QLA_ColorMatrix B, AB;
-    QLA_c_eq_r_plus_ir(qf1, creal(f1), cimag(f1));
-    
-    QLA_M_eq_Ma(&B, chain);
-    QLA_M_eq_M_times_M(&AB, &A, &B);
-    QLA_M_eq_c_times_M(&tmp, &qf1, &B); //f1 * B
-
-    QLA_Complex trB, trAB;
-    QLA_C_eq_trace_M(&trB,  &B);
-    QLA_C_eq_trace_M(&trAB, &AB);
-
-    double _Complex ctrB  = QLA_real(trB) + _Complex_I * QLA_imag(trB);
-    double _Complex ctrAB = QLA_real(trAB) + _Complex_I * QLA_imag(trAB);
-    double _Complex coeff;
-
-    coeff = 0.5 * (f0t2 * ctrB + f1t2 * ctrAB);
-    QLA_Complex qc;
-    QLA_c_eq_r_plus_ir(qc, creal(coeff),cimag(coeff));
-    QLA_M_peq_c_times_M(&tmp, &qc, &A);
-  }    
-  else {
-    QLA_Complex qs;
-    QLA_c_eq_r_times_c(qs, 0.5, Tr); // s=TrA/2
-    
-    QLA_Complex qs2;
-    QLA_c_eq_c_times_c(qs2, qs, qs); //s2 = s^2
-    QLA_c_meq_c(qs2, det); //s2 = s^2 - detA
-    
-    double _Complex t = QLA_real(qs2) + QLA_imag(qs2) * _Complex_I;
-    t = csqrt(t); // sqrt(s^2 - det A)
-
-    double _Complex exps, cosht, sinht, sinht_t;
-    double _Complex s = QLA_real(qs) + QLA_imag(qs) * _Complex_I;
-    exps = cexp(s);
-    
-    if(creal(t) == 0 && cimag(t) == 0) {
-      cosht = 1;
-      sinht = 0;
-      sinht_t = 1;
-    } else {
-      cosht = ccosh(t);
-      sinht = csinh(t);
-      sinht_t = sinht/t;
-    }
-    
-    double _Complex f0, f1;
-    f1 = exps * sinht_t;
-    f0 = exps * cosht - s * f1;;
-
-    //derivative of the coefficients
-    double _Complex f0s, f1s, f0t, f1t, f0t2, f1t2, t2;
-    t2 = t*t;
-    
-    f0s = f0 - f1;
-    f1s = f1;
-    if (cabs(t) > 0.05) {
-      f1t = ((f0-f1) + s*f1)/t;
-      f1t2 = f1t/t;
-    }
-    else { //when |t| <= 0.05, the truncation error is O(10^{-14})
-      f1t = exps * t/3 * (1+t2/10*(1+t2/28));
-      f1t2 = exps / 3 * (1+t2/10*(1+t2/28));
-    }
-    f0t  = t*f1 - s*f1t;
-    f0t2 = f1 - s*f1t2;
-    
-    QLA_Complex qf1;
-    QLA_c_eq_r_plus_ir(qf1, creal(f1), cimag(f1));
-    
-    QLA_ColorMatrix B, AB;
-    QLA_M_eq_Ma(&B, chain);
-    QLA_M_eq_M_times_M(&AB, &A, &B);
-    QLA_M_eq_c_times_M(&tmp, &qf1, &B); //f1 * B
-    
-    QLA_Complex trB, trAB;
-    QLA_C_eq_trace_M(&trB,  &B);
-    QLA_C_eq_trace_M(&trAB, &AB);
-
-    double _Complex ctrB  = QLA_real(trB) + _Complex_I * QLA_imag(trB);
-    double _Complex ctrAB = QLA_real(trAB) + _Complex_I * QLA_imag(trAB);
-    double _Complex coeff;
-    coeff  = (f0s - f0t2 * s) * ctrB;
-    coeff += (f1s - f1t2 * s) * ctrAB;
-    coeff *= 0.5;
-    
-    QLA_Complex qc;
-    QLA_c_eq_r_plus_ir(qc, creal(coeff),cimag(coeff));
-    
-    QLA_M_peq_c(&tmp, &qc); // f1 * B + () 
-    
-    coeff = 0.5 * (f0t2 * ctrB + f1t2 * ctrAB);
-    
-    QLA_c_eq_r_plus_ir(qc, creal(coeff),cimag(coeff));
-    QLA_M_peq_c_times_M(&tmp, &qc, &A);
-  } 
     QLA_M_eq_Ma(deriv, &tmp);
-#else
-  printerr("Not implemented\n");
-  ABORT(1);
+  }
 #endif
-  
+#ifdef HAVENC2
+  // special SU(2) case
+  if(QLA_Nc==2) {
+    QLA_Complex Tr, det;
+    QLA_c_eq_c_times_c(det, QLA_elem_M(A,0,0),QLA_elem_M(A,1,1));
+    QLA_c_meq_c_times_c(det, QLA_elem_M(A,0,1), QLA_elem_M(A,1,0));
+
+    QLA_C_eq_trace_M(&Tr, &A);
+
+    if (QLA_real(Tr) == 0 && QLA_imag(Tr) == 0) {
+      double _Complex t, t2;
+      double _Complex cosht, sinht, sinht_t;
+
+      t = csqrt(-QLA_real(det) - _Complex_I * QLA_imag(det)); 
+      t2 = t * t;
+
+      if(creal(t) == 0 && cimag(t) == 0) {
+	cosht = 1;
+	sinht = 0;
+	sinht_t = 1;
+      } else {
+	cosht = ccosh(t);
+	sinht = csinh(t);
+	sinht_t = sinht / t;
+      }
+
+      double _Complex f0, f1;
+      f0 = cosht;
+      f1 = sinht_t;
+
+      double _Complex f1t, f0t2, f1t2;
+      if (cabs(t) > 0.05) {
+	f1t = (f0-f1) / t;
+	f1t2 = f1t / t;
+      }
+      else { //when |t| <= 0.05, the truncation error is O(10^{-14})
+	f1t = t / 3.0 * (1+t2/10*(1+t2/28));
+	f1t2 = 1.0 / 3.0 * (1+t2/10*(1+t2/28));
+      }
+      f0t2 = f1;
+
+      QLA_Complex qf1;
+      QLA_ColorMatrix B, AB;
+      QLA_c_eq_r_plus_ir(qf1, creal(f1), cimag(f1));
+
+      QLA_M_eq_Ma(&B, chain);
+      QLA_M_eq_M_times_M(&AB, &A, &B);
+      QLA_M_eq_c_times_M(&tmp, &qf1, &B); //f1 * B
+
+      QLA_Complex trB, trAB;
+      QLA_C_eq_trace_M(&trB,  &B);
+      QLA_C_eq_trace_M(&trAB, &AB);
+
+      double _Complex ctrB  = QLA_real(trB) + _Complex_I * QLA_imag(trB);
+      double _Complex ctrAB = QLA_real(trAB) + _Complex_I * QLA_imag(trAB);
+      double _Complex coeff;
+
+      coeff = 0.5 * (f0t2 * ctrB + f1t2 * ctrAB);
+      QLA_Complex qc;
+      QLA_c_eq_r_plus_ir(qc, creal(coeff),cimag(coeff));
+      QLA_M_peq_c_times_M(&tmp, &qc, &A);
+    } else {
+      QLA_Complex qs;
+      QLA_c_eq_r_times_c(qs, 0.5, Tr); // s=TrA/2
+
+      QLA_Complex qs2;
+      QLA_c_eq_c_times_c(qs2, qs, qs); //s2 = s^2
+      QLA_c_meq_c(qs2, det); //s2 = s^2 - detA
+
+      double _Complex t = QLA_real(qs2) + QLA_imag(qs2) * _Complex_I;
+      t = csqrt(t); // sqrt(s^2 - det A)
+
+      double _Complex exps, cosht, sinht, sinht_t;
+      double _Complex s = QLA_real(qs) + QLA_imag(qs) * _Complex_I;
+      exps = cexp(s);
+
+      if(creal(t) == 0 && cimag(t) == 0) {
+	cosht = 1;
+	sinht = 0;
+	sinht_t = 1;
+      } else {
+	cosht = ccosh(t);
+	sinht = csinh(t);
+	sinht_t = sinht/t;
+      }
+
+      double _Complex f0, f1;
+      f1 = exps * sinht_t;
+      f0 = exps * cosht - s * f1;;
+
+      //derivative of the coefficients
+      double _Complex f0s, f1s, f0t, f1t, f0t2, f1t2, t2;
+      t2 = t*t;
+
+      f0s = f0 - f1;
+      f1s = f1;
+      if (cabs(t) > 0.05) {
+	f1t = ((f0-f1) + s*f1)/t;
+	f1t2 = f1t/t;
+      }
+      else { //when |t| <= 0.05, the truncation error is O(10^{-14})
+	f1t = exps * t/3 * (1+t2/10*(1+t2/28));
+	f1t2 = exps / 3 * (1+t2/10*(1+t2/28));
+      }
+      f0t  = t*f1 - s*f1t;
+      f0t2 = f1 - s*f1t2;
+
+      QLA_Complex qf1;
+      QLA_c_eq_r_plus_ir(qf1, creal(f1), cimag(f1));
+
+      QLA_ColorMatrix B, AB;
+      QLA_M_eq_Ma(&B, chain);
+      QLA_M_eq_M_times_M(&AB, &A, &B);
+      QLA_M_eq_c_times_M(&tmp, &qf1, &B); //f1 * B
+
+      QLA_Complex trB, trAB;
+      QLA_C_eq_trace_M(&trB,  &B);
+      QLA_C_eq_trace_M(&trAB, &AB);
+
+      double _Complex ctrB  = QLA_real(trB) + _Complex_I * QLA_imag(trB);
+      double _Complex ctrAB = QLA_real(trAB) + _Complex_I * QLA_imag(trAB);
+      double _Complex coeff;
+      coeff  = (f0s - f0t2 * s) * ctrB;
+      coeff += (f1s - f1t2 * s) * ctrAB;
+      coeff *= 0.5;
+
+      QLA_Complex qc;
+      QLA_c_eq_r_plus_ir(qc, creal(coeff),cimag(coeff));
+
+      QLA_M_peq_c(&tmp, &qc); // f1 * B + () 
+
+      coeff = 0.5 * (f0t2 * ctrB + f1t2 * ctrAB);
+
+      QLA_c_eq_r_plus_ir(qc, creal(coeff),cimag(coeff));
+      QLA_M_peq_c_times_M(&tmp, &qc, &A);
+    }
+    QLA_M_eq_Ma(deriv, &tmp);
+  }
+#endif
+  if(QLA_Nc!=2 || QLA_Nc!=3) {
+    qerror0(1,"Not implemented\n");
+  }
 }
+#undef NC
 
 void
 exp_deriv(QDP_ColorMatrix *deriv, QLA_Real *r,
 	  QDP_ColorMatrix *M, QDP_ColorMatrix *chain, QDP_Subset sub)
 {
+#define NC QDP_get_nc(deriv)
   int i;
   QDP_loop_sites(i, sub, {
-      exp_deriv_site(
+      exp_deriv_site(NCARG
 		     (QLA_ColorMatrix(*))QDP_site_ptr_readwrite_M(deriv,i),
 		     r,
 		     (QLA_ColorMatrix(*))QDP_site_ptr_readonly_M(M,i),
 		     (QLA_ColorMatrix(*))QDP_site_ptr_readonly_M(chain,i));
     });
+#undef NC
 }

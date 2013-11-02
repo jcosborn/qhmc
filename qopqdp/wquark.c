@@ -46,8 +46,9 @@ qopqdp_wquark_clone(lua_State *L)
 {
   int narg = lua_gettop(L);
   qassert(narg==1 || narg==2);
-  wquark_t *q1 = qopqdp_wquark_create_unset(L);
   wquark_t *q2 = qopqdp_wquark_check(L, 1);
+  // FIXME: need lattice_t struct
+  wquark_t *q1 = qopqdp_wquark_create_unset(L, q2->nc, NULL);
   QDP_Subset sub = QDP_all;
   if(narg!=1) {
     sub = qopqdp_check_subset(L, 2);
@@ -177,7 +178,7 @@ qopqdp_wquark_norm2(lua_State *L)
   } else { // timeslices
     int nt = QDP_coord_size(3);
     QLA_Real nrm2[nt];
-    QDP_Subset *ts = qhmcqdp_get_timeslices();
+    QDP_Subset *ts = qhmcqdp_get_timeslices(NULL);
     QDP_r_eq_norm2_D_multi(nrm2, q->df, ts, nt);
     push_double_array(L, nt, nrm2);
   }
@@ -207,7 +208,7 @@ qopqdp_wquark_redot(lua_State *L)
   } else { // timeslices
     int nt = QDP_coord_size(3);
     QLA_Real redot[nt];
-    QDP_Subset *ts = qhmcqdp_get_timeslices();
+    QDP_Subset *ts = qhmcqdp_get_timeslices(NULL);
     QDP_r_eq_re_D_dot_D_multi(redot, q1->df, q2->df, ts, nt);
     push_double_array(L, nt, redot);
   }
@@ -237,7 +238,7 @@ qopqdp_wquark_imdot(lua_State *L)
   } else { // timeslices
     int nt = QDP_coord_size(3);
     QLA_Complex dot[nt];
-    QDP_Subset *ts = qhmcqdp_get_timeslices();
+    QDP_Subset *ts = qhmcqdp_get_timeslices(NULL);
     QDP_c_eq_D_dot_D_multi(dot, q1->df, q2->df, ts, nt);
     double imdot[nt];
     for(int i=0; i<nt; i++) imdot[i] = QLA_imag(dot[i]);
@@ -269,7 +270,7 @@ qopqdp_wquark_dot(lua_State *L)
   } else { // timeslices
     int nt = QDP_coord_size(3);
     QLA_Complex dot[nt];
-    QDP_Subset *ts = qhmcqdp_get_timeslices();
+    QDP_Subset *ts = qhmcqdp_get_timeslices(NULL);
     QDP_c_eq_D_dot_D_multi(dot, q1->df, q2->df, ts, nt);
     qhmc_complex_t qdot[nt];
     for(int i=0; i<nt; i++) {
@@ -344,6 +345,7 @@ qopqdp_wquark_gamma(lua_State *L)
 static int
 qopqdp_wquark_smearGauss(lua_State *L)
 {
+#define NC QDP_get_nc(q->df)
   int narg = lua_gettop(L);
   qassert(narg==3 || narg==4);
   wquark_t *q = qopqdp_wquark_check(L, 1);
@@ -385,6 +387,7 @@ qopqdp_wquark_smearGauss(lua_State *L)
     QDP_destroy_D(tb2[i]);
   }
   return 0;
+#undef NC
 }
 
 static struct luaL_Reg wquark_reg[] = {
@@ -406,10 +409,16 @@ static struct luaL_Reg wquark_reg[] = {
 };
 
 wquark_t *
-qopqdp_wquark_create_unset(lua_State *L)
+qopqdp_wquark_create_unset(lua_State *L, int nc, lattice_t *lat)
 {
+#define NC nc
+  if(nc==0) nc = DEFAULTNC;
+  QDP_Lattice *qlat = QDP_get_default_lattice();
+  if(lat) qlat = lat->qlat;
   wquark_t *q = lua_newuserdata(L, sizeof(wquark_t));
-  q->df = QDP_create_D();
+  q->df = QDP_create_D_L(qlat);
+  q->qlat = qlat;
+  q->nc = nc;
   if(luaL_newmetatable(L, mtname)) {
     lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");
@@ -417,12 +426,13 @@ qopqdp_wquark_create_unset(lua_State *L)
   }
   lua_setmetatable(L, -2);
   return q;
+#undef NC
 }
 
 wquark_t *
-qopqdp_wquark_create(lua_State *L)
+qopqdp_wquark_create(lua_State *L, int nc, lattice_t *lat)
 {
-  wquark_t *q = qopqdp_wquark_create_unset(L);
+  wquark_t *q = qopqdp_wquark_create_unset(L, nc, lat);
   QDP_D_eq_zero(q->df, QDP_all);
   return q;
 }

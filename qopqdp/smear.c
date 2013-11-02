@@ -29,7 +29,7 @@ get_asqtad_coeffs(lua_State *L, int idx, QOP_asqtad_coeffs_t *coeffs)
 static int
 qopqdp_smear(lua_State *L)
 {
-
+#define NC QDP_get_nc(g[0]->links[0])
   // take the first 3 elements of the lua_State stack
   qassert(lua_gettop(L)==3);
 

@@ -33,34 +33,37 @@ qopqdp_reader_gc(lua_State *L)
 }
 
 /* get QIO record precision */
-static void
-get_prec_type(QDP_Reader *qr, int *prec, int *type)
+void
+qopqdp_get_prec_type_nc(QDP_Reader *qr, int *prec, int *type, int *nc)
 {
   QIO_RecordInfo *ri = QIO_create_record_info(0, NULL, NULL, 0, "", "", 0, 0, 0, 0);
   QDP_String *md = QDP_string_create();
   QDP_read_qio_record_info(qr, ri, md);
   *prec = *QIO_get_precision(ri);
+  *nc = QIO_get_colors(ri);
   char *typestr = QIO_get_datatype(ri);
   *type = -1;
-  switch(typestr[4]) {
+  int k = 0;
+  while(typestr[k++]!='_'); // go to first char after _
+  switch(typestr[k]) {
   case 'R': *type = 'S'; break; // QDP_RandomState
   case 'I': *type = 'I'; break; // QDP_Int
   case 'F': // QDP_F...
   case 'D': // QDP_D...
-    switch(typestr[6]) {
+    switch(typestr[k+2]) {
     case 'R': *type = 'R'; break; // QDP_P_Real
     case 'C': *type = 'C'; break; // QDP_P_Complex
     case '_': // QDP_PC_...
-      switch(typestr[7]) {
+      switch(typestr[k+3]) {
       case 'C': // QDP_PC_Color...
-	switch(typestr[12]) {
+	switch(typestr[k+8]) {
 	case 'V': *type = 'V'; break; // QDP_PC_ColorVector
 	case 'M': *type = 'M'; break; // QDP_PC_ColorMatrix
 	}
 	break;
       case 'H': *type = 'H'; break; // QDP_PC_HalfFermion
       case 'D': // QDP_PC_Dirac...
-	switch(typestr[12]) {
+	switch(typestr[k+8]) {
 	case 'F': *type = 'D'; break; // QDP_PC_DiracFermion
 	case 'P': *type = 'P'; break; // QDP_PC_DiracPropagator
 	}
@@ -85,6 +88,7 @@ get_prec_type(QDP_Reader *qr, int *prec, int *type)
 static int
 qopqdp_reader_read(lua_State *L)
 {
+#define NC nc
   int nargs = lua_gettop(L);
   qassert(nargs==2);
   reader_t *r = qopqdp_reader_check(L, 1);
@@ -95,8 +99,8 @@ qopqdp_reader_read(lua_State *L)
   //printf0("saving lattice file %s\n", fn);
   double dt = -QDP_time();
   QDP_String *md = QDP_string_create();
-  int prec, type;
-  get_prec_type(r->qr, &prec, &type);
+  int prec, type, nc;
+  qopqdp_get_prec_type_nc(r->qr, &prec, &type, &nc);
 #if QDP_Precision == 'F'
 #define QDPO(x) QDP_D_ ## x
 #define QDPPO(x) QDP_FD_ ## x
@@ -157,6 +161,7 @@ qopqdp_reader_read(lua_State *L)
   dt += QDP_time();
   printf0(" read in %g seconds\n", dt);
   return 1;
+#undef NC
 }
 
 static struct luaL_Reg reader_reg[] = {
@@ -166,11 +171,12 @@ static struct luaL_Reg reader_reg[] = {
 };
 
 reader_t *
-qopqdp_reader_create(lua_State* L, const char *fn)
+qopqdp_reader_create(lua_State* L, const char *fn, lattice_t *lat)
 {
+  if(lat==NULL) lat = qopqdp_get_default_lattice(L);
   reader_t *r = lua_newuserdata(L, sizeof(reader_t));
   QDP_String *md = QDP_string_create();
-  r->qr = QDP_open_read(md, (char*)fn);
+  r->qr = QDP_open_read_L(lat->qlat, md, (char*)fn);
   if(luaL_newmetatable(L, mtname)) {
     lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");

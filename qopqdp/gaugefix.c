@@ -4,11 +4,13 @@
 
 // This is a private function to extract the SU(2) submatrix V from an SU(3) matrix.
 // Taken from Chroma function "su2Extract_t". The submatrix correspond with sunFill.
-void su2Extract_local(QLA_Real* r, NCPROT QLA_ColorMatrix* v, int su2_index)
+#define NC nc
+static void
+su2Extract_local(NCPROT QLA_Real* r, QLA_ColorMatrix* v, int su2_index)
 {
 	// Determine the SU(3) indices corresponding to the SU(2) indices
 	// of the SU(2) subgroup 'su2_index'
-	int i1, i2;
+	int i1=0, i2;
 	int found = 0;
 	int del_i = 0;
 	int index = -1;
@@ -16,7 +18,7 @@ void su2Extract_local(QLA_Real* r, NCPROT QLA_ColorMatrix* v, int su2_index)
 	while (del_i < (QLA_Nc - 1) && found == 0)
 	{
 		del_i++;
-		for (i1 = 0; i1 < (QLA_Nc - del_i); i1++)
+		for (i1=0; i1 < (QLA_Nc - del_i); i1++)
 		{
 			index++;
 			if (index == su2_index)
@@ -46,10 +48,13 @@ void su2Extract_local(QLA_Real* r, NCPROT QLA_ColorMatrix* v, int su2_index)
 	
 	return;
 }
+#undef NC
 
 // This is a private function to fill an SU(3) matrix V with a submatrix.
 // Taken from Chroma function "sunFill", specified for SU(3).
-void sunFill_local(NCPROT QLA_ColorMatrix* v, QLA_Real* a, int su2_index)
+#define NC nc
+static void
+sunFill_local(NCPROT QLA_ColorMatrix* v, QLA_Real* a, int su2_index)
 {
 	// Determine the SU(3) indices corresponding to the SU(2) indices
 	// of the SU(2) subgroup 'su2_index'
@@ -111,6 +116,7 @@ void sunFill_local(NCPROT QLA_ColorMatrix* v, QLA_Real* a, int su2_index)
 	
 	return;
 }
+#undef NC
 
 struct grelax_params
 {
@@ -120,9 +126,10 @@ struct grelax_params
 	int nd;
 };
 
-double fuzz = 1e-12;
+static double fuzz = 1e-12;
 
 // Local function to perform the relaxation on the SU(2) subcomponents. 
+#define NC nc
 static void
 private_local_grelax(NCPROT QLA_ColorMatrix(*v), int site, void *args)
 {
@@ -134,7 +141,7 @@ private_local_grelax(NCPROT QLA_ColorMatrix(*v), int site, void *args)
 	QLA_ColorMatrix(v2);
 	
 	QLA_M_eq_M(&v2, v);
-	su2Extract_local(r, &v2, params->su2_index);
+	su2Extract_local(NCARG r, &v2, params->su2_index);
 	
 	// Now project onto SU(2)
 	// r_l = sqrt(r[0]*r[0] + ... + r[3]*r[3])
@@ -198,16 +205,19 @@ private_local_grelax(NCPROT QLA_ColorMatrix(*v), int site, void *args)
 	// Now fill the SU(3) matrix V with the SU(2) submatrix 'su2_index'
 	// parameterized by a_k in the sigma matrix basis.
 	
-	sunFill_local(&v2, a, params->su2_index);
+	sunFill_local(NCARG &v2, a, params->su2_index);
 	QLA_M_eq_M(v, &v2);
 
 }
+#undef NC
 
 // This is a private gauge relaxation function for gauge fixing.
 // Based directly on the Chroma function of the name "grelax"
-void private_grelax(QDP_ColorMatrix* g, gauge_t* u, int j_decay, int su2_index,
-						int cb, int OrDo, double OrPara)
+static void
+private_grelax(QDP_ColorMatrix* g, gauge_t* u, int j_decay, int su2_index,
+	       int cb, int OrDo, double OrPara)
 {
+#define NC QDP_get_nc(g)
 	QDP_ColorMatrix *v, *extra, *extra2;
 	QDP_ColorMatrix **ug, **u_neg;
 	QDP_Real** r;
@@ -329,6 +339,7 @@ void private_grelax(QDP_ColorMatrix* g, gauge_t* u, int j_decay, int su2_index,
 	free(r); free(a); free(ug); free(u_neg);
 	
 	return;
+#undef NC
 }
 
 // This function performs gauge fixing to Coulomb or Landau gauge.
@@ -347,6 +358,7 @@ void private_grelax(QDP_ColorMatrix* g, gauge_t* u, int j_decay, int su2_index,
 int
 qopqdp_gauge_coulomb(lua_State* L)
 {
+#define NC QDP_get_nc(u->links[0])
 	// Check 4 or 5 arguments.
 	qassert(lua_gettop(L)==4 || lua_gettop(L)==5);
 	
@@ -570,5 +582,5 @@ qopqdp_gauge_coulomb(lua_State* L)
 	QDP_destroy_M(g); // Clean it up at the end!
 	
 	return 1;
+#undef NC
 }
-

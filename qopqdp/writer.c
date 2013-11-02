@@ -72,6 +72,7 @@ qopqdp_writer_write(lua_State *L)
 #define QDPOP(x) QDP_FD_ ## x
 #endif
     if(istable) {
+#define NC QDP_get_nc(wq[0]->df)
       wquark_t *wq[nfields];
       qopqdp_wquark_array_check(L, 2, nfields, wq);
       QDPO(DiracFermion) *df[nfields];
@@ -83,13 +84,16 @@ qopqdp_writer_write(lua_State *L)
       for(int i=0; i<nfields; i++) {
 	QDPO(destroy_D)(df[i]);
       }
+#undef NC
     } else {
+#define NC QDP_get_nc(wq->df)
       wquark_t *wq = qopqdp_wquark_check(L, 2);
       QDPO(DiracFermion) *df = QDPO(create_D)();
       QDPOP(D_eq_D)(df, wq->df, QDP_all);
       QDPO(write_D)(w->qw, md, df);
       QDPO(destroy_D)(df);
     }
+#undef NC
 #undef QDPO
 #undef QDPOP
   }
@@ -113,7 +117,6 @@ qopqdp_writer_prop(lua_State *L)
   int nfields = 1;
   qassert(lua_type(L,2)==LUA_TTABLE);
   get_table_len(L, 2, &nfields);
-  qassert(nfields==(QDP_Nc*QLA_Ns));
   const char *mds = luaL_checkstring(L, 3);
   char prec = 'F';
   QDP_set_write_group_size(8);
@@ -121,9 +124,11 @@ qopqdp_writer_prop(lua_State *L)
   double dt = -QDP_time();
   QDP_String *md = QDP_string_create();
   QDP_string_set(md, (char *)mds);
+#define NC QDP_get_nc(wq[0]->df)
   if(prec==QDP_Precision) {
     wquark_t *wq[nfields];
     qopqdp_wquark_array_check(L, 2, nfields, wq);
+    qassert(nfields==(QDP_Nc*QLA_Ns));
     QDP_DiracPropagator *dp = QDP_create_P();
     for(int i=0; i<nfields; i++) {
       int color = i/QLA_Ns;
@@ -142,6 +147,7 @@ qopqdp_writer_prop(lua_State *L)
 #endif
     wquark_t *wq[nfields];
     qopqdp_wquark_array_check(L, 2, nfields, wq);
+    qassert(nfields==(QDP_Nc*QLA_Ns));
     QDPO(DiracPropagator) *dp = QDPO(create_P)();
     QDPO(DiracFermion) *df = QDPO(create_D)();
     for(int i=0; i<nfields; i++) {
@@ -156,6 +162,7 @@ qopqdp_writer_prop(lua_State *L)
 #undef QDPO
 #undef QDPOP
   }
+#undef NC
 
   QDP_string_destroy(md);
   dt += QDP_time();

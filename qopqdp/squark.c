@@ -46,7 +46,7 @@ qopqdp_squark_clone(lua_State *L)
 {
   int narg = lua_gettop(L);
   qassert(narg==1 || narg==2);
-  squark_t *q1 = qopqdp_squark_create_unset(L);
+  squark_t *q1 = qopqdp_squark_create_unset(L, 0, NULL);
   squark_t *q2 = qopqdp_squark_check(L, 1);
   QDP_Subset sub = QDP_all;
   if(narg!=1) {
@@ -73,6 +73,7 @@ qopqdp_squark_zero(lua_State *L)
 static int
 qopqdp_squark_getSite(lua_State *L)
 {
+#define NC QDP_get_nc(q->cv)
   int narg = lua_gettop(L);
   qassert(narg==2);
   squark_t *q = qopqdp_squark_check(L, 1);
@@ -90,6 +91,7 @@ qopqdp_squark_getSite(lua_State *L)
   QMP_sum_double_array((double *)&qcv, 2*QLA_Nc);
   push_complex_array(L, QLA_Nc, (qhmc_complex_t *)&qcv);
   return 1;
+#undef NC
 }
 
 static int
@@ -175,6 +177,8 @@ qopqdp_squark_norm2(lua_State *L)
   int narg = lua_gettop(L);
   qassert(narg==1 || narg==2);
   squark_t *q = qopqdp_squark_check(L, 1);
+  //QDP_Lattice *qlat = q->qlat;
+  //QDP_Subset sub = QDP_all_L(qlat);
   QDP_Subset sub = QDP_all;
   if(narg!=1) {
     const char *s = luaL_checkstring(L, 2);
@@ -188,7 +192,7 @@ qopqdp_squark_norm2(lua_State *L)
   } else { // timeslices
     int nt = QDP_coord_size(3);
     QLA_Real nrm2[nt];
-    QDP_Subset *ts = qhmcqdp_get_timeslices();
+    QDP_Subset *ts = qhmcqdp_get_timeslices(NULL);
     QDP_r_eq_norm2_V_multi(nrm2, q->cv, ts, nt);
     push_double_array(L, nt, nrm2);
   }
@@ -215,7 +219,7 @@ qopqdp_squark_redot(lua_State *L)
   } else {
     int nt = QDP_coord_size(3);
     QLA_Real redot[nt];
-    QDP_Subset *ts = qhmcqdp_get_timeslices();
+    QDP_Subset *ts = qhmcqdp_get_timeslices(NULL);
     QDP_r_eq_re_V_dot_V_multi(redot, q1->cv, q2->cv, ts, nt);
     push_double_array(L, nt, redot);
   }
@@ -245,7 +249,7 @@ qopqdp_squark_dot(lua_State *L)
   } else { // timeslices
     int nt = QDP_coord_size(3);
     QLA_Complex dot[nt];
-    QDP_Subset *ts = qhmcqdp_get_timeslices();
+    QDP_Subset *ts = qhmcqdp_get_timeslices(NULL);
     QDP_c_eq_V_dot_V_multi(dot, q1->cv, q2->cv, ts, nt);
     qhmc_complex_t qdot[nt];
     for(int i=0; i<nt; i++) {
@@ -292,6 +296,7 @@ qopqdp_squark_combine(lua_State *L)
 static int
 qopqdp_squark_symshift(lua_State *L)
 {
+#define NC QDP_get_nc(qs->cv)
   int narg = lua_gettop(L);
   qassert(narg==4);
   squark_t *qd = qopqdp_squark_check(L, 1);
@@ -310,6 +315,7 @@ qopqdp_squark_symshift(lua_State *L)
   QDP_destroy_V(tb1);
   QDP_destroy_V(tb2);
   return 0;
+#undef NC
 }
 
 /* ESW additions for staggered quark rephasing */
@@ -325,7 +331,9 @@ int *relative_loc_esw;
 
 // Here's a function used to modify the source field with vectors.
 // Based on void point_V in qdp-1.9.1/examples/sample_ks.c
-void private_squark_rephase(QLA_ColorVector *s, int coords[])
+#define NC nc
+static void
+private_squark_rephase(NCPROT QLA_ColorVector *s, int coords[])
 {
   // Build up the phase.
   int phase = 0;
@@ -350,6 +358,7 @@ void private_squark_rephase(QLA_ColorVector *s, int coords[])
       QLA_V_eqm_V(s, s);
     }
 }
+#undef NC
 
 static int
 qopqdp_squark_rephase(lua_State *L)
@@ -393,10 +402,16 @@ static struct luaL_Reg squark_reg[] = {
 };
 
 squark_t *
-qopqdp_squark_create_unset(lua_State *L)
+qopqdp_squark_create_unset(lua_State *L, int nc, lattice_t *lat)
 {
+#define NC nc
+  if(nc==0) nc = DEFAULTNC;
+  QDP_Lattice *qlat = QDP_get_default_lattice();
+  if(lat) qlat = lat->qlat;
   squark_t *q = lua_newuserdata(L, sizeof(squark_t));
-  q->cv = QDP_create_V();
+  q->cv = QDP_create_V_L(qlat);
+  q->qlat = qlat;
+  q->nc = nc;
   if(luaL_newmetatable(L, mtname)) {
     lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");
@@ -407,9 +422,9 @@ qopqdp_squark_create_unset(lua_State *L)
 }
 
 squark_t *
-qopqdp_squark_create(lua_State *L)
+qopqdp_squark_create(lua_State *L, int nc, lattice_t *lat)
 {
-  squark_t *q = qopqdp_squark_create_unset(L);
+  squark_t *q = qopqdp_squark_create_unset(L, nc, lat);
   QDP_V_eq_zero(q->cv, QDP_all);
   return q;
 }

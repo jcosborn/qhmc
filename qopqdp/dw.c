@@ -93,6 +93,7 @@ rephase(QDP_ColorMatrix *g[], int nd)
 static void
 dw_set(dw_t *w, int prec)
 {
+#define NC QDP_get_nc(g->links[0])
   if((prec==1&&w->ffl)||(prec==2&&w->fl)) {
     return;
   }
@@ -133,6 +134,7 @@ dw_set(dw_t *w, int prec)
   }
   w->time = info.final_sec;
   w->flops = info.final_flop;
+#undef NC
 }
 
 static int
@@ -281,7 +283,7 @@ qopqdp_dw_solve(lua_State *L)
   //printf("precNE = %i\n", precNE);
   if(narg>=nextarg && !lua_isnil(L,nextarg)) {
     if(!lua_istable(L,nextarg)) {
-      qerror0("expecting solver paramter table\n");
+      qlerror0(L,1,"expecting solver paramter table\n");
     }
 #define seti(s) lua_getfield(L,nextarg,#s);if(!lua_isnil(L,-1))s=luaL_checkint(L,-1);lua_pop(L,1)
     //seti(prec);
@@ -436,7 +438,7 @@ qopqdp_dw_quark(lua_State* L)
 {
   qassert(lua_gettop(L)==1);
   dw_t *dw = qopqdp_dw_check(L, 1);
-  qopqdp_dwquark_create(L, dw->ls);
+  qopqdp_dwquark_create(L, dw->ls, 0, NULL);
   return 1;
 }
 

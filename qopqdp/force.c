@@ -2,7 +2,7 @@
 #include <math.h>
 #include "qhmc_qopqdp_common.h"
 
-static char *fmtname = "qopqdp.force";
+static char *fmtname = "qopqdp.force" STR(QOP_PrecisionLetter);
 
 force_t *
 qopqdp_force_check(lua_State *L, int idx)
@@ -56,8 +56,8 @@ qopqdp_force_clone(lua_State *L)
 {
   int narg = lua_gettop(L);
   qassert(narg==1 || narg==2);
-  force_t *f1 = qopqdp_force_create(L);
   force_t *f2 = qopqdp_force_check(L, 1);
+  force_t *f1 = qopqdp_force_create(L, 0, NULL);
   QDP_Subset sub = QDP_all;
   if(narg!=1) {
     sub = qopqdp_check_subset(L, 2);
@@ -119,24 +119,26 @@ randforce(NCPROT QLA_ColorMatrix(*m), int i, void *args)
 static int
 qopqdp_force_random(lua_State *L)
 {
+#define NC QDP_get_nc(f->force[0])
   qassert(lua_gettop(L)==1);
   force_t *f = qopqdp_force_check(L, 1);
   if(QLA_Nc==3) { // use MILC conventions
     QLA_RandomState *s = QDP_expose_S(qopqdp_srs);
     for(int i=0; i<f->nd; i++) {
-      QDP_M_eq_funcia(f->force[i], randforce, s, QDP_all);
+      QDP_M_eq_funcia(f->force[i], randforce, s, QDP_all_L(f->qlat));
       //{ QLA_Real s=1.1; QDP_M_eq_r_times_M(f->force[i], &s, f->force[i], QDP_all); }
     }
     QDP_reset_S(qopqdp_srs);
   } else {
-    QDP_ColorMatrix *m = QDP_create_M();
+    QDP_ColorMatrix *m = QDP_create_M_L(f->qlat);
     for(int i=0; i<f->nd; i++) {
-      QDP_M_eq_gaussian_S(m, qopqdp_srs, QDP_all);
-      QDP_M_eq_antiherm_M(f->force[i], m, QDP_all);
+      QDP_M_eq_gaussian_S(m, qopqdp_srs, QDP_all_L(f->qlat));
+      QDP_M_eq_antiherm_M(f->force[i], m, QDP_all_L(f->qlat));
     }
     QDP_destroy_M(m);
   }
   return 0;
+#undef NC
 }
 
 // 1: force
@@ -196,6 +198,7 @@ qopqdp_force_infnorm(lua_State *L)
 static int
 qopqdp_force_derivForce(lua_State *L)
 {
+#define NC QDP_get_nc(f->force[0])
   qassert(lua_gettop(L)==2);
   force_t *f = qopqdp_force_check(L, 1);
   gauge_t *g = qopqdp_gauge_check(L, 2);
@@ -209,6 +212,7 @@ qopqdp_force_derivForce(lua_State *L)
   //info->final_flop += (4.*(198+24+18))*QDP_sites_on_node;
   QDP_destroy_M(t);
   return 0;
+#undef NC
 }
 
 static int
@@ -398,13 +402,20 @@ static struct luaL_Reg force_reg[] = {
 };
 
 force_t *
-qopqdp_force_create(lua_State* L)
+qopqdp_force_create(lua_State* L, int nc, lattice_t *lat)
 {
-  int nd = QDP_ndim();
+#define NC nc
+  if(nc==0) nc = DEFAULTNC;
+  QDP_Lattice *qlat = QDP_get_default_lattice();
+  if(lat) qlat = lat->qlat;
+  int nd = QDP_ndim_L(qlat);
   force_t *f = lua_newuserdata(L, sizeof(force_t)+nd*sizeof(QDP_ColorMatrix*));
   f->nd = nd;
+  f->lat = lat;
+  f->qlat = qlat;
+  f->nc = nc;
   for(int i=0; i<nd; i++) {
-    f->force[i] = QDP_create_M();
+    f->force[i] = QDP_create_M_L(qlat);
     QDP_M_eq_zero(f->force[i], QDP_all);
   }
   if(luaL_newmetatable(L, fmtname)) {
@@ -414,4 +425,5 @@ qopqdp_force_create(lua_State* L)
   }
   lua_setmetatable(L, -2);
   return f;
+#undef NC
 }

@@ -3,13 +3,13 @@ require 'gaugeact'
 require 'hmc'
 
 nx = nx or 4
-nt = nt or 4
-beta = beta or 5
+nt = nt or 8
+beta = beta or 6
 --seed = seed or 54321
 seed = seed or os.time()
 tau = tau or 1
-nsteps = nsteps or 100
-ntraj = ntraj or 10
+nsteps = nsteps or 40
+ntraj = ntraj or 1
 first = first or -1
 
 latsize = { nx, nx, nx, nt }
@@ -75,11 +75,16 @@ function fields.nforces(f)
   return { 1 }
 end
 function fields.updateField(f, i, eps)
+  --printf("F1: fnorm: %g\tact: %g\n", 0.5*f.F:norm2(), act.g:action(f.G))
   f.G:update(f.F, eps)
+  --printf("F2: fnorm: %g\tact: %g\n", 0.5*f.F:norm2(), act.g:action(f.G))
 end
 function fields.updateMomentum(f, i, j, eps)
+  --printf("P1: fnorm: %g\tact: %g\n", 0.5*f.F:norm2(), act.g:action(f.G))
   act.g:updateMomentum(f.F, f.G, eps[1])
+  --printf("P2: fnorm: %g\tact: %g\n", 0.5*f.F:norm2(), act.g:action(f.G))
 end
+--act.g.printforce = true
 
 fields.G = G
 fields.GSave = act.g:gaugeNew()
@@ -87,7 +92,8 @@ fields.F = act.g:forceNew()
 
 local fp = {}
 fp.nsteps = nsteps
-fp.intalg = { type = "omelyan", lambda = 0.21 }
+fp.intalg = { type = "leapfrog" }
+--fp.intalg = { type = "omelyan", lambda = 0.21 }
 --hmcparams.traceS = true
 --qcd.defaults{qdpProfcontrol=1}
 hmcparams = {}

@@ -122,6 +122,7 @@ rephase(QDP_ColorMatrix *g[], int nd)
 static void
 hisq_set(hisq_t *h, int prec)
 {
+#define NC QDP_get_nc(g->links[0])
   if((prec==1&&h->ffl)||(prec==2&&h->fl)) {
     return;
   }
@@ -166,6 +167,7 @@ hisq_set(hisq_t *h, int prec)
   }
   h->time = info.final_sec;
   h->flops = info.final_flop;
+#undef NC
 }
 
 static int
@@ -272,7 +274,7 @@ qopqdp_hisq_solve(lua_State *L)
   }
   if(narg>=nextarg && !lua_isnil(L,nextarg)) {
     if(!lua_istable(L,nextarg)) {
-      qerror0("expecting solver paramter table\n");
+      qlerror0(L,1,"expecting solver paramter table\n");
     }
 #define seti(s) lua_getfield(L,nextarg,#s);if(!lua_isnil(L,-1))s=luaL_checkint(L,-1);lua_pop(L,1)
     //seti(prec);
@@ -378,6 +380,7 @@ qopqdp_hisq_solve(lua_State *L)
 static int
 qopqdp_hisq_force(lua_State *L)
 {
+#define NC QDP_get_nc(f->force[0])
   int narg = lua_gettop(L);
   qassert(narg>=4 && narg<=5);
   hisq_t *h = qopqdp_hisq_check(L, 1);
@@ -424,13 +427,14 @@ qopqdp_hisq_force(lua_State *L)
   f->time = info.final_sec;
   f->flops = info.final_flop;
   return 0;
+#undef NC
 }
 
 static int
 qopqdp_hisq_squark(lua_State* L)
 {
   qassert(lua_gettop(L)==1);
-  qopqdp_squark_create(L);
+  qopqdp_squark_create(L, 0, NULL);
   return 1;
 }
 

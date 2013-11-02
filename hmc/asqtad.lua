@@ -73,9 +73,9 @@ end
 
 local rhmc = {}
 setpseudo(rhmc, mass)
-setpseudo(rhmc, mass2, mass)
+if mass2 then setpseudo(rhmc, mass2, mass) end
 
-local smear = {}
+--local smear = {}
 --smear[#smear+1] = { type="fat7", coeffs={one_link=1} }
 --smear[#smear+1] = { type="fat7", coeffs={one_link=0.5} }
 --smear[#smear+1] = { type="fat7", coeffs={one_link=2} }
@@ -106,8 +106,8 @@ scoeffs.lepage = nil
 --smear[#smear+1] = { type="fat7", coeffs=scoeffs }
 --smear[#smear+1] = { type="projectU" }
 --smear[#smear] = projRat(smear[#smear])
-smear[#smear+1] = { type="hyp", alpha={0.5,0.5,0.4} }
-myprint("smear = ", smear, "\n")
+--smear[#smear+1] = { type="hyp", alpha={0.5,0.5,0.4} }
+--myprint("smear = ", smear, "\n")
 
 --coeffs = asqtad_coeffs(u0)
 --coeffs.one_link = coeffs.one_link + 3*coeffs.naik

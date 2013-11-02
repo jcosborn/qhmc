@@ -29,6 +29,7 @@ asqtadInvert(QOP_info_t *info, QOP_FermionLinksAsqtad *fla,
 	     QLA_Real *masses, int nm, QDP_ColorVector *prop[],
 	     QDP_ColorVector *source)
 {
+#define NC QDP_get_nc(source)
   QDP_Subset sub=QDP_all;
   if(invarg->evenodd==QOP_EVEN) {
     sub = QDP_even;
@@ -118,4 +119,5 @@ asqtadInvert(QOP_info_t *info, QOP_FermionLinksAsqtad *fla,
     QDP_F_destroy_V(x[i]);
   }
   QOP_F_asqtad_destroy_L(ffla);
+#undef NC
 }

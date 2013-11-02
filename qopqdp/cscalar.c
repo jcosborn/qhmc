@@ -44,16 +44,9 @@ qopqdp_cscalar_gc(lua_State *L)
 static int
 qopqdp_cscalar_zero(lua_State *L)
 {
-  //int narg = lua_gettop(L);
-  //qassert(narg==1 || narg==2);
-  START_ARGS;
-  //cscalar_t *s = qopqdp_cscalar_check(L, 1);
+  BEGIN_ARGS;
   GET_CSCALAR(s);
-  //QDP_Subset sub = QDP_all;
-  //if(narg!=1) {
-  //sub = qopqdp_check_subset(L, 2);
-  //}
-  OPT_SUBSET(sub, QDP_all);
+  OPT_SUBSET(sub, QDP_all_L(s->qlat));
   END_ARGS;
   QDP_C_eq_zero(s->c, sub);
   return 0;
@@ -138,7 +131,8 @@ qopqdp_cscalar_norm2(lua_State *L)
   int narg = lua_gettop(L);
   qassert(narg==1 || narg==2);
   cscalar_t *s = qopqdp_cscalar_check(L, 1);
-  QDP_Subset sub = QDP_all;
+  lattice_t *lat = s->lat;
+  QDP_Subset sub = QDP_all_L(lat->qlat);
   if(narg!=1) {
     const char *str = luaL_checkstring(L, 2);
     if(!strcmp(str,"timeslices")) sub = NULL;
@@ -151,9 +145,9 @@ qopqdp_cscalar_norm2(lua_State *L)
   } else { // timeslices
     int nt = QDP_coord_size(3);
     QLA_Real nrm2[nt];
-    QDP_Subset *ts = qhmcqdp_get_timeslices();
+    QDP_Subset *ts = qhmcqdp_get_timeslices(lat);
     QDP_r_eq_norm2_C_multi(nrm2, s->c, ts, nt);
-    push_double_array(L, nt, nrm2);
+    push_real_array(L, nt, nrm2);
   }
   return 1;
 }
@@ -165,7 +159,8 @@ qopqdp_cscalar_redot(lua_State *L)
   qassert(narg==2 || narg==3);
   cscalar_t *s1 = qopqdp_cscalar_check(L, 1);
   cscalar_t *s2 = qopqdp_cscalar_check(L, 2);
-  QDP_Subset sub = QDP_all;
+  lattice_t *lat = s1->lat;
+  QDP_Subset sub = QDP_all_L(lat->qlat);
   if(narg!=2) {
     const char *str = luaL_checkstring(L, 3);
     if(!strcmp(str,"timeslices")) sub = NULL;
@@ -178,9 +173,9 @@ qopqdp_cscalar_redot(lua_State *L)
   } else {
     int nt = QDP_coord_size(3);
     QLA_Real redot[nt];
-    QDP_Subset *ts = qhmcqdp_get_timeslices();
+    QDP_Subset *ts = qhmcqdp_get_timeslices(lat);
     QDP_r_eq_re_C_dot_C_multi(redot, s1->c, s2->c, ts, nt);
-    push_double_array(L, nt, redot);
+    push_real_array(L, nt, redot);
   }
   return 1;
 }
@@ -197,7 +192,8 @@ qopqdp_cscalar_combine(lua_State *L)
   qassert(nss==nc);
   double c[nc]; get_double_array(L, 3, nc, c);
   QLA_Real qc[nc]; for(int i=0; i<nc; i++) qc[i] = c[i];
-  QDP_Subset sub = QDP_all;
+  lattice_t *lat = sd->lat;
+  QDP_Subset sub = QDP_all_L(lat->qlat);
   if(narg>3) {
     sub = qopqdp_check_subset(L, 4);
   }
@@ -222,11 +218,14 @@ static struct luaL_Reg cscalar_reg[] = {
 };
 
 cscalar_t *
-qopqdp_cscalar_create(lua_State* L)
+qopqdp_cscalar_create(lua_State* L, lattice_t *lat)
 {
+  if(lat==NULL) lat = qopqdp_get_default_lattice(L);
   cscalar_t *s = lua_newuserdata(L, sizeof(cscalar_t));
-  s->c = QDP_create_C();
-  QDP_C_eq_zero(s->c, QDP_all);
+  s->c = QDP_create_C_L(lat->qlat);
+  s->lat = lat;
+  s->qlat = lat->qlat;
+  QDP_C_eq_zero(s->c, QDP_all_L(lat->qlat));
   if(luaL_newmetatable(L, mtname)) {
     lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");
