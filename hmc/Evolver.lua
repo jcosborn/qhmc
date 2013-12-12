@@ -6,11 +6,13 @@ evolvermt.__index = evolvermt
 local intpat = {}
 local getIntPat
 
+-- kind = heatbath
+-- kind = mc
 -- kind = md
--- style =
---- recursive
---- simultaneous
---- leapfrog, OMF, custom
+--- style =
+---- recursive
+---- simultaneous
+---- leapfrog, OMF, custom
 function Evolver(opts)
   local self = {}
   tableCopyTo(self, opts)
@@ -25,6 +27,7 @@ function Evolver(opts)
     --self.fields = {self.field}
     --self.momenta = {self.momentum}
     self.globalRand = qopqdp.random
+  --elseif self.kind == "heatbath" then
   end
   clearStats(self, "run")
   return setmetatable(self,evolvermt)
@@ -173,6 +176,12 @@ function evolvermt.Run(self, opts)
     pushArray(self, "oldActions", act0)
     pushArray(self, "newActions", act1)
     pushArray(self, "mcRand", r)
+  elseif self.kind == "heatbath" then
+    for i=1,#self.actions do
+      self.actions[i]:Heatbath{nRepetitions=self.nRepetitions,
+			       nHeatbath=self.nHeatbath,
+			       nOverrelax=self.nOverrelax}
+    end
   end
   updateStats(self, "run", {seconds=(clock()-t0)})
 end

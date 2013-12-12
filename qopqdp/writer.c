@@ -47,7 +47,7 @@ qopqdp_writer_write(lua_State *L)
   if(istable) get_table_len(L, 2, &nfields);
   const char *mds = luaL_checkstring(L, 3);
   char prec = 'F';
-  QDP_set_write_group_size(8);
+  //QDP_set_write_group_size(8);
   //printf0("saving lattice file %s\n", fn);
   double dt = -QDP_time();
   QDP_String *md = QDP_string_create();
@@ -119,7 +119,7 @@ qopqdp_writer_prop(lua_State *L)
   get_table_len(L, 2, &nfields);
   const char *mds = luaL_checkstring(L, 3);
   char prec = 'F';
-  QDP_set_write_group_size(8);
+  //QDP_set_write_group_size(8);
   //printf0("saving lattice file %s\n", fn);
   double dt = -QDP_time();
   QDP_String *md = QDP_string_create();

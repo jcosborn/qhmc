@@ -27,7 +27,9 @@ function Action(opts)
     local adjplaq = self.coeffs.adjplaq or 0
     local vol = self.field.lattice.volume
     local xi0 = self.xi0 or 1
-    self.act0 = vol*(6*plaq + 12*rect + 16*pgm + 6*adjplaq)
+    local nd = #self.field.lattice.latsize
+    local nd1 = nd-1
+    self.act0 = vol*nd*(0.5*nd1*plaq + nd1*rect + 4*pgm + 0.5*nd1*adjplaq)
     self.act0 = self.act0*(1+xi0*xi0)/(2*xi0)
   elseif self.kind == "momentum" then
     local lat = self.momentum.lattice
@@ -107,6 +109,18 @@ function actionmt.Action(self)
     a = a + self.act0
   end
   return a
+end
+
+function actionmt.Heatbath(self, opts)
+  if self.kind == "gauge" then
+    local f = self.field
+    local nrep = opts.nRepetitions or 1
+    local nhb = opts.nHeatbath or 1
+    local nor = opts.nOverrelax or 1
+    local beta = self.beta
+    local coeffs = self.coeffs
+    f.field:heatbath(nrep, nhb, nor, beta, coeffs)
+  end
 end
 
 function actionmt.GetForce(self, momentum, field, eps)

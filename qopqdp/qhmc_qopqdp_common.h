@@ -228,6 +228,7 @@ void qopqdp_D_makeSU(NCPROT QLA_D_ColorMatrix(*m), int idx, void *args);
 #define qopqdp_makeSU qopqdp_D_makeSU
 #endif
 #define GET_GAUGE(g) gauge_t *g = qopqdp_gauge_check(L,nextarg++)
+#define GET_GAUGE_COEFFS(c) QOP_gauge_coeffs_t c; get_gauge_coeffs(L,&c,nextarg++)
 
 
 typedef struct {

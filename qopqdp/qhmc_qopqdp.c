@@ -11,6 +11,7 @@ void
 init_qopqdp(int *argc, char ***argv)
 {
   QDP_initialize(argc, argv);
+  QDP_profcontrol(0);
 }
 
 void

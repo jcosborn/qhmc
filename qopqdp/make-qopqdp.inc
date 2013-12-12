@@ -10,11 +10,11 @@ else
   COPT = -O3 -g -std=gnu99 -Wall -fopenmp
 endif
 
-HAVENC1 = true
+#HAVENC1 = true
 HAVENC2 = true
-HAVENC3 = true
-HAVENCN = true
-HAVEMG = true
+#HAVENC3 = true
+#HAVENCN = true
+#HAVEMG = true
 #DEFAULTNC = 3
 
 #DEFINES = -DQHMC_REPRO_UNIFORM
@@ -102,8 +102,8 @@ LQLA = -L$(QLADIR)/lib
 LQDP = -L$(QDPDIR)/lib
 LQOP = -L$(QOPDIR)/lib -lqopqdp
 ifneq "$(HAVENC1)" ""
-  LQLA += -lqla_f1 -lqla_d1 -lqla_q1 -lqla_df1 -lqla_dq1
-  LQDP += -lqdp_f1 -lqdp_d1 -lqdp_df1
+  LQLA += -lqla_fn -lqla_dn -lqla_qn -lqla_dfn -lqla_dqn
+  LQDP += -lqdp_fn -lqdp_dn -lqdp_dfn
 endif
 ifneq "$(HAVENC2)" ""
   LQLA += -lqla_f2 -lqla_d2 -lqla_q2 -lqla_df2 -lqla_dq2

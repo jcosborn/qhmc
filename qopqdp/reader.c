@@ -95,7 +95,7 @@ qopqdp_reader_read(lua_State *L)
   int nfields = 1;
   int istable = (lua_type(L,2)==LUA_TTABLE);
   if(istable) get_table_len(L, 2, &nfields);
-  QDP_set_read_group_size(8);
+  //QDP_set_read_group_size(8);
   //printf0("saving lattice file %s\n", fn);
   double dt = -QDP_time();
   QDP_String *md = QDP_string_create();

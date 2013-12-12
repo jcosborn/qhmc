@@ -53,6 +53,9 @@ qopqdp_wilson_set_opts(void)
   opt[2].tag = "nm";
   opt[2].value = 8;
   QOP_wilson_invert_set_opts(opt, 3);
+  opt[0].tag = "cg";
+  opt[0].value = 0;
+  QOP_wilson_invert_set_opts(opt, 1);
   //opt[0].tag = "fnmat_src_min";
   //opt[0].value = 0;
   //QOP_wilson_force_set_opts(opt, 1);
@@ -217,7 +220,10 @@ qopqdp_wilson_mg_set(lua_State *L)
   int nargs = lua_gettop(L);
   qassert(nargs==2);
   wilson_t *w = qopqdp_wilson_check(L, 1);
-  if(!w->mg) w->mg = QOP_wilsonMgNew();
+  if(!w->mg) {
+    //if(w->nc==3)
+      w->mg = QOP_wilsonMgNew();
+  }
 
   luaL_checktype(L, 2, LUA_TTABLE);
   for(int l=-2; l<10; l++) { // mg setup levels

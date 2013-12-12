@@ -3,7 +3,8 @@ require 'Util'
 local fieldmt = {}
 fieldmt._type = "Field"
 fieldmt.__index = fieldmt
-local momentummap = { GL="GL", SL="TGL", U="AH", SU="TAH" }
+local momentummap =  -- momentum lie group for given gauge group
+  { GL="GL", SL="TGL", U="AH", SU="TAH", R="R", SR="TR", O="AS", SO="TAS" }
 
 function Field(lattice, opts)
   local f = {}

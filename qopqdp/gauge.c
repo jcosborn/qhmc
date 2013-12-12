@@ -236,24 +236,57 @@ qopqdp_gauge_save(lua_State *L)
 #undef NC
 }
 
+#if 0
+// 
+static void
+mapIdent(QDP_Lattice *rlat, QDP_Lattice *slat, int rx[], int sx[], int *num,
+	 int idx, QDP_ShiftDir fb, void *args)
+{
+  int rnd = QDP_ndim_L(rlat);
+  int snd = QDP_ndim_L(slat);
+  for(int i=0; i<snd; i++) {
+    int k = 0;
+    if(i<rnd) k = rx[i];
+    sx[i] = k;
+    if(k>=QDP_coord_size_L(slat,i)) *num = 0;
+  }
+  for(int i=snd; i<rnd; i++) if(rx[i]!=0) *num=0;
+}
+#endif
+
+// set from another field
 static int
 qopqdp_gauge_set(lua_State *L)
 {
-  int nargs = lua_gettop(L);
-  qassert(nargs==2);
-  gauge_t *g1 = qopqdp_gauge_check(L, 1);
-  gauge_t *g2 = qopqdp_gauge_check(L, 2);
-  qassert(g1->nd==g2->nd);
-  for(int i=0; i<g1->nd; i++) {
-    QDP_M_eq_M(g1->links[i], g2->links[i], QDP_all_L(g1->qlat));
+  BEGIN_ARGS;
+  GET_GAUGE(g1);
+  GET_GAUGE(g2);
+  END_ARGS;
+  if(g1->qlat==g2->qlat) {
+    for(int i=0; i<g1->nd; i++) {
+      QDP_M_eq_M(g1->links[i], g2->links[i], QDP_all_L(g1->qlat));
+    }
+  } else {
+#if 0
+    // copy with truncation/replication
+    int nd = g1->nd<g2->nd ? g1->nd : g2->nd;
+    QDP_Shift map;
+    map = QDP_create_map_L(g1->qlat, g2->qlat, mapIdent, args, size);
+    for(int i=0; i<nd; i++) {
+      QDP_M_eq_sM(g1->links[i], g2->links[i],
+		  map, QDP_forward, QDP_all_L(g1->qlat));
+    }
+    QDP_destroy_map(map);
+#endif
   }
   return 0;
 }
 
+// create new copy
 static int
 qopqdp_gauge_copy(lua_State *L)
 {
-#define NC QDP_get_nc(g1->links[0])
+  //#define NC QDP_get_nc(g1->links[0])
   BEGIN_ARGS;
   GET_GAUGE(g1);
   OPT_INT(precision, QOP_PrecisionInt);
@@ -270,7 +303,7 @@ qopqdp_gauge_copy(lua_State *L)
     }
   }
   return 1;
-#undef NC
+  //#undef NC
 }
 
 static void
@@ -516,6 +549,31 @@ qopqdp_gauge_update(lua_State *L)
 #undef NC
 }
 
+// 1: gauge
+// 2: nrep (# of repetitions)
+// 3: nhb (# heatbath updates per repetition)
+// 4: nor (# overrelaxation updates per repetition)
+// 5: beta
+// 6: coeffs
+// 7: xi0 (unused)
+static int
+qopqdp_gauge_heatbath(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_GAUGE(g);
+  GET_INT(nrep);
+  GET_INT(nhb);
+  GET_INT(nor);
+  GET_DOUBLE(beta);
+  GET_GAUGE_COEFFS(coeffs);
+  //OPT_DOUBLE(xi0, 1);
+  END_ARGS;
+  QOP_info_t info;
+  QOP_symanzik_1loop_gauge_heatbath_qdp(&info, g->links, beta, &coeffs,
+					qopqdp_srs, nrep, nhb, nor);
+  return 0;
+}
+
 // calculate generic loop
 static int
 qopqdp_gauge_loop(lua_State *L)
@@ -597,21 +655,22 @@ qopqdp_gauge_loop(lua_State *L)
 }
 
 static struct luaL_Reg gauge_reg[] = {
-  { "__gc",    qopqdp_gauge_gc },
-  { "unit",    qopqdp_gauge_unit },
-  { "random",  qopqdp_gauge_random },
-  { "load",    qopqdp_gauge_load },
-  { "save",    qopqdp_gauge_save },
-  { "set",     qopqdp_gauge_set },
-  { "copy",    qopqdp_gauge_copy },
-  { "checkU",  qopqdp_gauge_checkU },
-  { "checkSU", qopqdp_gauge_checkSU },
-  { "makeSU",  qopqdp_gauge_makeSU },
-  { "action",  qopqdp_gauge_action },
-  { "force",   qopqdp_gauge_force },
-  { "update",  qopqdp_gauge_update },
-  { "loop",    qopqdp_gauge_loop },
-  { "coulomb", qopqdp_gauge_coulomb },
+  { "__gc",     qopqdp_gauge_gc },
+  { "unit",     qopqdp_gauge_unit },
+  { "random",   qopqdp_gauge_random },
+  { "load",     qopqdp_gauge_load },
+  { "save",     qopqdp_gauge_save },
+  { "set",      qopqdp_gauge_set },
+  { "copy",     qopqdp_gauge_copy },
+  { "checkU",   qopqdp_gauge_checkU },
+  { "checkSU",  qopqdp_gauge_checkSU },
+  { "makeSU",   qopqdp_gauge_makeSU },
+  { "action",   qopqdp_gauge_action },
+  { "force",    qopqdp_gauge_force },
+  { "update",   qopqdp_gauge_update },
+  { "heatbath", qopqdp_gauge_heatbath },
+  { "loop",     qopqdp_gauge_loop },
+  { "coulomb",  qopqdp_gauge_coulomb },
   { NULL, NULL}
 };
 

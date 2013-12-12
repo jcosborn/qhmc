@@ -22,7 +22,7 @@ local use_prev_soln = use_prev_soln or 0
 
 local rhmc = {}
 --local hmcmasses = { mass }
-local hmcmasses = { mass, mass2 }
+local hmcmasses = hmcmasses or { mass, mass2 }
 --local hmcmasses = { mass, 2*mass, 3*mass, 4*mass, 5*mass, 6*mass, 7*mass, 8*mass }
 --local seed = 1316844761
 local seed = seed or os.time()
@@ -203,21 +203,33 @@ myprint("rhmc = ", rhmc, "\n")
 r.pbp = pbp
 --myprint("runparams = ", r, "\n")
 
+local traj = traj or 0
+
 if inlat then
   acts:load(inlat)
 else
-  acts:unit()
+  if latpat then
+    if traj > 0 then
+      inlat = string.format(latpat, traj)
+      acts:load(inlat)
+    else
+      acts:unit()
+    end
+  else
+    acts:unit()
+  end
 end
+
 local ps,pt = acts.fields.G:plaq()
 printf("plaq ss: %g  st: %g  tot: %g\n", ps, pt, 0.5*(ps+pt))
 
 local nlats = nlats or 1
-local traj = traj or 0
+
 for nl=1,nlats do
   acts:run(r)
   traj = traj + ntraj
-  if outpat then
-    outlat = string.format(outpat, traj)
+  if latpat then
+    outlat = string.format(latpat, traj)
   end
   if outlat then
     acts:save(outlat)
