@@ -117,6 +117,8 @@ extern QDP_RandomState *qopqdp_srs;
 typedef struct {
   QDP_Lattice *qlat;
   QDP_Subset *timeslices;
+  QDP_Subset *staggered;
+  QDP_Subset **eodir;
   int nd;
   int ref;
 } lattice_t;
@@ -301,6 +303,7 @@ hisq_t *qopqdp_hisq_check(lua_State *L, int idx);
 
 
 typedef struct {
+  lattice_t *lat;
   QDP_Lattice *qlat;
   QDP_ColorVector *cv;
   int nc;
@@ -309,6 +312,7 @@ squark_t *qopqdp_squark_create(lua_State *L, int nc, lattice_t *lat);
 squark_t *qopqdp_squark_create_unset(lua_State *L, int nc, lattice_t *lat);
 squark_t *qopqdp_squark_check(lua_State *L, int idx);
 void qopqdp_squark_array_check(lua_State *L, int idx, int n, squark_t *q[n]);
+#define GET_SQUARK(s) squark_t *s = qopqdp_squark_check(L,nextarg++)
 
 void asqtadInvert(QOP_info_t *info, QOP_FermionLinksAsqtad *fla,
 		  QOP_invert_arg_t *invarg, QOP_resid_arg_t *residarg[],
@@ -331,6 +335,7 @@ wilson_t *qopqdp_wilson_check(lua_State *L, int idx);
 
 
 typedef struct {
+  lattice_t *lat;
   QDP_Lattice *qlat;
   QDP_DiracFermion *df;
   int nc;
@@ -339,6 +344,7 @@ wquark_t *qopqdp_wquark_create(lua_State *L, int nc, lattice_t *lat);
 wquark_t *qopqdp_wquark_create_unset(lua_State *L, int nc, lattice_t *lat);
 wquark_t *qopqdp_wquark_check(lua_State *L, int idx);
 void qopqdp_wquark_array_check(lua_State *L, int idx, int n, wquark_t *q[n]);
+#define GET_WQUARK(w) wquark_t *w = qopqdp_wquark_check(L,nextarg++)
 
 
 typedef struct {
@@ -356,6 +362,7 @@ dw_t *qopqdp_dw_check(lua_State *L, int idx);
 
 
 typedef struct {
+  lattice_t *lat;
   QDP_Lattice *qlat;
   QDP_DiracFermion **df;
   int ls, nc;
@@ -363,14 +370,21 @@ typedef struct {
 dwquark_t *qopqdp_dwquark_create(lua_State *L, int ls, int nc, lattice_t *lat);
 dwquark_t *qopqdp_dwquark_check(lua_State *L, int idx);
 void qopqdp_dwquark_array_check(lua_State *L, int idx, int n, dwquark_t *q[n]);
+#define GET_DWQUARK(d) dwquark_t *d = qopqdp_dwquark_check(L,nextarg++)
 
 
-QOP_evenodd_t qopqdp_check_evenodd(lua_State *L, int idx);
-QDP_Subset qopqdp_opt_subset(lua_State *L, int *idx, int reqd, QDP_Subset def);
 QDP_Subset *qhmcqdp_get_timeslices(lattice_t *lat);
-#define qopqdp_check_subset(L,i) qopqdp_opt_subset(L,(int[]){i},1,NULL)
-#define GET_SUBSET(s) QDP_Subset s = qopqdp_opt_subset(L,&nextarg,1,NULL)
-#define OPT_SUBSET(s,d) QDP_Subset s = qopqdp_opt_subset(L,&nextarg,0,d)
+QDP_Subset *qhmcqdp_get_eodir(lattice_t *lat, int dir);
+QOP_evenodd_t qopqdp_check_evenodd(lua_State *L, int idx);
+QDP_Subset qopqdp_opt_subset(lua_State *L, int *idx, int reqd,
+			     lattice_t *lat, QDP_Subset def);
+QDP_Subset *qopqdp_opt_subsets(lua_State *L, int *idx, int reqd,
+			       lattice_t *lat, QDP_Subset def[], int *nsub);
+#define qopqdp_check_subset(L,i,l) qopqdp_opt_subset(L,(int[]){i},1,l,NULL)
+#define GET_SUBSET(s,l) QDP_Subset s = qopqdp_opt_subset(L,&nextarg,1,l,NULL)
+#define OPT_SUBSET(s,l,d) QDP_Subset s = qopqdp_opt_subset(L,&nextarg,0,l,d)
+#define GET_SUBSETS(s,n,l) int n=1; QDP_Subset *s = qopqdp_opt_subsets(L,&nextarg,1,l,NULL,&n)
+#define OPT_SUBSETS(s,n,l,d,dn) int n=dn; QDP_Subset *s = qopqdp_opt_subsets(L,&nextarg,0,l,d,&n)
 
 QLA_Real infnorm_M(QDP_ColorMatrix *m, QDP_Subset s);
 int check_uniform_M(QDP_ColorMatrix *m, QDP_Subset s);

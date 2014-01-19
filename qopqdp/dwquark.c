@@ -47,13 +47,10 @@ qopqdp_dwquark_gc(lua_State *L)
 static int
 qopqdp_dwquark_zero(lua_State *L)
 {
-  int narg = lua_gettop(L);
-  qassert(narg==1 || narg==2);
-  dwquark_t *q = qopqdp_dwquark_check(L, 1);
-  QDP_Subset sub = QDP_all;
-  if(narg!=1) {
-    sub = qopqdp_check_subset(L, 2);
-  }
+  BEGIN_ARGS;
+  GET_DWQUARK(q);
+  OPT_SUBSET(sub, q->lat, QDP_all_L(q->qlat));
+  END_ARGS;
   for(int s=0; s<q->ls; s++) {
     QDP_D_eq_zero(q->df[s], sub);
   }
@@ -63,13 +60,10 @@ qopqdp_dwquark_zero(lua_State *L)
 static int
 qopqdp_dwquark_random(lua_State *L)
 {
-  int narg = lua_gettop(L);
-  qassert(narg==1 || narg==2);
-  dwquark_t *q = qopqdp_dwquark_check(L, 1);
-  QDP_Subset sub = QDP_all;
-  if(narg!=1) {
-    sub = qopqdp_check_subset(L, 2);
-  }
+  BEGIN_ARGS;
+  GET_DWQUARK(q);
+  OPT_SUBSET(sub, q->lat, QDP_all_L(q->qlat));
+  END_ARGS;
   QLA_Real r = sqrt(0.5); // normalize to sigma^2 = 1/2
   for(int s=0; s<q->ls; s++) {
     QDP_D_eq_gaussian_S(q->df[s], qopqdp_srs, sub);
@@ -94,13 +88,10 @@ lnormalize_D(NCPROT QLA_DiracFermion(*x), int i)
 static int
 qopqdp_dwquark_randomU1(lua_State *L)
 {
-  int narg = lua_gettop(L);
-  qassert(narg==1 || narg==2);
-  dwquark_t *q = qopqdp_dwquark_check(L, 1);
-  QDP_Subset sub = QDP_all;
-  if(narg!=1) {
-    sub = qopqdp_check_subset(L, 2);
-  }
+  BEGIN_ARGS;
+  GET_DWQUARK(q);
+  OPT_SUBSET(sub, q->lat, QDP_all_L(q->qlat));
+  END_ARGS;
   for(int s=0; s<q->ls; s++) {
     QDP_D_eq_gaussian_S(q->df[s], qopqdp_srs, sub);
     QDP_D_eq_funci(q->df[s], lnormalize_D, sub);
@@ -111,61 +102,15 @@ qopqdp_dwquark_randomU1(lua_State *L)
 static int
 qopqdp_dwquark_set(lua_State *L)
 {
-  int narg = lua_gettop(L);
-  qassert(narg==2 || narg==3);
-  dwquark_t *q1 = qopqdp_dwquark_check(L, 1);
-  dwquark_t *q2 = qopqdp_dwquark_check(L, 2);
-  qassert(q1->ls==q2->ls);
-  QDP_Subset sub = QDP_all;
-  if(narg!=2) {
-    sub = qopqdp_check_subset(L, 3);
-  }
+  BEGIN_ARGS;
+  GET_DWQUARK(q1);
+  GET_DWQUARK(q2);
+  OPT_SUBSET(sub, q1->lat, QDP_all_L(q1->qlat));
+  END_ARGS;
   for(int s=0; s<q1->ls; s++) {
     QDP_D_eq_D(q1->df[s], q2->df[s], sub);
   }
   return 0;
-}
-
-static int
-qopqdp_dwquark_norm2(lua_State *L)
-{
-  int narg = lua_gettop(L);
-  qassert(narg==1 || narg==2);
-  dwquark_t *q = qopqdp_dwquark_check(L, 1);
-  QDP_Subset sub = QDP_all;
-  if(narg!=1) {
-    sub = qopqdp_check_subset(L, 2);
-  }
-  QLA_Real nrm2=0;
-  for(int s=0; s<q->ls; s++) {
-    QLA_Real tnrm2;
-    QDP_r_eq_norm2_D(&tnrm2, q->df[s], sub);
-    nrm2 += tnrm2;
-  }
-  lua_pushnumber(L, nrm2);
-  return 1;
-}
-
-static int
-qopqdp_dwquark_redot(lua_State *L)
-{
-  int narg = lua_gettop(L);
-  qassert(narg==2 || narg==3);
-  dwquark_t *q1 = qopqdp_dwquark_check(L, 1);
-  dwquark_t *q2 = qopqdp_dwquark_check(L, 2);
-  qassert(q1->ls==q2->ls);
-  QDP_Subset sub = QDP_all;
-  if(narg!=2) {
-    sub = qopqdp_check_subset(L, 3);
-  }
-  QLA_Real redot=0;
-  for(int s=0; s<q1->ls; s++) {
-    QLA_Real tredot;
-    QDP_r_eq_re_D_dot_D(&tredot, q1->df[s], q2->df[s], sub);
-    redot += tredot;
-  }
-  lua_pushnumber(L, redot);
-  return 1;
 }
 
 static int
@@ -183,7 +128,7 @@ qopqdp_dwquark_combine(lua_State *L)
   QLA_Real qc[nc]; for(int i=0; i<nc; i++) qc[i] = c[i];
   QDP_Subset sub = QDP_all;
   if(narg>3) {
-    sub = qopqdp_check_subset(L, 4);
+    sub = qopqdp_check_subset(L, 4, qd->lat);
   }
   for(int s=0; s<qd->ls; s++) {
     QDP_D_eq_r_times_D(qd->df[s], &qc[0], qs[0]->df[s], sub);
@@ -194,15 +139,70 @@ qopqdp_dwquark_combine(lua_State *L)
   return 0;
 }
 
+static int
+qopqdp_dwquark_norm2(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_DWQUARK(q);
+  OPT_SUBSETS(subs, ns, q->lat, QDP_all_and_empty_L(q->qlat), 1);
+  END_ARGS;
+  if(ns==1) {
+    QLA_Real nrm2=0;
+    for(int s=0; s<q->ls; s++) {
+      QLA_Real tnrm2;
+      QDP_r_eq_norm2_D(&tnrm2, q->df[s], subs[0]);
+      nrm2 += tnrm2;
+    }
+    lua_pushnumber(L, nrm2);
+  } else {
+    QLA_Real nrm2[ns];
+    for(int s=0; s<q->ls; s++) {
+      QLA_Real tnrm2[ns];
+      QDP_r_eq_norm2_D_multi(tnrm2, q->df[s], subs, ns);
+      for(int i=0; i<ns; i++) nrm2[i] += tnrm2[i];
+    }
+    push_double_array(L, ns, nrm2);
+  }
+  return 1;
+}
+
+static int
+qopqdp_dwquark_redot(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_DWQUARK(q1);
+  GET_DWQUARK(q2);
+  OPT_SUBSETS(subs, ns, q1->lat, QDP_all_and_empty_L(q1->qlat), 1);
+  END_ARGS;
+  if(ns==1) {
+    QLA_Real redot=0;
+    for(int s=0; s<q1->ls; s++) {
+      QLA_Real tredot;
+      QDP_r_eq_re_D_dot_D(&tredot, q1->df[s], q2->df[s], subs[0]);
+      redot += tredot;
+    }
+    lua_pushnumber(L, redot);
+  } else {
+    QLA_Real redot[ns];
+    for(int s=0; s<q1->ls; s++) {
+      QLA_Real tredot[ns];
+      QDP_r_eq_re_D_dot_D_multi(tredot, q1->df[s], q2->df[s], subs, ns);
+      for(int i=0; i<ns; i++) redot[i] += tredot[i];
+    }
+    push_double_array(L, ns, redot);
+  }
+  return 1;
+}
+
 static struct luaL_Reg dwquark_reg[] = {
   { "__gc",     qopqdp_dwquark_gc },
   { "zero",     qopqdp_dwquark_zero },
   { "random",   qopqdp_dwquark_random },
   { "randomU1", qopqdp_dwquark_randomU1 },
   { "set",      qopqdp_dwquark_set },
+  { "combine",  qopqdp_dwquark_combine },
   { "norm2",    qopqdp_dwquark_norm2 },
   { "Re_dot",   qopqdp_dwquark_redot },
-  { "combine",  qopqdp_dwquark_combine },
   { NULL, NULL}
 };
 
@@ -211,15 +211,15 @@ qopqdp_dwquark_create(lua_State* L, int ls, int nc, lattice_t *lat)
 {
 #define NC nc
   if(nc==0) nc = DEFAULTNC;
-  QDP_Lattice *qlat = QDP_get_default_lattice();
-  if(lat) qlat = lat->qlat;
+  if(lat==NULL) lat = qopqdp_get_default_lattice(L);
   dwquark_t *q = lua_newuserdata(L, sizeof(dwquark_t));
   q->ls = ls;
   q->df = malloc(ls*sizeof(*q->df));
-  q->qlat = qlat;
+  q->lat = lat;
+  q->qlat = lat->qlat;
   q->nc = nc;
   for(int s=0; s<ls; s++) {
-    q->df[s] = QDP_create_D_L(qlat);
+    q->df[s] = QDP_create_D_L(lat->qlat);
     QDP_D_eq_zero(q->df[s], QDP_all);
   }
   if(luaL_newmetatable(L, mtname)) {

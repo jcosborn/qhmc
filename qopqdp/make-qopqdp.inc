@@ -7,14 +7,15 @@ ifneq "$(BGQ)" ""
   COPT = -O3 -qinfo=pro -g 
 else
   CC = mpicc
-  COPT = -O3 -g -std=gnu99 -Wall -fopenmp
+  COPT = -O3 -g -std=gnu99 -Wall
+  #COPT = -O3 -g -std=gnu99 -Wall -fopenmp
 endif
 
 #HAVENC1 = true
-HAVENC2 = true
-#HAVENC3 = true
+#HAVENC2 = true
+HAVENC3 = true
 #HAVENCN = true
-#HAVEMG = true
+HAVEMG = true
 #DEFAULTNC = 3
 
 #DEFINES = -DQHMC_REPRO_UNIFORM

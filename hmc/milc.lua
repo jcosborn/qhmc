@@ -38,9 +38,11 @@ p.seed = mi.iseed[1]
 p.beta = mi.beta[1]
 p.nf = sum(mi.dyn_flavors)
 p.u0 = mi.u0[1]
+--p.gaugeact = {type="symanzik_1loop", u0=p.u0, nf=p.nf}
 p.gaugeact = {type="symanzik_1loop_hisq", u0=p.u0, nf=p.nf}
 p.npseudo = #mr.pseudo
 local rhmc = {}
+--p.fermact = {type="asqtad", u0=p.u0, rhmc=rhmc}
 p.fermact = {type="hisq", rhmc=rhmc}
 for i,v in ipairs(mr.pseudo) do
   v.pole_GR[1] = nil

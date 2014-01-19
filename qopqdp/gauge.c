@@ -79,6 +79,7 @@ gauge_random(NCPROT QLA_ColorMatrix(*m), int i, void *args)
   QLA_M_eq_C_times_M(m, &c, &m2);
 }
 
+#if 0
 static void
 make_herm(NCPROT QLA_ColorMatrix(*m), int idx, void *args)
 {
@@ -101,6 +102,7 @@ make_herm(NCPROT QLA_ColorMatrix(*m), int idx, void *args)
     QLA_c_meq_c(QLA_elem_M(*m,i,i), tr);
   }
 }
+#endif
 
 static int
 qopqdp_gauge_random(lua_State *L)
@@ -575,16 +577,22 @@ qopqdp_gauge_heatbath(lua_State *L)
 }
 
 // calculate generic loop
+// 1: gauge field
+// 2: path
+// 3: (opt) subset/subsets
 static int
 qopqdp_gauge_loop(lua_State *L)
 {
 #define NC QDP_get_nc(g->links[0])
-  qassert(lua_gettop(L)==2);
-  gauge_t *g = qopqdp_gauge_check(L, 1);
-  int ns; get_table_len(L, 2, &ns);
-  int dirs[ns]; get_int_array(L, 2, ns, dirs);
+  BEGIN_ARGS;
+  GET_GAUGE(g);
+  GET_TABLE_LEN_INDEX(plen,pidx);
+  OPT_SUBSETS(subs, ns, g->lat, QDP_all_and_empty_L(g->qlat), 1);
+  END_ARGS;
+  int dirs[plen]; get_int_array(L, pidx, plen, dirs);
   QDP_Lattice *qlat = g->qlat;
-  QDP_Subset sub = QDP_all_L(qlat);
+  QDP_Subset all = QDP_all_L(qlat);
+  QDP_Shift *neighbor = QDP_neighbor_L(qlat);
 
   QLA_Complex z;
   QDP_ColorMatrix *m[2], *temp[2];
@@ -596,8 +604,8 @@ qopqdp_gauge_loop(lua_State *L)
   int k = 0;
   int intemp = 0;
   QLA_c_eq_r(z, 1);
-  QDP_M_eq_c(m[k], &z, sub);
-  for(int i=0; i<ns; i++) {
+  QDP_M_eq_c(m[k], &z, all);
+  for(int i=0; i<plen; i++) {
     int d = dirs[i];
     int mu = abs(d) - 1;
     //printf0("i: %i  d: %i  mu: %i\n", i, d, mu);
@@ -608,50 +616,200 @@ qopqdp_gauge_loop(lua_State *L)
     }
     if(d>0) { // shift from backward
       if(intemp) {
-	QDP_M_eq_Ma_times_M(m[1-k], g->links[mu], temp[k], sub);
+	QDP_M_eq_Ma_times_M(m[1-k], g->links[mu], temp[k], all);
 	//QDP_discard_M(temp[k]);
       } else {
-	QDP_M_eq_Ma_times_M(m[1-k], g->links[mu], m[k], sub);
+	QDP_M_eq_Ma_times_M(m[1-k], g->links[mu], m[k], all);
       }
       k = 1-k;
-      QDP_M_eq_sM(temp[k], m[k], QDP_neighbor[mu], QDP_backward, sub);
+      QDP_M_eq_sM(temp[k], m[k], neighbor[mu], QDP_backward, all);
       intemp = 1;
     } else { // shift from forward
       if(intemp) {
-	QDP_M_eq_M(m[1-k], temp[k], sub);
+	QDP_M_eq_M(m[1-k], temp[k], all);
 	//QDP_discard_M(temp[k]);
 	k = 1-k;
       }
       //printf("k: %i\n", k);
       //TRACE;
-      QDP_M_eq_sM(temp[k], m[k], QDP_neighbor[mu], QDP_forward, sub);
+      QDP_M_eq_sM(temp[k], m[k], neighbor[mu], QDP_forward, all);
       //TRACE;
-      QDP_M_eq_M_times_M(m[1-k], g->links[mu], temp[k], sub);
+      QDP_M_eq_M_times_M(m[1-k], g->links[mu], temp[k], all);
       //TRACE;
       k = 1-k;
       intemp = 0;
     }
   }
   if(intemp) {
-    QDP_M_eq_M(m[1-k], temp[k], sub);
+    QDP_M_eq_M(m[1-k], temp[k], all);
     QDP_discard_M(temp[k]);
     k = 1-k;
   }
 
-  QLA_ColorMatrix cm;
-  QDP_m_eq_sum_M(&cm, m[k], sub);
-  QLA_C_eq_trace_M(&z, &cm);
+  QLA_Complex qc[ns];
+  QDP_Complex *c = QDP_create_C_L(qlat);
+  QDP_C_eq_trace_M(c, m[k], all);
+  QDP_c_eq_sum_C_multi(qc, c, subs, ns);
+  QDP_destroy_C(c);
   double f = 1.0/(QLA_Nc*QDP_volume());
-  lua_pushnumber(L, f*QLA_real(z));
-  lua_pushnumber(L, f*QLA_imag(z));
+  qhmc_complex_t cc[ns];
+  for(int i=0; i<ns; i++) {
+    cc[i].r = f*QLA_real(qc[i]);
+    cc[i].i = f*QLA_imag(qc[i]);
+  }
+  if(ns==1) {
+    qhmc_complex_create(L, cc[0].r, cc[0].i);
+  } else {
+    push_complex_array(L, ns, cc);
+  }
 
   QDP_destroy_M(m[0]);
   QDP_destroy_M(m[1]);
   QDP_destroy_M(temp[0]);
   QDP_destroy_M(temp[1]);
 
-  return 2;
+  return 1;
 #undef NC
+}
+
+// calculate s4 broken phase observables
+// Based on "meas_plaq" in milc
+static int
+qopqdp_gauge_s4_gauge_observables(lua_State *L)
+{
+  // All we expect is the gauge field.
+  qassert(lua_gettop(L)==1);
+  gauge_t *g = qopqdp_gauge_check(L, 1);
+  lattice_t *lat = g->lat;
+
+  // We need to construct the plaquette!
+  QDP_ColorMatrix *plaq, *temp, *temp2;
+  QDP_Real* retrplaq;
+	
+  // For creating subsections.
+  QDP_Subset *dirsubset;
+	
+  // According to "meas_plaq," we need these too.
+  // 0 = spacetime  (0 == even, 1 == odd)
+  // 1 = contains x
+  // 2 = contains y
+  // 3 = contains z
+  // 4 = all coords odd, all coords even (opposite convention)
+  QLA_Real plaq_ss = 0, plaq_e[5], plaq_o[5];
+  QLA_Real interm[3];
+  int i, dir1, dir2;
+	
+  plaq = QDP_create_M();
+  temp = QDP_create_M();
+  temp2 = QDP_create_M();
+  retrplaq = QDP_create_R();
+	
+  for (i = 0; i < 5; i++)
+    {
+      plaq_e[i] = plaq_o[i] = 0;
+    }
+	
+  // Get that plaquette! Hardcoded for 4D.
+  for (dir1 = 1; dir1 < 4; dir1++)
+    {
+      for (dir2 = 0; dir2 < dir1; dir2++)
+	{
+	  // Get dat plaq!
+	  QDP_M_eq_sM(temp, g->links[dir1], QDP_neighbor[dir2], QDP_forward, QDP_all);
+	  
+	  QDP_M_eq_M_times_M(plaq, g->links[dir2], temp, QDP_all);
+	  
+	  QDP_M_eq_sM(temp, g->links[dir2], QDP_neighbor[dir1], QDP_forward, QDP_all);
+	  
+	  QDP_M_eq_M_times_Ma(temp2, plaq, temp, QDP_all);
+	  
+	  QDP_M_eq_M_times_Ma(plaq, temp2, g->links[dir1], QDP_all);
+	  
+	  QDP_R_eq_re_trace_M(retrplaq, plaq, QDP_all);
+			
+	  // We have the plaq!
+	  
+	  if (dir1 == 3) // time-space
+	    {
+	      dirsubset = qhmcqdp_get_eodir(lat, 3);
+	      QDP_r_eq_sum_R_multi(interm, retrplaq, dirsubset, 2);
+	      // interm[0] is the sum over values where t%2==0
+	      // interm[1] is the sum over values where t%2==1
+	      plaq_e[0] += interm[0];
+	      plaq_o[0] += interm[1];
+	    }
+	  else // spatial
+	    {
+	      QDP_r_eq_sum_R(interm, retrplaq, QDP_all);
+	      plaq_ss += interm[0];
+	    }
+	  
+	  if (dir1 == 0 || dir2 == 0) // x dep.
+	    {
+	      dirsubset = qhmcqdp_get_eodir(lat, 0);
+	      QDP_r_eq_sum_R_multi(interm, retrplaq, dirsubset, 2);
+			    
+	      // interm[0] is the sum over values where x%2==0
+	      // interm[1] is the sum over values where x%2==1
+	      plaq_e[1] += interm[0];
+	      plaq_o[1] += interm[1];
+	    }
+	  
+	  if (dir1 == 1 || dir2 == 1) // y dep.
+	    {
+	      dirsubset = qhmcqdp_get_eodir(lat, 1);
+	      QDP_r_eq_sum_R_multi(interm, retrplaq, dirsubset, 2);
+	      
+	      // interm[0] is the sum over values where y%2==0
+	      // interm[1] is the sum over values where y%2==1
+	      plaq_e[2] += interm[0];
+	      plaq_o[2] += interm[1];
+	    }
+	  
+	  if (dir1 == 2 || dir2 == 2) // z dep.
+	    {
+	      dirsubset = qhmcqdp_get_eodir(lat, 2);
+	      QDP_r_eq_sum_R_multi(interm, retrplaq, dirsubset, 2);
+	      
+	      // interm[0] is the sum over values where z%2==0
+	      // interm[1] is the sum over values where z%2==1
+	      plaq_e[3] += interm[0];
+	      plaq_o[3] += interm[1];
+	    }
+	  
+	  // The last weird case. All coordinates even or all
+	  // coordinates odd.
+	  dirsubset = qhmcqdp_get_eodir(lat, 4);
+	  
+	  QDP_r_eq_sum_R_multi(interm, retrplaq, dirsubset, 3);
+	  
+	  plaq_e[4] += interm[1]; // Yes, I know it's switched.
+	  plaq_o[4] += interm[0]; // This matches MILC.
+	}
+    }
+  
+  // Normalize.
+  plaq_ss /= ((double)3*3*QDP_volume());
+  for (i = 0; i < 4; i++)
+    {
+      plaq_e[i] /= ((double)3*3*QDP_volume())/2;
+		plaq_o[i] /= ((double)3*3*QDP_volume())/2;
+    }
+  plaq_e[4] /= ((double)3*3*QDP_volume())/8;
+  plaq_o[4] /= ((double)3*3*QDP_volume())/8;
+  
+  // Clean up!
+  QDP_destroy_M(plaq);
+  QDP_destroy_M(temp);
+  QDP_destroy_M(temp2);
+  QDP_destroy_R(retrplaq);
+  
+  // Return things.
+  lua_pushnumber(L, plaq_ss);
+  push_real_array(L, 5, plaq_e);
+  push_real_array(L, 5, plaq_o);
+  
+  return 3;
 }
 
 static struct luaL_Reg gauge_reg[] = {
@@ -671,6 +829,7 @@ static struct luaL_Reg gauge_reg[] = {
   { "heatbath", qopqdp_gauge_heatbath },
   { "loop",     qopqdp_gauge_loop },
   { "coulomb",  qopqdp_gauge_coulomb },
+  { "s4Gauge",  qopqdp_gauge_s4_gauge_observables }, // ESW addition 12/18/2013
   { NULL, NULL}
 };
 
@@ -679,16 +838,15 @@ qopqdp_gauge_create(lua_State* L, int nc, lattice_t *lat)
 {
 #define NC nc
   if(nc==0) nc = DEFAULTNC;
-  QDP_Lattice *qlat = QDP_get_default_lattice();
-  if(lat) qlat = lat->qlat;
-  int nd = QDP_ndim_L(qlat);
+  if(lat==NULL) lat = qopqdp_get_default_lattice(L);
+  int nd = QDP_ndim_L(lat->qlat);
   gauge_t *g = lua_newuserdata(L,sizeof(gauge_t)+nd*sizeof(QDP_ColorMatrix*));
   g->nd = nd;
   g->lat = lat;
-  g->qlat = qlat;
+  g->qlat = lat->qlat;
   g->nc = nc;
   for(int i=0; i<nd; i++) {
-    g->links[i] = QDP_create_M_L(qlat);
+    g->links[i] = QDP_create_M_L(lat->qlat);
   }
   if(luaL_newmetatable(L, gmtname)) {
     lua_pushvalue(L, -1);

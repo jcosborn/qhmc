@@ -59,6 +59,8 @@
 #define GET_DOUBLE(v) double v=qhmc_opt_double(L,&nextarg,1,0)
 #define OPT_DOUBLE(v,d) double v=qhmc_opt_double(L,&nextarg,0,d)
 #define GET_TABLE_LEN_INDEX(l,i) int l,i=nextarg; get_table_len(L,i,&l); nextarg++
+#define GET_COMPLEX(v) qhmc_complex_t *v=qhmc_complex_check(L,nextarg); nextarg++
+#define GET_AS_COMPLEX(v) qhmc_complex_t v; qhmc_complex_get_as(L,nextarg,&v); nextarg++
 #define END_ARGS qassert(nextarg==nargs+1)
 
 const char *qhmc_opt_string(lua_State *L, int *idx, int required, char *def);

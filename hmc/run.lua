@@ -38,7 +38,11 @@ function actsmt.unit(a)
 end
 
 function actsmt.load(a, fn)
+  printf("loading lattice: %s\n", fn)
+  local t0 = clock()
   a.fields.G:load(fn)
+  t0 = clock() - t0
+  printf("load time: %g seconds\n", t0)
   local devavg,devmax = a.fields.G:checkSU()
   printf("unitarity deviation avg: %g  max: %g\n", devavg, devmax)
   a.fields.G:makeSU()
@@ -47,7 +51,11 @@ function actsmt.load(a, fn)
 end
 
 function actsmt.save(a, fn)
+  printf("saving lattice: %s\n", fn)
+  local t0 = clock()
   a.fields.G:save(fn)
+  t0 = clock() - t0
+  printf("save time: %g seconds\n", t0)
 end
 
 local function measure(a, r)
@@ -56,16 +64,15 @@ local function measure(a, r)
   local ps,pt = a.fields.G:plaq()
   printf("MEASplaq ss: %-8g  st: %-8g  tot: %-8g\n", ps, pt, 0.5*(ps+pt))
 
-  local plr,pli = a.fields.G:ploop()
-  local plrs,plis= 0,0
-  local plrt, plit=plr[#plr],pli[#pli]
-  local tmp=#plr-1
-  for i=1,#plr-1 do
-	plrs,plis=plrs+plr[i],plis+pli[i]
+  local pl = a.fields.G:ploop()
+  local pls = 0
+  local plt = pl[#pl]
+  for i=1,#pl-1 do
+    pls = pls + pl[i]
   end
-  plrs,plis=plrs/(#plr-1),plis/(#pli-1)
+  pls = pls/(#pl-1)
   --printf("ploop: %s\n", tostring(plp))
-  printf("MEASploop: spatial: (%g,%g) temporal: (%g,%g)\n",plrs,plis,plrt,plit)
+  printf("MEASploop: spatial: %g %g temporal: %g %g\n",pls.r,pls.i,plt.r,plt.i)
 
   for i,v in ipairs(r.pbp) do
     for j=1,v.reps do
@@ -84,6 +91,9 @@ local function measure(a, r)
     end
   end
   --]]
+
+  -- user defined measurements
+  if r.meas then r.meas(a, r) end
 
   t0 = clock() - t0
   printf("measurement time: %g seconds\n", t0)

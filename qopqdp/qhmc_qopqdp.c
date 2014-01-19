@@ -38,6 +38,60 @@ qhmcqdp_get_timeslices(lattice_t *lat)
   return lat->timeslices;
 }
 
+static int
+staggered_func(int x[], void *args)
+{
+  int nd = *(int *)args;
+  int s = 0;
+  for(int i=nd-1; i>=0; i++) {
+    s *= 2;
+    s += x[i]&1;
+  }
+  return s;
+}
+
+QDP_Subset *
+qhmcqdp_get_staggered(lattice_t *lat)
+{
+  if(lat->staggered==NULL) {
+    int nd = QDP_ndim_L(lat->qlat);
+    int n = (int)floor(0.5+pow(2,nd));
+    lat->staggered = QDP_create_subset(staggered_func,(void*)&nd,sizeof(nd),n);
+  }
+  return lat->staggered;
+}
+
+// This is a private function which defines even/odd subsections
+// in different directions. Return 0 if an even coordinate, 1 if odd.
+// nd is a special case: we want coordinates all even or all odd.
+static int
+eodir_func(int x[], void *args)
+{
+  int dir = ((int*)args)[0];
+  int nd = ((int*)args)[1];
+  if (dir != nd) {
+    return x[dir]&1;
+  } else {
+    int k=0;
+    for(int i=0; i<nd; i++) k += x[i]&1;
+    if(k==0) return 0;
+    else if(k==nd) return 1;
+    return 2;
+  }
+}
+
+QDP_Subset *
+qhmcqdp_get_eodir(lattice_t *lat, int dir)
+{
+  if(lat->eodir[dir]==NULL) {
+    int nd = lat->nd;
+    int args[2] = {dir, nd};
+    // We get only even or odd for 0->nd-1. We get even, odd, or neither for nd.
+    lat->eodir[dir] = QDP_create_subset(eodir_func, (void*)args, sizeof(args), (dir==nd?3:2));
+  }
+  return lat->eodir[dir];
+}
+
 QOP_evenodd_t
 qopqdp_check_evenodd(lua_State *L, int idx)
 {
@@ -54,11 +108,12 @@ qopqdp_check_evenodd(lua_State *L, int idx)
   return eo;
 }
 
-// FIXME: make work for non-default subset
 QDP_Subset
-qopqdp_opt_subset(lua_State *L, int *idx, int reqd, QDP_Subset def)
+qopqdp_opt_subset(lua_State *L, int *idx, int reqd,
+		  lattice_t *lat, QDP_Subset def)
 {
-  lattice_t *lat = qopqdp_get_default_lattice(L);
+  if(lat==NULL) lat = qopqdp_get_default_lattice(L);
+  QDP_Lattice *qlat = lat->qlat;
   lua_pushvalue(L, *idx);
   const char *s;
   if(reqd) {
@@ -70,14 +125,14 @@ qopqdp_opt_subset(lua_State *L, int *idx, int reqd, QDP_Subset def)
   QDP_Subset sub = def;
   if(s) {
     switch(s[0]) {
-    case 'a': sub = QDP_all_L(lat->qlat); break;
-    case 'e': sub = QDP_even_L(lat->qlat); break;
-    case 'o': sub = QDP_odd_L(lat->qlat); break;
+    case 'a': sub = QDP_all_L(qlat); break;
+    case 'e': sub = QDP_even_L(qlat); break;
+    case 'o': sub = QDP_odd_L(qlat); break;
     case 't': 
       if(strncmp(s,"timeslice",9)==0) {
 	int t;
 	int n = sscanf(s+9,"%i",&t);
-	if(n && t>=0 && t<QDP_coord_size_L(lat->qlat,QDP_ndim_L(lat->qlat)-1))
+	if(n && t>=0 && t<QDP_coord_size_L(qlat,QDP_ndim_L(qlat)-1))
 	  sub = qhmcqdp_get_timeslices(lat)[t];
       }
       break;
@@ -86,6 +141,73 @@ qopqdp_opt_subset(lua_State *L, int *idx, int reqd, QDP_Subset def)
     (*idx)++;
   }
   return sub;
+}
+
+QDP_Subset *
+qopqdp_opt_subsets(lua_State *L, int *idx, int reqd,
+		   lattice_t *lat, QDP_Subset def[], int *nsub)
+{
+  if(lat==NULL) lat = qopqdp_get_default_lattice(L);
+  QDP_Lattice *qlat = lat->qlat;
+  lua_pushvalue(L, *idx);
+  const char *s;
+  if(reqd) {
+    s = luaL_checkstring(L, -1);
+  } else {
+    s = luaL_optstring(L, -1, NULL);
+  }
+  lua_pop(L, 1);
+  QDP_Subset *subs = def;
+  if(s) {
+    switch(s[0]) {
+    case 'a':
+      subs = QDP_all_and_empty_L(qlat);
+      if(strcmp(s,"all")==0) *nsub = 1;
+      else *nsub = 2;
+      break;
+    case 'e':
+      subs = QDP_even_and_odd_L(qlat);
+      if(strcmp(s,"even")==0) *nsub = 1;
+      else *nsub = 2;
+      break;
+    case 'o': subs = 1+QDP_even_and_odd_L(qlat); *nsub = 1; break;
+    case 's':
+      if(strncmp(s,"staggered",9)==0) {
+	int ns = (int)floor(0.5+pow(2,QDP_ndim_L(qlat)));
+	if(strcmp(s+9,"")==0) {
+	  subs = qhmcqdp_get_staggered(lat);
+	  *nsub = ns;
+	} else {
+	  int t;
+	  int n = sscanf(s+9,"%i",&t);
+	  if(n && t>=0 && t<ns) {
+	    subs = &qhmcqdp_get_staggered(lat)[t];
+	    *nsub = 1;
+	  }
+	}
+      }
+      break;
+    case 't':
+      if(strncmp(s,"timeslice",9)==0) {
+	int nt = QDP_coord_size_L(qlat,QDP_ndim_L(qlat)-1);
+	if(strcmp(s+9,"s")==0) {
+	  subs = qhmcqdp_get_timeslices(lat);
+	  *nsub = nt;
+	} else {
+	  int t;
+	  int n = sscanf(s+9,"%i",&t);
+	  if(n && t>=0 && t<nt) {
+	    subs = &qhmcqdp_get_timeslices(lat)[t];
+	    *nsub = 1;
+	  }
+	}
+      }
+      break;
+    }
+    if(subs==NULL) qlerror0(L, 1, "unknown subset %s\n", s);
+    (*idx)++;
+  }
+  return subs;
 }
 
 static int

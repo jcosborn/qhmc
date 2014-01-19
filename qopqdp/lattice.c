@@ -25,6 +25,17 @@ qopqdp_lattice_free(lua_State *L, int idx)
     QDP_destroy_subset(lat->timeslices);
     lat->timeslices = NULL;
   }
+  if(lat->staggered) {
+    QDP_destroy_subset(lat->staggered);
+    lat->staggered = NULL;
+  }
+  for(int i=0; i<=lat->nd; i++) {
+    if(lat->eodir[i]) {
+      QDP_destroy_subset(lat->eodir[i]);
+      lat->eodir[i] = NULL;
+    }
+  }
+  free(lat->eodir);
   if(lat->qlat!=QDP_get_default_lattice()) {
     QDP_destroy_lattice(lat->qlat);
     lat->qlat = NULL;
@@ -50,6 +61,9 @@ qopqdp_lattice_create(lua_State *L, int nd, int size[])
   lat->qlat = QDP_create_lattice(NULL, NULL, nd, size);
   lat->nd = nd;
   lat->timeslices = NULL;
+  lat->staggered = NULL;
+  lat->eodir = malloc((nd+1)*sizeof(QDP_Subset *));
+  for(int i=0; i<=nd; i++) lat->eodir[i] = NULL;
   if(luaL_newmetatable(L, mtname)) {
     lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");

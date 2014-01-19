@@ -111,12 +111,14 @@ set_phases_func(int *r0, QOP_bc_t *bc, QOP_staggered_sign_t *ss, int nd)
 #endif
 }
 
+#if 0
 static void
 rephase_G(QOP_GaugeField *g, int nd)
 {
   set_phases(nd);
   QOP_rephase_G(g, r0, &bc, &ss);
 }
+#endif
 
 static void
 rephase_F(force_t *f)

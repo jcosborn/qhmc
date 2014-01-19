@@ -60,7 +60,7 @@ qopqdp_force_clone(lua_State *L)
   force_t *f1 = qopqdp_force_create(L, 0, NULL);
   QDP_Subset sub = QDP_all;
   if(narg!=1) {
-    sub = qopqdp_check_subset(L, 2);
+    sub = qopqdp_check_subset(L, 2, f2->lat);
   }
   for(int i=0; i<f1->nd; i++) {
     QDP_M_eq_M(f1->force[i], f2->force[i], sub);

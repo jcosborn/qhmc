@@ -213,12 +213,12 @@ end
 
 function gaugemt.ploop(g)
   local nd = #qopqdp.lattice()
-  local plr,pli = {},{}
+  local pl = {}
   for i=1,nd do
     local plpath = rep(-i,g.a.latsize[i])
-    plr[i],pli[i] = g.g:loop(plpath)
+    pl[i] = g.g:loop(plpath)
   end
-  return plr, pli
+  return pl
 end
 
 function gaugemt.update(g, f, eps)
