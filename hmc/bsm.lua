@@ -206,6 +206,7 @@ r.pbp = pbp
 
 function r.meas(a, r)
   local G = a.fields.G
+  G.g:coulomb(3, 1e-6, 1500, 1.8);
 
   -- Wall pions!
   for j=2,nt-1,8 do

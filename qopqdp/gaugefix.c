@@ -359,228 +359,219 @@ int
 qopqdp_gauge_coulomb(lua_State* L)
 {
 #define NC QDP_get_nc(u->links[0])
-	// Check 4 or 5 arguments.
-	qassert(lua_gettop(L)==4 || lua_gettop(L)==5);
+  // Check 4 or 5 arguments.
+  qassert(lua_gettop(L)==4 || lua_gettop(L)==5);
+  // 1. Get the gauge field.
+  gauge_t *u = qopqdp_gauge_check(L, 1);
+  // 2. Get time direction.
+  int j_decay = luaL_checkint(L, 2);
+  // 3. Get accuracy.
+  double GFAccu = luaL_checknumber(L, 3);
+  // 4. Get maximum number of iterations.
+  int GFMax = luaL_checkint(L, 4);
 	
-	// 1. Get the gauge field.
-	gauge_t *u = qopqdp_gauge_check(L, 1);
+  int OrDo = 0;
+  double OrPara = 1;
 	
-	// 2. Get time direction.
-	int j_decay = luaL_checkint(L, 2);
+  if (lua_gettop(L) == 5)
+    {
+      // 5. Overrelax?
+      OrDo = 1;
+      // 6. Aw man, how much do I overrelax?
+      OrPara = luaL_checknumber(L, 5);
+    }
 	
-	// 3. Get accuracy.
-	double GFAccu = luaL_checknumber(L, 3);
+  double tgfold;
+  double tgfnew;
+  double tgf_t;
+  double tgf_s;
+  double norm;
+  int num_sdir; // Fixed because of isotropy.
+  int Nd = QDP_ndim();
+  int tDir = Nd - 1;
+  int tdirp; // bool
+  QDP_ColorMatrix *g, *new_links, *new_links2;
+  g = QDP_create_M();
+  new_links = QDP_create_M(); // we use this to update the link trace.
+  new_links2 = QDP_create_M();
 	
-	// 4. Get maximum number of iterations.
-	int GFMax = luaL_checkint(L, 4);
+  // My addition:
+  int mu;
+  int n_gf; // Returned number of fixing terms.
 	
-	int OrDo = 0;
-	double OrPara = 1;
-	
-	if (lua_gettop(L) == 5)
+  // Chroma has some extra logic seeing if the fixing direction
+  // is the time direction because of anisotropy.
+  // We don't need that. 
+  if (j_decay >= 0 && j_decay < Nd) // Coulomb
+    {
+      if (tDir != j_decay)
 	{
-		// 5. Overrelax?
-		OrDo = 1;
-		
-		// 6. Aw man, how much do I overrelax?
-		OrPara = luaL_checknumber(L, 5);
+	  num_sdir = Nd - 2;
+	  tdirp = 1;
+	  norm = (double)(QDP_volume() * QLA_Nc * (num_sdir + 1));
 	}
-	
-	double tgfold;
-	double tgfnew;
-	double tgf_t;
-	double tgf_s;
-	double norm;
-	int num_sdir; // Fixed because of isotropy.
-	int Nd = QDP_ndim();
-	int tDir = Nd - 1;
-	int tdirp; // bool
-	QDP_ColorMatrix *g, *new_links, *new_links2;
-	g = QDP_create_M();
-	new_links = QDP_create_M(); // we use this to update the link trace.
-	new_links2 = QDP_create_M();
-	
-	// My addition:
-	int mu;
-	int n_gf; // Returned number of fixing terms.
-	
-	// Chroma has some extra logic seeing if the fixing direction
-	// is the time direction because of anisotropy.
-	// We don't need that. 
-	if (j_decay >= 0 && j_decay < Nd) // Coulomb
+      else
 	{
-		if (tDir != j_decay)
-		{
-			num_sdir = Nd - 2;
-			tdirp = 1;
-			norm = (double)(QDP_volume() * QLA_Nc * (num_sdir + 1));
-		}
-		else
-		{
-			num_sdir = Nd - 1;
-			norm = (double)(QDP_volume() * QLA_Nc * num_sdir);
-			tdirp = 0;
-		}
+	  num_sdir = Nd - 1;
+	  norm = (double)(QDP_volume() * QLA_Nc * num_sdir);
+	  tdirp = 0;
 	}
-	else // Landau
+    }
+  else // Landau
+    {
+      num_sdir = Nd - 1;
+      norm = (double)(QDP_volume() * QLA_Nc * (num_sdir + 1));
+      tdirp = 1;
+    }
+	
+  // Compute initial gauge fixing term: sum(trace(U_spacelike));
+  tgf_t = 0;
+  tgf_s = 0;
+  for (mu = 0; mu < Nd; ++mu)
+    {
+      if ( mu != j_decay )
 	{
-		num_sdir = Nd - 1;
-		norm = (double)(QDP_volume() * QLA_Nc * (num_sdir + 1));
-		tdirp = 1;
+	  //double tgf_tmp = sum(real(trace(u[mu])));
+	  QLA_ColorMatrix link_sum;
+	  QDP_m_eq_sum_M(&link_sum, u->links[mu], QDP_all);
+	  QLA_Real tgf_tmp;
+	  QLA_R_eq_re_trace_M(&tgf_tmp, &link_sum);
+	  
+	  if (mu != tDir) // Keep different stock for time link trace.
+	    {
+	      tgf_s += tgf_tmp;
+	    }
+	  else
+	    {
+	      tgf_t += tgf_tmp;
+	    }
 	}
+    }
 	
-	// Compute initial gauge fixing term: sum(trace(U_spacelike));
-	tgf_t = 0;
-	tgf_s = 0;
-	for (mu = 0; mu < Nd; ++mu)
+  // Get the normalized trace sum of links.
+  // We get different values depending on time dependence.
+  if (tdirp) 
+    {
+      tgfold = (tgf_t + tgf_s)/norm;
+      tgf_s = tgf_s/((double)(QDP_volume() * QLA_Nc * num_sdir));
+      tgf_t = tgf_t/((double)(QDP_volume() * QLA_Nc));
+    }
+  else
+    {
+      tgf_s = tgf_s/((double)(QDP_volume() * QLA_Nc * num_sdir));
+      tgfold = tgf_s;
+    }
+	
+  // Gauge transformation matrices always start from the identity.
+  QLA_Complex z;
+  QLA_c_eq_r(z, 1);
+  QDP_M_eq_c(g, &z, QDP_all);
+	
+  // Gauge fix until converged or too many iterations.
+  n_gf = 0;
+  int wrswitch = 1; // Switch for writing of gauge fixing term.
+  double conver = 1; // Convergence criterion.
+  double wreps = 0.1; // print output every reduction of conver by eps
+  double cnvwr = wreps*conver; // conver for next output
+	
+  while ((conver > GFAccu) && n_gf < GFMax) // Loop 'til we're done!
+    {
+      n_gf = n_gf + 1;
+		
+      // Loop over checkerboards for gauge fixing.
+      for (int cb = 0; cb < 2; ++cb)
 	{
-		if ( mu != j_decay )
-		{
-			//double tgf_tmp = sum(real(trace(u[mu])));
-			QLA_ColorMatrix link_sum;
-			QDP_m_eq_sum_M(&link_sum, u->links[mu], QDP_all);
-			QLA_Real tgf_tmp;
-			QLA_R_eq_re_trace_M(&tgf_tmp, &link_sum);
-			
-			if (mu != tDir) // Keep different stock for time link trace.
-			{
-				tgf_s += tgf_tmp;
-			}
-			else
-			{
-				tgf_t += tgf_tmp;
-			}
-		}
+	  // Loop over SU(2) subgroup index.
+	  for (int su2_index = 0; su2_index < QLA_Nc*(QLA_Nc-1)/2; ++su2_index)
+	    {
+	      // Do a gauge fixing relaxation step!
+	      private_grelax(g, u, j_decay, su2_index, cb, OrDo, OrPara);
+	    } 
 	}
-	
-	// Get the normalized trace sum of links.
-	// We get different values depending on time dependence.
-	if (tdirp) 
+      
+      // Reunitarize, borrowing from "qopqdp_gauge_makeSU("
+      QDP_M_eq_funcia(g, qopqdp_makeSU, NULL, QDP_all);
+      
+      // Update gauge fixing term: sum(trace(U_spacelike)); 
+      tgf_t = 0;
+      tgf_s = 0;
+      for (mu = 0; mu < Nd; ++mu)
 	{
-		tgfold = (tgf_t + tgf_s)/norm;
-		tgf_s = tgf_s/((double)(QDP_volume() * QLA_Nc * num_sdir));
-		tgf_t = tgf_t/((double)(QDP_volume() * QLA_Nc));
+	  if ( mu != j_decay )
+	    {
+	      //double tgf_tmp = sum(real(trace(g(x)*u[mu](x)*g(x+mu)^dagger)));
+	      // First get g(x-mu).
+	      QDP_M_eq_sM(new_links, g, QDP_neighbor[mu], QDP_forward, QDP_all);
+	      // Next get u[mu](x)*g(x-mu)^dagger.
+	      QDP_M_eq_M_times_Ma(new_links2, u->links[mu], new_links, QDP_all);
+	      // Lastly, get g(x)*u[mu](x)*g(x-mu)^dagger.
+	      QDP_M_eq_M_times_M(new_links, g, new_links2, QDP_all);
+	      
+	      // Now get the real trace >_<
+	      QLA_ColorMatrix link_sum;
+	      QDP_m_eq_sum_M(&link_sum, new_links, QDP_all);
+	      QLA_Real tgf_tmp;
+	      QLA_R_eq_re_trace_M(&tgf_tmp, &link_sum);
+	      
+	      //printf0("Dir %d Trace %f\n", mu, tgf_tmp);
+	      
+	      if (mu != tDir) // Keep different stock for time link trace.
+		{
+		  tgf_s += tgf_tmp;
+		}
+	      else
+		{
+		  tgf_t += tgf_tmp;
+		}
+	    }
 	}
-	else
+      
+      // Get the normalized trace sum of links.
+      // We get different values depending on time dependence.
+      if (tdirp) 
 	{
-		tgf_s = tgf_s/((double)(QDP_volume() * QLA_Nc * num_sdir));
-		tgfold = tgf_s;
+	  tgfnew = (tgf_t + tgf_s)/norm;
+	  tgf_s = tgf_s/((double)(QDP_volume() * QLA_Nc * num_sdir));
+	  tgf_t = tgf_t/((double)(QDP_volume() * QLA_Nc));
 	}
-	
-	// Gauge transformation matrices always start from the identity.
-	QLA_Complex z;
-	QLA_c_eq_r(z, 1);
-	QDP_M_eq_c(g, &z, QDP_all);
-	
-	// Gauge fix until converged or too many iterations.
-	n_gf = 0;
-	int wrswitch = 1; // Switch for writing of gauge fixing term.
-	double conver = 1; // Convergence criterion.
-	
-	while ((conver > GFAccu) && n_gf < GFMax) // Loop 'til we're done!
+      else
 	{
-		n_gf = n_gf + 1;
-		if (GFMax - n_gf < 11) // I have no idea.
-		{
-			wrswitch = 1;
-		}
-		
-		// Loop over checkerboards for gauge fixing.
-		for (int cb = 0; cb < 2; ++cb)
-		{
-			// Loop over SU(2) subgroup index.
-			for (int su2_index = 0; su2_index < QLA_Nc*(QLA_Nc-1)/2; ++su2_index)
-			{
-				// Do a gauge fixing relaxation step!
-				private_grelax(g, u, j_decay, su2_index, cb, OrDo, OrPara);
-			} 
-		}
-		
-		// Reunitarize, borrowing from "qopqdp_gauge_makeSU("
-		QDP_M_eq_funcia(g, qopqdp_makeSU, NULL, QDP_all);
-		
-		// Update gauge fixing term: sum(trace(U_spacelike)); 
-		tgf_t = 0;
-		tgf_s = 0;
-		for (mu = 0; mu < Nd; ++mu)
-		{
-			if ( mu != j_decay )
-			{
-				//double tgf_tmp = sum(real(trace(g(x)*u[mu](x)*g(x+mu)^dagger)));
-				// First get g(x-mu).
-				QDP_M_eq_sM(new_links, g, QDP_neighbor[mu], QDP_forward, QDP_all);
-				// Next get u[mu](x)*g(x-mu)^dagger.
-				QDP_M_eq_M_times_Ma(new_links2, u->links[mu], new_links, QDP_all);
-				// Lastly, get g(x)*u[mu](x)*g(x-mu)^dagger.
-				QDP_M_eq_M_times_M(new_links, g, new_links2, QDP_all);
-				
-				// Now get the real trace >_<
-				QLA_ColorMatrix link_sum;
-				QDP_m_eq_sum_M(&link_sum, new_links, QDP_all);
-				QLA_Real tgf_tmp;
-				QLA_R_eq_re_trace_M(&tgf_tmp, &link_sum);
-				
-				//printf0("Dir %d Trace %f\n", mu, tgf_tmp);
-				
-				if (mu != tDir) // Keep different stock for time link trace.
-				{
-					tgf_s += tgf_tmp;
-				}
-				else
-				{
-					tgf_t += tgf_tmp;
-				}
-			}
-		}
-		
-		// Get the normalized trace sum of links.
-		// We get different values depending on time dependence.
-		if (tdirp) 
-		{
-			tgfnew = (tgf_t + tgf_s)/norm;
-			tgf_s = tgf_s/((double)(QDP_volume() * QLA_Nc * num_sdir));
-			tgf_t = tgf_t/((double)(QDP_volume() * QLA_Nc));
-		}
-		else
-		{
-			tgf_s = tgf_s/((double)(QDP_volume() * QLA_Nc * num_sdir));
-			tgfnew = tgf_s;
-		}
-		
-		if ( wrswitch == 1) // Print out debugging stuff.
-		{
-			printf0("COULGAUGE: iter = %d, tgfold = %f, tgfnew = %f, tgf_s = %f, tgf_t = %f\n",
-				n_gf, tgfold, tgfnew, tgf_s, tgf_t);
-		}
-		
-		conver = fabs((tgfnew - tgfold) / tgfnew);
-		tgfold = tgfnew;
-		
-		
-	} // End while loop
-	
-	// Print out final stuff.
-	if ( wrswitch == 1) // Print out debugging stuff.
-	{
-		printf0("COULGAUGE: end: iter = %d, tgfold = %f, tgf_s = %f, tgf_t = %f\n",
-			n_gf, tgfold, tgf_s, tgf_t);
+	  tgf_s = tgf_s/((double)(QDP_volume() * QLA_Nc * num_sdir));
+	  tgfnew = tgf_s;
 	}
-	
-	// Finally, gauge rotate the original matrices and overwrite.
-	for (mu = 0; mu < Nd; mu++)
-	{
-		// First get g(x-mu).
-		QDP_M_eq_sM(new_links, g, QDP_neighbor[mu], QDP_forward, QDP_all);
-		// Next get u[mu](x)*g(x-mu)^dagger.
-		QDP_M_eq_M_times_Ma(new_links2, u->links[mu], new_links, QDP_all);
-		// Lastly, get g(x)*u[mu](x)*g(x-mu)^dagger.
-		QDP_M_eq_M_times_M(u->links[mu], g, new_links2, QDP_all);
-	}
-	
-	QDP_destroy_M(new_links);
-	QDP_destroy_M(new_links2);
-	QDP_destroy_M(g); // Clean it up at the end!
-	
-	return 1;
+      conver = fabs((tgfnew - tgfold) / tgfnew);
+      
+      if(wrswitch==1 && conver<cnvwr) { // Print out debugging stuff.
+	printf0("COULGAUGE: iter = %d, tgfold = %f, tgfnew = %f, tgf_s = %f, tgf_t = %f\n",
+		n_gf, tgfold, tgfnew, tgf_s, tgf_t);
+	cnvwr *= wreps;
+      }
+      
+      tgfold = tgfnew;
+    } // End while loop
+  
+  // Print out final stuff.
+  if ( wrswitch == 1) // Print out debugging stuff.
+    {
+      printf0("COULGAUGE: end: iter = %d, tgfold = %f, tgf_s = %f, tgf_t = %f\n",
+	      n_gf, tgfold, tgf_s, tgf_t);
+    }
+  
+  // Finally, gauge rotate the original matrices and overwrite.
+  for (mu = 0; mu < Nd; mu++)
+    {
+      // First get g(x-mu).
+      QDP_M_eq_sM(new_links, g, QDP_neighbor[mu], QDP_forward, QDP_all);
+      // Next get u[mu](x)*g(x-mu)^dagger.
+      QDP_M_eq_M_times_Ma(new_links2, u->links[mu], new_links, QDP_all);
+      // Lastly, get g(x)*u[mu](x)*g(x-mu)^dagger.
+      QDP_M_eq_M_times_M(u->links[mu], g, new_links2, QDP_all);
+    }
+  
+  QDP_destroy_M(new_links);
+  QDP_destroy_M(new_links2);
+  QDP_destroy_M(g); // Clean it up at the end!
+  
+  return 1;
 #undef NC
 }
