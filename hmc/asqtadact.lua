@@ -457,6 +457,7 @@ function actmt.pions_wall(a, g, wallslice, mass, resid, opts)
 
   -- These variables hold the correlators and are returned at the end of the function.
   p5,p5_g4,pion_ps_ck, pion_4_ck, pion_i5,pion_ij = {},{},{},{},{},{}
+  rho_0, rho_is, rho_ij, rho_i5 = {}, {}, {}, {}
   nucleon, nucleon_ck, delta = {}, {}, {} -- Yeah, yeah, I know it's not a pion.
 
   -- Since we have gauge fixed, we don't need to use the gauge field in the parallel transporter.
@@ -632,6 +633,116 @@ function actmt.pions_wall(a, g, wallslice, mass, resid, opts)
 	j_real = (j+wallslice[srcnum]-1)%(#t[i])+1 -- Compensate for shifted wall source
 	pion_4_ck[j] = t[i][j_real]/nslice + (pion_4_ck[j] or 0)
       end
+	  
+	  -- NEW ADDITION! We can now grab a few rho states.
+		
+		-- First, x shifted. This lets us grab:
+		-- 1. rho_0: gamma_1 gamma_4 x taste_4
+		-- 2. rho_is: gamma_1 x 1
+		-- These names match a MILC convention.
+		
+		-- First, symmetric shift the odd solution in the x direction,
+		-- then zero out x-odd sites. 
+		Do_gupta:symshift(o_gupta, sg, 1)
+		temp1:set(Do_gupta);
+		temp1:rephase(make_phase_term(1,0,0,0),{0,0,0,wallslice})
+		temp2:set(Do_gupta);
+		Do_gupta:combine({temp1, temp2}, {0.5,0.5})
+		
+		-- Do the same thing for the even solution.
+		Dq_gupta:symshift(q_gupta[i], sg, 1)
+		temp1:set(Dq_gupta);
+		temp1:rephase(make_phase_term(1,0,0,0),{0,0,0,wallslice})
+		temp2:set(Dq_gupta);
+		Dq_gupta:combine({temp1, temp2}, {0.5,0.5})
+		
+		-- Using these states, we can compute the one-link separated states
+		-- denoted rho_0 and rho_is.
+		
+		-- First, rho_0. This requires no phasing, just q Dq - o Do. 
+		t[i] = q_gupta[i]:Re_dot(Dq_gupta, "timeslices");
+		for j=1,#t[i] do
+		  j_real = (j+wallslice[srcnum]-1)%(#t[i])+1 -- Compensate for shifted wall source
+		  rho_0[j] = t[i][j_real]/nslice + (rho_0[j] or 0)
+		end
+		
+		t[i] = o_gupta:Re_dot(Do_gupta, "timeslices");
+		for j=1,#t[i] do
+		  j_real = (j+wallslice[srcnum]-1)%(#t[i])+1 -- Compensate for shifted wall source
+		  rho_0[j] = -t[i][j_real]/nslice + (rho_0[j] or 0)
+		end
+		
+		-- Next, rho_is. This requires rephasing by a factor of (-1)^(x+y+z),
+		-- then we take o Dq - q Do.
+		Dq_gupta:rephase(make_phase_term(1,1,1,0), {0, 0, 0, wallslice});
+		Do_gupta:rephase(make_phase_term(1,1,1,0), {0,0,0,wallslice});
+		
+		t[i] = o_gupta:Re_dot(Dq_gupta, "timeslices");
+		for j=1,#t[i] do
+		  j_real = (j+wallslice[srcnum]-1)%(#t[i])+1 -- Compensate for shifted wall source
+		  rho_is[j] = t[i][j_real]/nslice + (rho_is[j] or 0)
+		end
+		
+		t[i] = q_gupta[i]:Re_dot(Do_gupta, "timeslices");
+		for j=1,#t[i] do
+		  j_real = (j+wallslice[srcnum]-1)%(#t[i])+1 -- Compensate for shifted wall source
+		  rho_is[j] = -t[i][j_real]/nslice + (rho_is[j] or 0)
+		end
+		
+		-- First, y shifted. This lets us grab:
+		-- 1. rho_ij: gamma_3 x taste_1 taste_4 taste_5
+		-- 2. rho_i5: gamma_3 gamma_4 x taste_1 taste_5
+		-- I couldn't find a MILC convention for these states,
+		-- so I picked what I did based on looking at the taste
+		-- structure of the pion states.
+		
+		-- First, symmetric shift the odd solution in the y direction,
+		-- then zero out y-odd sites. 
+		Do_gupta:symshift(o_gupta, sg, 2)
+		temp1:set(Do_gupta);
+		temp1:rephase(make_phase_term(0,1,0,0),{0,0,0,wallslice})
+		temp2:set(Do_gupta);
+		Do_gupta:combine({temp1, temp2}, {0.5,0.5})
+		
+		-- Do the same thing for the even solution.
+		Dq_gupta:symshift(q_gupta[i], sg, 2)
+		temp1:set(Dq_gupta);
+		temp1:rephase(make_phase_term(0,1,0,0),{0,0,0,wallslice})
+		temp2:set(Dq_gupta);
+		Dq_gupta:combine({temp1, temp2}, {0.5,0.5})
+		
+		-- Using these states, we can compute the one-link separated states
+		-- denoted rho_0 and rho_is.
+		
+		-- First, rho_0. This requires no phasing, just q Dq - o Do. 
+		t[i] = q_gupta[i]:Re_dot(Dq_gupta, "timeslices");
+		for j=1,#t[i] do
+		  j_real = (j+wallslice[srcnum]-1)%(#t[i])+1 -- Compensate for shifted wall source
+		  rho_ij[j] = t[i][j_real]/nslice + (rho_ij[j] or 0)
+		end
+		
+		t[i] = o_gupta:Re_dot(Do_gupta, "timeslices");
+		for j=1,#t[i] do
+		  j_real = (j+wallslice[srcnum]-1)%(#t[i])+1 -- Compensate for shifted wall source
+		  rho_ij[j] = -t[i][j_real]/nslice + (rho_ij[j] or 0)
+		end
+		
+		-- Next, rho_is. This requires rephasing by a factor of (-1)^(x+y+z),
+		-- then we take o Dq - q Do.
+		Dq_gupta:rephase(make_phase_term(1,1,1,0), {0, 0, 0, wallslice});
+		Do_gupta:rephase(make_phase_term(1,1,1,0), {0,0,0,wallslice});
+		
+		t[i] = o_gupta:Re_dot(Dq_gupta, "timeslices");
+		for j=1,#t[i] do
+		  j_real = (j+wallslice[srcnum]-1)%(#t[i])+1 -- Compensate for shifted wall source
+		  rho_i5[j] = t[i][j_real]/nslice + (rho_i5[j] or 0)
+		end
+		
+		t[i] = q_gupta[i]:Re_dot(Do_gupta, "timeslices");
+		for j=1,#t[i] do
+		  j_real = (j+wallslice[srcnum]-1)%(#t[i])+1 -- Compensate for shifted wall source
+		  rho_i5[j] = -t[i][j_real]/nslice + (rho_i5[j] or 0)
+		end
 
       printf("End Color.\n");
       io.stdout:flush();
@@ -782,7 +893,8 @@ function actmt.pions_wall(a, g, wallslice, mass, resid, opts)
   end
 
   return {pion5=p5, pion5_gamma4=p5_g4, pion5_ck=pion_ps_ck, pion5_gamma4_ck=pion_4_ck,
-	  pion_i5=pion_i5, pion_ij=pion_ij, nucleon=nucleon, nucleon_ck=nucleon_ck, delta=delta}
+  pion_i5=pion_i5, pion_ij=pion_ij, rho_0 = rho_0, rho_is=rho_is, rho_ij=rho_ij, rho_i5=rho_i5,
+  nucleon=nucleon, nucleon_ck=nucleon_ck, delta=delta}
 end
 
 function actmt.s4_broken_observe(a, g, mass, resid, opts, npbp)
