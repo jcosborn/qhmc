@@ -1,9 +1,0 @@
-LUADIR = lua-5.2.1
-LUAINC = -I../$(LUADIR)/src -DLUA_COMPAT_ALL
-LUALIBS = ../$(LUADIR)/src/liblua.a
-LUADEPS = $(LUALIBS)
-LUAOPTS = -DLUA_COMPAT_ALL -DLUA_USE_POSIX
-
-LFSDIR = luafilesystem-1.6.2
-
-HAVE_QOPQDP = 1
