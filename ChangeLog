@@ -1,0 +1,553 @@
+commit f5a55428318ca39e58e62a10d4dc3073a5468972
+Author: James Osborn <osborn@alcf.anl.gov>
+Date:   Sun Jan 26 00:09:36 2014 -0600
+
+    added Evan's staggered rho code
+
+commit 02626f3094d6df78ba199778e1737ce9d9659ee6
+Author: James <lego>
+Date:   Tue Jan 21 15:36:21 2014 -0600
+
+    added gauge fixing to HYP staggered measurement code
+
+commit 2974104b19d1411e9446722f238833d112b9b9f4
+Author: James Osborn <josborn@James-Osborns-MacBook-Pro.local>
+Date:   Sun Jan 19 10:11:02 2014 -0700
+
+    added staggered observables from Evan
+
+commit f23b8d4482549f296ee0379742c99609fad6a245
+Author: James <lego>
+Date:   Thu Dec 12 15:56:57 2013 -0600
+
+    small additions and improvements
+
+commit 9e57ab945ff88dfa45dcefca9488ede8096efcdd
+Author: James Osborn <josborn@brick>
+Date:   Sat Nov 2 11:09:18 2013 -0500
+
+    updating to new API
+
+commit 2716dd2b252c22dc50ff8ef3c4c198838167d53a
+Author: James <lego>
+Date:   Tue Sep 17 12:58:51 2013 -0500
+
+    fixed squark:symshift
+
+commit 5bff8fac107419d8751a574ae03619925e13be3b
+Author: James Osborn <osborn@alcf.anl.gov>
+Date:   Sun Sep 15 23:24:05 2013 -0500
+
+    don't set blocksize internally anymore
+
+commit 40312861fee62dc100a48b9a492f4aa5999004d8
+Author: James Osborn <osborn@alcf.anl.gov>
+Date:   Sun Sep 15 23:05:52 2013 -0500
+
+    added coulomb/landau gauge fixing (from Evan)
+    added true multishift solver for wilson2f
+
+commit 15b3b4c9d38edd0d5f6464f2bff2520800a8d508
+Author: James Osborn <osborn@alcf.anl.gov>
+Date:   Tue Sep 10 00:48:22 2013 -0500
+
+    added wilson2f code, various other updates
+
+commit e2498115eec61945831593ea49449a02b2045767
+Author: James <lego>
+Date:   Tue Aug 27 14:58:12 2013 -0500
+
+    added complex type and staggered quark rephasing
+
+commit daf8689741cf2475d3d86fe56797f89944cb9ddc
+Author: James Osborn <osborn@alcf.anl.gov>
+Date:   Tue Aug 6 22:04:35 2013 -0500
+
+    added missing cscalar.c
+
+commit d0f785d7ad707414427f70686940ef85d14b82b8
+Author: James Osborn <osborn@alcf.anl.gov>
+Date:   Tue Aug 6 22:01:01 2013 -0500
+
+    added basic wilson pion spectrum
+
+commit 542199b1f709732bcab6737915bbd371a32e1062
+Merge: b7fad55 119ef86
+Author: James <lego>
+Date:   Wed Jul 31 16:18:47 2013 -0500
+
+    Merge branch 'meifeng'
+
+commit b7fad55b7ea998acd4a5aa6aa139fe16b61aecf8
+Author: James <lego>
+Date:   Wed Jul 31 16:17:36 2013 -0500
+
+    changed packagepath
+
+commit 119ef86816d65cfbbfb7da4a8eba44ffab4657e5
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Thu Jun 27 15:32:17 2013 -0400
+
+    added mg-test to run through a set of Multigrid setup parameters and find the best values
+
+commit fd0946de2fa351ae47b42acab349d82dec82c3f6
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Wed Jun 26 22:50:55 2013 +0000
+
+    Added anisotropy in mg.lua
+
+commit ae3d9d9be4e0037025d42c5278e288a62017be4d
+Merge: 04e3691 e53439d
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Tue Jun 25 18:19:10 2013 +0000
+
+    resolved conflicts
+
+commit 04e36913437ae87bef908fef804a95d626a3b93f
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Tue Jun 25 17:13:55 2013 +0000
+
+    resolved some merge conflicts
+
+commit 230c0601589837f9638c4fb6b0760e6f36bc3609
+Merge: a5c71e0 599a415
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Tue Jun 25 16:49:59 2013 +0000
+
+    Merge branch 'master' of http://www.mcs.anl.gov/~osborn/fuel/qhmc
+    
+    Conflicts:
+    	hmc/wilson.lua
+    	qopqdp/make-qopqdp.inc
+    	test/wilson/runaniso
+
+commit a5c71e069c8e1b8aa6726f61accf5372d3125f2a
+Merge: 67a1ac8 4277bdc
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Tue Jun 25 16:45:50 2013 +0000
+
+    Merge branch 'master' of /home/mflin/lqcd/qhmc
+    
+    Conflicts:
+    	hmc/wilson.lua
+
+commit 67a1ac884058db0ff283b517181db3c87bf04def
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Tue Jun 25 16:43:40 2013 +0000
+
+    various bug fixes for aniso HMC
+
+commit e53439db8c0701e6d2681b533915707cc38193f9
+Merge: 07f4d97 599a415
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Fri Jun 21 15:42:53 2013 -0500
+
+    merged James's fix for kappa in anisotropic case
+
+commit 599a4156246102656420c4bdd0a1a09956758cdf
+Author: James Osborn <josborn@anlextwls002-158.wl.anl-external.org>
+Date:   Fri Jun 21 14:33:41 2013 -0500
+
+    fixed anisotropic kappa
+
+commit 4277bdc0fd178843eb322255c4e6f6fe8df2dc4f
+Merge: 30a0823 acf81fd
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Fri Jun 21 17:30:35 2013 +0000
+
+    minor changes to wilson.lua and make-qopqdp.inc
+
+commit 07f4d970b0eec2f4d1fb0b55c364b6143f230ecb
+Merge: edefda0 dfeba98
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Fri Jun 21 11:46:26 2013 -0500
+
+    merged James's changes of anistropic step sizes
+
+commit edefda06135d80950949866cde86109fd8909efd
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Fri Jun 21 11:40:42 2013 -0500
+
+    minor changes to runaniso
+
+commit dfeba9839cb814f664de22f171e45b5bcee80fab
+Author: James Osborn <josborn@brick>
+Date:   Fri Jun 21 00:05:04 2013 -0500
+
+    fixed anisotropic momentum
+
+commit acf81fdcad4a7c594651984d8a142f26dfc1e5b9
+Author: Meifeng Lin <mflin@vestalac1.ftd.alcf.anl.gov>
+Date:   Wed Jun 19 16:47:23 2013 +0000
+
+    Modified the make-qopqdp.inc to be BG/Q specific.
+
+commit 30a08233a47ca9f7fed3409aaffb9f5015b5006a
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Wed Jun 19 11:32:55 2013 -0500
+
+    changed runaniso script to add a timestamp to the output file
+
+commit 4a95ef0dc4e5a872fa175889c175ecb7c62d7d07
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Wed Jun 19 11:32:22 2013 -0500
+
+    Changed the integrator and default Omelyan parameter in wilson.lua; removed diagnostic prints in wilsonact.lua
+
+commit 34efb524078813cc2c60028b09b86d273a85da6c
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Wed Jun 19 11:29:16 2013 -0500
+
+    Fixed mass->kappa conversion in mg.lua
+
+commit 278c90afec7a6114a15b6af4774f9733e17ba319
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Mon Jun 17 23:25:24 2013 -0500
+
+    Fixed Hasenbusch mass preconditioning for anisotropic lattices
+
+commit 66a7c6fc2fd6d57e11154ef57624d38696332e8d
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Mon Jun 17 22:18:38 2013 -0500
+
+    minor changes to wilson.lua and test/wilson/runaniso script
+
+commit af91774a52d2909586083b6cbfe6d3d9b985116f
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Mon Jun 17 16:07:46 2013 -0500
+
+    A really working version of Hasenbusch mass preconditioning. Fixed a variable overwrite in wilsonact.lua.
+
+commit dd2f904347f49b6d104a318d08d1e8e96474a976
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Fri Jun 14 18:13:06 2013 -0600
+
+    A possibly working version of Hasenbusch mass preconditioning
+
+commit 3404b6b52c652e450739867ffb7385acb7f8fa44
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Sun May 26 07:48:29 2013 -0400
+
+    modified test programs for exp derivative
+
+commit 12e2b19246dd39b52993e5aa94f81995c6245d3e
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Sun May 26 07:47:28 2013 -0400
+
+    Changed the default Stout smearing parameter value in wilson.lua
+
+commit cc88adeed995db466b64f85e6210d0d2338af959
+Author: James Osborn <josborn@anlextwls002-158.wl.anl-external.org>
+Date:   Thu May 23 16:56:04 2013 -0500
+
+    merged Meifeng's changes and removed binaries
+
+commit cf7ab1cd12612daeef035c56c4c631edb24ba363
+Merge: ff1e77a e02665d
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Thu May 23 16:25:19 2013 -0400
+
+    Merge branch 'master' of http://www.mcs.anl.gov/~osborn/fuel/qhmc
+    
+    Conflicts:
+    	hmc/wilson.lua
+
+commit e02665d0dcf7cda603806aabff4a23a96b1c3b8e
+Author: James Osborn <josborn@alcfwl186.alcf.anl.gov>
+Date:   Thu May 23 13:34:09 2013 -0500
+
+    added wilson anisotropy
+
+commit ff1e77a8a0a3df1d264f1a16bce54212eef97975
+Merge: 898e8ce 1c3322e
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Wed May 22 11:49:30 2013 -0400
+
+    Merge branch 'master' of http://www.mcs.anl.gov/~osborn/fuel/qhmc
+
+commit 1c3322e7c43ab95a46d3a768c9d2fbcfdd880b3a
+Author: James Osborn <josborn@brick>
+Date:   Tue May 21 22:57:26 2013 -0500
+
+    added reader and wquark Gaussian smearing
+
+commit 898e8ce6801729d157abcb69fbd5e8f5c3625c4f
+Merge: 043876a 2fb7352
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Tue May 21 14:20:39 2013 -0400
+
+    Merged with James Osborn's repository, which includes a qprop writer
+
+commit 2fb7352eb37200f89d1c88c32706165b07ebfba6
+Author: James Osborn <josborn@anlextwls002-158.wl.anl-external.org>
+Date:   Tue May 21 12:56:32 2013 -0500
+
+    added qopqdp.writer
+
+commit 043876ae08a9236a0ee493c27f06dda90c4fee81
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Tue May 21 13:42:28 2013 -0400
+
+    slightly updated version of test/wilson/runtest
+
+commit 3a2457ba67a8bd5184d0ff27bf31932c1bb5fdf8
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Tue May 21 10:45:51 2013 -0400
+
+    Merged Gennady Voronov's addition of the Poloykov loop measurement for Wilson fermions
+
+commit 3d7991ddf36860b44e679faf927e9ca1c12d434c
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Tue May 21 10:41:08 2013 -0400
+
+    Working version of SU(3) Stout smearing force term
+
+commit ab0f095cad4bc911e851dac64f6845829463db46
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Thu May 16 10:55:14 2013 -0400
+
+    Add the SU(3) stout derivative in misc.c and update the header file
+
+commit f8d04b73e3d65b8caeea4f2010cdb7fc7dbe5cde
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Thu May 16 10:53:58 2013 -0400
+
+    added SU(3) matrix exponential derivative in a standalone program and modified the test program to check the code
+
+commit 7fc3eb59db2dbbdadec5ffbf9a94dca820c5204f
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Thu May 9 11:09:26 2013 -0500
+
+    reverted the file names of the main programs to the old scheme without the main_ prefix to let git track the changes from the old files.
+
+commit df3d4e5075cd7003391155bfa7f60d7fef0e022a
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Thu May 2 13:21:38 2013 -0400
+
+    minor changes in main_wilson.lua
+
+commit 12f88bb767e3fd44fb3e81fecec569563329bfa2
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Thu May 2 13:02:21 2013 -0400
+
+    added optional warmup steps for Wilson HMC
+
+commit 3f77473b63211404d2852f3462c320ea875aaa44
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Wed May 1 16:30:17 2013 -0400
+
+    fixed bugs for the SU(2) stout smearing force term; renamed user-level lua programs into main_*.lua
+
+commit b34689d59fba88e1e149d7f9ff95ae0d479a7d72
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Wed Apr 24 15:37:59 2013 -0400
+
+    fixed unresolved conflicts in merge with osborn/master
+
+commit 909509cf43180a2d9e9269adc10f6c219982d8d0
+Merge: a5154bb 840a85c
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Wed Apr 24 15:33:20 2013 -0400
+
+    Merge branch 'master' of http://www.mcs.anl.gov/~osborn/fuel/qhmc into stout-force
+    
+    Conflicts:
+    	hmc/wilson.lua
+    	qopqdp/make-qopqdp.inc
+    	test/wilson/runtest
+
+commit a5154bb54f8ac9e3fdc00702a6f52b781445c40b
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Wed Apr 24 14:47:15 2013 -0400
+
+    minor changes in wilson.lua and test/wilson/runtest
+
+commit ba8fce7aef998101aab669c8c5708f379917de13
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Tue Apr 23 15:47:34 2013 -0400
+
+    added items in .gitignore
+
+commit 1c74ad2535cc67c0f5a193ea9e537b7e5b60e534
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Tue Apr 23 15:46:04 2013 -0400
+
+    minor changes in hmc/wilson.lua and test/wilson/runtest for testing
+
+commit 0649e5bc8a414820a56cc70d4776b384c265a088
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Tue Apr 23 14:58:25 2013 -0400
+
+    added hermitian conjugate in exp_deriv_site
+
+commit 741d7a0653257f3b32404989326815a7aba991d8
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Mon Apr 22 17:46:45 2013 -0400
+
+    minor changes to the run parameters in test/wilson/runtest
+
+commit c517e52e14d5e4d2e2dbc64d82ecca5abee3672b
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Mon Apr 22 17:38:15 2013 -0400
+
+    parameter changes in test/wilson/runtest
+
+commit 48e48622aa8aa76b16a2f3f522e0f9b88afa27f6
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Mon Apr 22 17:36:41 2013 -0400
+
+    A first working version of the exponential derivative force
+
+commit 90eea3b1eba704c18805ad7874c4347b7fa42fff
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Thu Apr 18 23:15:22 2013 -0400
+
+    working version of exp derivative with QLA
+
+commit 840a85c3e1261c22b006b36db2e74638a359c5ca
+Author: James Osborn <osborn@lego.mcs.anl.gov>
+Date:   Thu Apr 18 16:58:10 2013 -0500
+
+    fixed Nc=N compilation, added quenched wilson script
+
+commit fc04bd4545af9ab9ede4c92b366ccf8eabdda57b
+Author: James Osborn <osborn@lego.mcs.anl.gov>
+Date:   Wed Apr 17 14:36:47 2013 -0500
+
+    added wilson MG
+
+commit 208457efbe4da0be497aa7d77424287ab4024fd7
+Author: James Osborn <osborn@lego.mcs.anl.gov>
+Date:   Wed Apr 17 14:36:03 2013 -0500
+
+    added wilson MG
+
+commit f5d08096e8efc4098a0c14c56969a216c6d0e8cd
+Author: Meifeng Lin <meifeng@alcf.anl.gov>
+Date:   Fri Apr 12 19:17:34 2013 -0500
+
+    Add a working exp function for 2x2 matrix
+
+commit 77bb5121477430f31e6b215f430ad0086a5fe59f
+Author: Meifeng Lin <meifeng@caa.columbia.edu>
+Date:   Mon Apr 8 17:20:04 2013 -0500
+
+    minor changes
+
+commit e3ed7d3f71321170f1408299923a2b2df8cc4b90
+Author: Meifeng Lin <meifeng@caa.columbia.edu>
+Date:   Tue Apr 2 21:40:44 2013 -0400
+
+    added exp.c using QLA libraries
+
+commit f2d64f72ad4c9f2a195836a724f900d5ecb59198
+Author: Meifeng Lin <meifeng@caa.columbia.edu>
+Date:   Mon Apr 1 18:48:33 2013 -0400
+
+    initial commit of exp.c
+
+commit 4903249684c416c585daf01a9e7a771e83f5626d
+Author: Meifeng Lin <meifeng@caa.columbia.edu>
+Date:   Mon Apr 1 11:39:19 2013 -0400
+
+    minor changes to comments
+
+commit 27ef9bf11d4d5529f5e7296ad2bb3b67b6da25b1
+Author: Meifeng Lin <meifeng@caa.columbia.edu>
+Date:   Tue Mar 26 15:13:32 2013 -0400
+
+    Minor bug fixes in hmc/wilson.lua
+
+commit c794f4e91e3b322ed05b45e777c4f3b8e64aaa8e
+Author: Meifeng Lin <meifeng@caa.columbia.edu>
+Date:   Tue Mar 26 15:13:05 2013 -0400
+
+    Minor changes to comments in hmc/smear.lua
+
+commit 464be14e8c23bac642d100b514febc518441e3d7
+Author: Meifeng Lin <meifeng@caa.columbia.edu>
+Date:   Sun Mar 24 22:55:42 2013 -0400
+
+    Add comments in the smear.lua and smear.c files
+
+commit 9ebc52f6bc2958092ab601a015ca31124c0b18bd
+Author: Meifeng Lin <meifeng@caa.columbia.edu>
+Date:   Fri Mar 22 22:28:57 2013 -0400
+
+    Minor changes
+    
+    Added comments in hmc/smear.lua
+    Added comments in qopqdp/smear.c
+    Changed makefiles to be compatible with my system
+
+commit a2e86ff7fc9e99b2a6c4a5d41753c9fa16264c81
+Author: James Osborn <osborn@alcf.anl.gov>
+Date:   Fri Mar 22 18:12:24 2013 -0500
+
+    fixed require bug and added adjoint plaquette
+
+commit 7c2b645fc7c9530485fa3604e1e798108f59262e
+Author: James Osborn <osborn@lego.mcs.anl.gov>
+Date:   Wed Mar 20 16:25:51 2013 -0500
+
+    fixed "make clean"
+
+commit 70868d47e17594c012b1303c109ba708cdbb219f
+Author: James Osborn <osborn@lego.mcs.anl.gov>
+Date:   Wed Mar 20 15:37:53 2013 -0500
+
+    added hyp smearing and lfs
+
+commit d6c32ba456325f76962849eabc72afe1df181a74
+Author: James Osborn <osborn@lego.mcs.anl.gov>
+Date:   Fri Feb 1 16:01:48 2013 -0600
+
+    added smearing routines
+
+commit 5cd417ced8fb1f9aceaf6e31c0c832eb3b33c0b5
+Author: James Osborn <osborn@lego.mcs.anl.gov>
+Date:   Fri Feb 1 15:57:54 2013 -0600
+
+    added lua-5.2.1 source
+
+commit 9c182760d3a10c05f87166d0b641689d8b04efd1
+Author: James Osborn <osborn@alcf.anl.gov>
+Date:   Wed Dec 19 12:46:02 2012 -0600
+
+    added arbitrary Nc support
+
+commit dfc1849ab5b9bd8179ece83e316f13def6a48a51
+Author: James <josborn@brick.(none)>
+Date:   Tue Dec 4 01:31:46 2012 +0800
+
+    added smearing
+
+commit 384a7b00c5c5f8a1bccae1501881ab27a73d4d65
+Author: James Osborn <josborn@James-Osborns-MacBook-Pro.local>
+Date:   Mon Nov 5 21:53:20 2012 -0600
+
+    fixed some bugs and added uniform seed variant
+
+commit bf92bb824ccd6fc06456a706b688152a835ba9ef
+Author: James Osborn <josborn@James-Osborns-MacBook-Pro.local>
+Date:   Fri Sep 28 11:12:45 2012 -0500
+
+    fixed wilson pbp
+
+commit fcae5f1adc9107e352f094fa9249e93d6b0d797b
+Author: James Osborn <osborn@alcf.anl.gov>
+Date:   Mon Aug 13 20:09:17 2012 -0500
+
+    added tests
+
+commit 8f0b6ec8ab51731658ef8443182e61960ff4beb8
+Author: James Osborn <osborn@lego.mcs.anl.gov>
+Date:   Mon Aug 13 17:01:43 2012 -0500
+
+    more initial adds
+
+commit 54d928e58a9ae15b6103a4ad13c11e0fc4ea9139
+Author: James Osborn <osborn@lego.mcs.anl.gov>
+Date:   Mon Aug 13 16:53:42 2012 -0500
+
+    initial add
