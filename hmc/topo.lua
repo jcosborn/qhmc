@@ -130,20 +130,18 @@ myprint(paths, "\n")
 --]]
 
 function pathDo(g, nd, paths, coeffs)
-  local pr,pi = 0,0
+  local s = 0
   local np = 0
   for i=1,#paths do
-    local p = {}
-    load(p, paths[i], nd)
-    np = np + #p
-    for k=1,#p do
+    local pt = {}
+    load(pt, paths[i], nd)
+    np = np + #pt
+    for k=1,#pt do
       -- FIXME: need other reps
-      local lr,li = g:loop(p[k])
-      pr = pr + coeffs[i][1]*lr
-      pi = pi + coeffs[i][1]*li
+      local l = g:loop(pt[k])
+      s = s + coeffs[i][1]*l
     end
   end
-  pr = pr/np
-  pi = pi/np
-  return pr,pi
+  s = s/np
+  return s
 end

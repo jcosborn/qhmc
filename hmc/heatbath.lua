@@ -7,9 +7,9 @@ require 'topo'
 --verbosity(1)
 --trace(1)
 
-nx = 4
+nx = 8
 nt = 8
-beta = 6
+beta = 20
 
 --L = Lattice{nx,nx,nt}
 L = Lattice{nx,nx,nx,nt}
@@ -31,15 +31,27 @@ function plaq()
   return p*s
 end
 
+function ploop()
+  local nd = #L
+  local pl = {}
+  local i = nd-1
+  local plpath = {}
+  for j=1,L[i] do plpath[j] = -i end
+  pl = G.field:loop(plpath)
+  return pl
+end
+
 function topo()
   local tr,ti = pathDo(G.field, #L.latsize, paths0, coeffs0)
   return tr
 end
 
 printf("initial plaq: %g\n", plaq())
+printf("initial ploop: %s\n", tostring(ploop()))
 
 for i=1,10 do
   E:Run()
   printf("plaq: %g\n", plaq())
-  printf("topo: %g\n", topo())
+  printf("ploop: %s\n", tostring(ploop()))
+  --printf("topo: %s\n", tostring(topo()))
 end

@@ -122,29 +122,29 @@ function actsmt.run(a, r)
 
     a.g:updateStats()
     a.f:updateStats()
-    printf("GF     secs: %8.3f %3.0f%%  calls: %4.0f  mflops: %5.0f  rms: %6.4f  max: %6.4f\n", a.g.GFtime, 100*a.g.GFtime/t0, a.g.GFn, a.g.GFmflops, a.g.GFrms, a.g.GFmax)
-    printf("GU     secs: %8.3f %3.0f%%  calls: %4.0f\n", a.g.GUtime, 100*a.g.GUtime/t0, a.g.GUn)
-    printf("LL     secs: %8.3f %3.0f%%  calls: %4.0f  mflops: %5.0f\n", a.f.LLtime, 100*a.f.LLtime/t0, a.f.LLn, a.f.LLmflops)
+    printf("GF     secs: %8.3f %3.0f%% calls: %4.0f mflops: %5.0f rms: %6.4f max: %6.4f\n", a.g.GFtime, 100*a.g.GFtime/t0, a.g.GFn, a.g.GFmflops, a.g.GFrms, a.g.GFmax)
+    printf("GU     secs: %8.3f %3.0f%% calls: %4.0f\n", a.g.GUtime, 100*a.g.GUtime/t0, a.g.GUn)
+    printf("LL     secs: %8.3f %3.0f%% calls: %4.0f mflops: %5.0f\n", a.f.LLtime, 100*a.f.LLtime/t0, a.f.LLn, a.f.LLmflops)
     local fft,ffn,fff = 0,0,0
     for i=1,a.f.nff do
-      printf("FF[%02i] secs: %8.3f %3.0f%%  calls: %4.0f  mflops: %5.0f  rms: %6.4f  max: %6.4f\n", i, a.f.FFtime[i], 100*a.f.FFtime[i]/t0, a.f.FFn[i], a.f.FFmflops[i], a.f.FFrms[i], a.f.FFmax[i])
+      printf("FF[%02i] secs: %8.3f %3.0f%% calls: %4.0f mflops: %5.0f rms: %6.4f max: %6.4f\n", i, a.f.FFtime[i], 100*a.f.FFtime[i]/t0, a.f.FFn[i], a.f.FFmflops[i], a.f.FFrms[i], a.f.FFmax[i])
       fft = fft + a.f.FFtime[i]
       ffn = ffn + a.f.FFn[i]
       fff = fff + a.f.FFflops[i]
     end
-    printf("FFtot  secs: %8.3f %3.0f%%  calls: %4.0f  mflops: %5.0f\n", fft, 100*fft/t0, ffn, 1e-6*fff/fft)
+    printf("FFtot  secs: %8.3f %3.0f%% calls: %4.0f mflops: %5.0f\n", fft, 100*fft/t0, ffn, 1e-6*fff/fft)
     local cgt,cgn,cgf,cgi,cgm = 0,0,0,0,0
     for i=1,a.f.ncg do
       local ai = 0
       if a.f.CGn[i] > 0 then ai = a.f.CGits[i]/a.f.CGn[i] end
-      printf("CG[%02i] secs: %8.3f %3.0f%%  calls: %4.0f  mflops: %5.0f  avgits: %5.0f  max: %5.0f\n", i, a.f.CGtime[i], 100*a.f.CGtime[i]/t0, a.f.CGn[i], a.f.CGmflops[i], ai, a.f.CGmaxits[i])
+      printf("CG[%02i] secs: %8.3f %3.0f%% calls: %4.0f mflops: %5.0f avgits: %5.0f max: %5.0f\n", i, a.f.CGtime[i], 100*a.f.CGtime[i]/t0, a.f.CGn[i], a.f.CGmflops[i], ai, a.f.CGmaxits[i])
       cgt = cgt + a.f.CGtime[i]
       cgn = cgn + a.f.CGn[i]
       cgf = cgf + a.f.CGflops[i]
       cgi = cgi + a.f.CGits[i]
       cgm = math.max(cgm, a.f.CGmaxits[i])
     end
-    printf("CGtot  secs: %8.3f %3.0f%%  calls: %4.0f  mflops: %5.0f  avgits: %5.0f  max: %5.0f\n", cgt, 100*cgt/t0, cgn, 1e-6*cgf/cgt, cgi/cgn, cgm)
+    printf("CGtot  secs: %8.3f %3.0f%% calls: %4.0f mflops: %5.0f avgits: %5.0f max: %5.0f\n", cgt, 100*cgt/t0, cgn, 1e-6*cgf/cgt, cgi/cgn, cgm)
     local ot = t0 - a.g.GFtime - a.g.GUtime - a.f.LLtime - fft - cgt
     printf("other  secs: %8.3f %3.0f%%\n", ot, 100*ot/t0)
 

@@ -2,7 +2,7 @@ SUBDIRS = . include lib bin .
 
 DISTCHECK_CONFIGURE_FLAGS = @DISTCHECK_CONFIGURE_FLAGS@
 
-EXTRA_DIST = hmc
+EXTRA_DIST = examples hmc
 
 all-local: timestamp $(abs_top_builddir)/hmc
 
