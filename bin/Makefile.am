@@ -1,11 +1,14 @@
 AM_CFLAGS = -I$(top_srcdir)/include
 
 LIBS += ../lib/libqhmc_base.a
-if HAVELFS
-  LIBS += ../lib/liblfs.a
+if HAVEQUDA
+  LIBS += ../lib/libqhmc_quda.a $(QUDA_LIBS)
 endif
 if HAVEQOPQDP
   LIBS += ../lib/libqhmc_qopqdp.a $(QOPQDP_LIBS)
+endif
+if HAVELFS
+  LIBS += ../lib/liblfs.a
 endif
 LIBS += ../lib/liblbc.a
 LIBS += ../lib/libqhmc_base.a

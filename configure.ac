@@ -70,14 +70,16 @@ AC_SUBST(QOPQDP_COLORS, [$colors])
 
 AC_ARG_WITH(
   quda,
-  AC_HELP_STRING([--with-quda=<QUDA dir>],[location of QUDA libraries]),
-  [QUDADIR="$withvalue"; WITH_QUDA=1]
+  AC_HELP_STRING([--with-quda=<QUDA dir>],[location of QUDA library]),
+  [QUDADIR="$withval"; WITH_QUDA=1]
 )
-AC_SUBST(QUDADIR)
 AM_CONDITIONAL(HAVEQUDA, [test -n "$WITH_QUDA"])
 if test -n "$WITH_QUDA"; then
   AC_DEFINE(QUDA, [], [include QUDA library])
 fi
+AC_SUBST(QUDADIR)
+AC_SUBST(QUDA_CFLAGS, "-I$QUDADIR/include")
+AC_SUBST(QUDA_LIBS, "-L$QUDADIR/lib -lquda")
 
 AC_ARG_WITH(
   qopqdp,
@@ -215,5 +217,6 @@ AC_CONFIG_FILES(lib/base/Makefile)
 AC_CONFIG_FILES(lib/lbc/Makefile)
 AC_CONFIG_FILES(lib/luafilesystem/Makefile)
 AC_CONFIG_FILES(lib/qopqdp/Makefile)
+AC_CONFIG_FILES(lib/quda/Makefile)
 AC_CONFIG_FILES(bin/Makefile)
 AC_OUTPUT
