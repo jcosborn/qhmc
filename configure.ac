@@ -69,6 +69,17 @@ AC_SUBST(QOPQDP_COLORS, [$colors])
 #AC_SUBST(QOPQDP_DEFAULTNC, [$defaultnc])
 
 AC_ARG_WITH(
+  quda,
+  AC_HELP_STRING([--with-quda=<QUDA dir>],[location of QUDA libraries]),
+  [QUDADIR="$withvalue"; WITH_QUDA=1]
+)
+AC_SUBST(QUDADIR)
+AM_CONDITIONAL(HAVEQUDA, [test -n "$WITH_QUDA"])
+if test -n "$WITH_QUDA"; then
+  AC_DEFINE(QUDA, [], [include QUDA library])
+fi
+
+AC_ARG_WITH(
   qopqdp,
   AC_HELP_STRING([--with-qopqdp=<QOPQDP dir>],[location of QOPQDP libraries]),
   [QOPQDPDIR="$with_qopqdp"; WITH_QOPQDP=1]

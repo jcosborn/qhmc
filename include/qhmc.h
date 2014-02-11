@@ -11,3 +11,7 @@ int luaopen_lfs (lua_State *L);
 #ifdef QHMC_HAVE_QOPQDP
 #include "qhmc_qopqdp.h"
 #endif
+
+void qhmc_init_quda(int *argc, char ***argv);
+void qhmc_fini_quda(void);
+void qhmc_open_quda(lua_State* L);

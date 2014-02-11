@@ -6,6 +6,9 @@ qhmc_init_libs(int *argc, char ***argv)
 #ifdef HAVE_QOPQDP
   qhmc_init_qopqdp(argc, argv);
 #endif
+#ifdef HAVE_QUDA
+  qhmc_init_quda(argc, argv);
+#endif
 }
 
 void
@@ -13,6 +16,9 @@ qhmc_fini_libs(void)
 {
 #ifdef HAVE_QOPQDP
   qhmc_fini_qopqdp();
+#endif
+#ifdef HAVE_QUDA
+  qhmc_fini_quda();
 #endif
 }
 
@@ -24,6 +30,9 @@ qhmc_open_libs(lua_State* L)
   open_qhmc_complex(L);
 #ifdef HAVE_QOPQDP
   qhmc_open_qopqdp(L);
+#endif
+#ifdef HAVE_QUDA
+  qhmc_open_quda(L);
 #endif
 #if 1  // avoid loading 'lfs' since it is statically linked
   int rc = luaL_dostring(L, "table.insert(package.searchers,1, \

@@ -14,4 +14,4 @@ LIBS += ../lib/liblua.a
 bin_PROGRAMS = qhmc
 
 qhmc_SOURCES = \
- lua.c qhmc.c
+ qhmc_main.h lua.c qhmc.c

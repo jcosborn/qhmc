@@ -5,3 +5,6 @@ endif
 if HAVEQOPQDP
   SUBDIRS += qopqdp
 endif
+if HAVEQUDA
+  SUBDIRS += quda
+endif

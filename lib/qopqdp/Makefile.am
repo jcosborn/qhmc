@@ -6,7 +6,7 @@ AM_CFLAGS = -I$(top_srcdir)/include -DLUA_COMPAT_ALL \
 
 lib_LIBRARIES = ../libqhmc_qopqdp.a
 
-HDRS = qhmc_qopqdp.h qhmc_qopqdp_common.h
+HDRS = qhmc_qopqdp_common.h
 SRC = \
  qhmc_qopqdp.c lattice.c \
  reader.c writer.c \
@@ -18,6 +18,9 @@ FSRC = \
  cscalarF.c gaugeF.c forceF.c gaugefixF.c
 DSRC = \
  cscalarD.c gaugeD.c forceD.c gaugefixD.c
+
+EXTRA_DIST = \
+ cscalar.c gauge.c force.c gaugefix.c
 
 ___libqhmc_qopqdp_a_SOURCES = \
  $(HDRS) $(SRC) $(FSRC) $(DSRC)
