@@ -210,11 +210,17 @@ qopqdp_opt_subsets(lua_State *L, int *idx, int reqd,
   return subs;
 }
 
+int
+qhmc_qopqdp_master(void)
+{
+  return QDP_this_node==0;
+}
+
 static int
 qopqdp_master(lua_State* L)
 {
   qassert(lua_gettop(L)==0);
-  lua_pushboolean(L, QDP_this_node==0);
+  lua_pushboolean(L, qhmc_qopqdp_master());
   return 1;
 }
 

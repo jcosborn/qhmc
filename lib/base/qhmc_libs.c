@@ -59,14 +59,17 @@ qhmc_open_libs(lua_State* L)
 #endif
 
   { // add search paths for libraries
-    char *dirc;
     // srcdir
+    addPath(L, SRCDIRHMC);
     // installdir
+    addPath(L, PREFIXHMC);
     // exedir
+    char *dirc;
     dirc = strdup(g_argv[0]);
     addPath(L, dirname(dirc));
     free(dirc);
-    // scriptdir
+    // scriptdir?
+    // other
     addPath(L, "./hmc");
     addPath(L, ".");
   }
@@ -80,4 +83,25 @@ qhmc_open_libs(lua_State* L)
       exit(1);
     }
   }
+
+  if(qhmc_master()) {
+    if(0) { // print package search path
+      int rc = luaL_dostring(L, "print(\"package.path = \"..package.path)");
+      if(rc!=0) {
+	printf("error %s:%s:%i: luaL_dostring failed\n", __FILE__, __func__, __LINE__);
+	exit(1);
+      }
+    }
+    { // print path to loaded packages
+      int rc = luaL_dostring(L, "local ps; ps=function(m)\
+ for k,f in ipairs(package.searchers) do if f~=ps then r,e=f(m);	\
+ if type(r)==\"function\" then print(\"loading: \"..e);return r,e end	\
+ end end return nil end; table.insert(package.searchers,1,ps)");
+      if(rc!=0) {
+	printf("error %s:%s:%i: luaL_dostring failed\n", __FILE__, __func__, __LINE__);
+	exit(1);
+      }
+    }
+  }
+
 }

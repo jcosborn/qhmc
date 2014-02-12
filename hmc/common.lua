@@ -213,6 +213,8 @@ if stdoutfile then
 end
 
 -- translate args
-for i=1,#arg do
-  arg[i] = arg[i]:gsub("%%job",jobnum)
+if arg then
+  for i=1,#arg do
+    arg[i] = arg[i]:gsub("%%job",jobnum)
+  end
 end
