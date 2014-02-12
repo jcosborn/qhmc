@@ -28,7 +28,6 @@ double timebaseSeconds(timebase_t tb)
 #endif
 #endif
 
-#define NC nc
 static void
 infnorm(NCPROT QLA_ColorMatrix(*m), int i, void *args)
 {
@@ -37,7 +36,6 @@ infnorm(NCPROT QLA_ColorMatrix(*m), int i, void *args)
   QLA_r_eq_norm2_M(&r, m);
   if(r>*p) *p = r;
 }
-#undef NC
 
 QLA_Real
 infnorm_M(QDP_ColorMatrix *m, QDP_Subset s)
@@ -49,7 +47,6 @@ infnorm_M(QDP_ColorMatrix *m, QDP_Subset s)
   return sqrt(max);
 }
 
-#define NC nc
 static int isfirst=1;
 static void
 setfirst(NCPROT QLA_ColorMatrix(*m), int i, void *args)
@@ -60,9 +57,7 @@ setfirst(NCPROT QLA_ColorMatrix(*m), int i, void *args)
     memcpy(r, m, sizeof(QLA_ColorMatrix()));
   }
 }
-#undef NC
 
-#define NC nc
 static int badIndexPlus1=0;
 static void
 compare(NCPROT QLA_ColorMatrix(*m), int i, void *args)
@@ -72,7 +67,6 @@ compare(NCPROT QLA_ColorMatrix(*m), int i, void *args)
     if(memcmp(m, r, sizeof(QLA_ColorMatrix()))) badIndexPlus1 = i+1;
   }
 }
-#undef NC
 
 int
 check_uniform_M(QDP_ColorMatrix *m, QDP_Subset s)
@@ -90,7 +84,6 @@ check_uniform_M(QDP_ColorMatrix *m, QDP_Subset s)
 
 //timebase_t tb0, tb1, tb2;
 
-#define NC nc
 // solves A^+ X + X B^+ = C for X
 void
 sylsolve_site(NCPROT QLA_ColorMatrix(*x), QLA_ColorMatrix(*a),
@@ -139,7 +132,6 @@ sylsolve_site(NCPROT QLA_ColorMatrix(*x), QLA_ColorMatrix(*a),
   //tb1 += tb4 - tb3;
   //tb2 += tb5 - tb4;
 }
-#undef NC
 
 void
 sqrt_deriv(QDP_ColorMatrix *deriv, QDP_ColorMatrix *sqrtM,
@@ -236,7 +228,6 @@ get_Bs(QLA_ColorMatrix *Q, QLA_ColorMatrix *Q2, QLA_ColorMatrix *B1,
        QLA_ColorMatrix *B2, double _Complex *f0, double _Complex *f1,
        double _Complex *f2)
 {
-
   double _Complex u, w, q1, q2, q3;
   traceless_herm_M_evalues(Q, &u, &w, &q1, &q2, &q3);
 
@@ -334,7 +325,6 @@ get_Bs(QLA_ColorMatrix *Q, QLA_ColorMatrix *Q2, QLA_ColorMatrix *B1,
 #undef NC
 #endif
 
-#define NC nc
 void
 exp_deriv_site(NCPROT QLA_ColorMatrix *deriv, QLA_Real *r, 
 	       QLA_ColorMatrix *M, QLA_ColorMatrix *chain)
@@ -536,11 +526,10 @@ exp_deriv_site(NCPROT QLA_ColorMatrix *deriv, QLA_Real *r,
     QLA_M_eq_Ma(deriv, &tmp);
   }
 #endif
-  if(QLA_Nc!=2 || QLA_Nc!=3) {
+  if(QLA_Nc!=2 && QLA_Nc!=3) {
     qerror0(1,"Not implemented\n");
   }
 }
-#undef NC
 
 void
 exp_deriv(QDP_ColorMatrix *deriv, QLA_Real *r,

@@ -4,7 +4,7 @@ require 'run'
 require 'mg'
 
 trace(doTrace)
---noMG = true
+noMG = true
 
 local nx = nx or 4
 local nt = nt or 8

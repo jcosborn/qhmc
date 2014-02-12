@@ -252,14 +252,14 @@ function measure(G)
   local nd = #G.a.latsize
   for i=1,nd do
     for j=i+1,nd do
-      local lr,li = G.g:loop({i,j,-i,-j})
-      printf("plaq%i%i:  %g\t%g\n", i, j, lr, li)
+      local l = G.g:loop({i,j,-i,-j})
+      printf("plaq%i%i:  %g\t%g\n", i, j, l.r, l.i)
     end
   end
 
   local plpath = rep(-nd, G.a.latsize[nd])
-  plpr,plpi = G.g:loop(plpath)
-  printf("ploop:  %g\t%g\n", plpr, plpi)
+  plp = G.g:loop(plpath)
+  printf("ploop:  %g\t%g\n", plp.r, plp.i)
 
   t0 = clock() - t0
   printf("meas time: %g\n", t0)

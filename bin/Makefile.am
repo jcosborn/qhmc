@@ -1,18 +1,22 @@
 AM_CFLAGS = -I$(top_srcdir)/include
 
-LIBS += ../lib/libqhmc_base.a
+QLIBS = ../lib/libqhmc_base.a
+XLIBS = 
 if HAVEQUDA
-  LIBS += ../lib/libqhmc_quda.a $(QUDA_LIBS)
+  QLIBS += ../lib/libqhmc_quda.a
+  XLIBS += $(QUDA_LIBS)
 endif
 if HAVEQOPQDP
-  LIBS += ../lib/libqhmc_qopqdp.a $(QOPQDP_LIBS)
+  QLIBS += ../lib/libqhmc_qopqdp.a
+  XLIBS += $(QOPQDP_LIBS)
 endif
 if HAVELFS
-  LIBS += ../lib/liblfs.a
+  QLIBS += ../lib/liblfs.a
 endif
-LIBS += ../lib/liblbc.a
-LIBS += ../lib/libqhmc_base.a
-LIBS += ../lib/liblua.a
+QLIBS += ../lib/liblbc.a
+QLIBS += ../lib/libqhmc_base.a
+QLIBS += ../lib/liblua.a
+LDADD = $(QLIBS) $(XLIBS)
 
 bin_PROGRAMS = qhmc
 

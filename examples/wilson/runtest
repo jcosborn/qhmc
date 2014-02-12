@@ -1,11 +1,12 @@
 #!/bin/sh
 
-qhmc="../../main/qhmc"
+qhmc="../../bin/qhmc"
 hmc="../../hmc"
 t="test.out"
 
 tau=1
 rho=0.2
+#rho=nil
 nx=4
 nt=8
 nf=2

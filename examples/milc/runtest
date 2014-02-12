@@ -1,6 +1,6 @@
 #!/bin/sh
 
-qhmc="../../main/qhmc"
+qhmc="../../bin/qhmc"
 hmc="../../hmc"
 
 #fnin="su3_leapfrog.1.sample-in"

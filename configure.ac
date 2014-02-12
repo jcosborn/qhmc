@@ -36,31 +36,48 @@ AM_CONDITIONAL(HAVENC1, [test "X$NC" = "X1" -o "X$NC" = "Xall"])
 AM_CONDITIONAL(HAVENC2, [test "X$NC" = "X2" -o "X$NC" = "Xall"])
 AM_CONDITIONAL(HAVENC3, [test "X$NC" = "X3" -o "X$NC" = "Xall"])
 AM_CONDITIONAL(HAVENCN, [test "X$NC" = "XN" -o "X$NC" = "Xall"])
+if test "X$NC" = "X1" -o "X$NC" = "Xall"; then
+  AC_DEFINE(HAVE_NC1, [], [include Nc=1 libraries])
+  colors=1
+  defaultnc=1
+  #havenc="$havenc -DHAVENC1"
+fi
+if test "X$NC" = "X2" -o "X$NC" = "Xall"; then
+  AC_DEFINE(HAVE_NC2, [], [include Nc=2 libraries])
+  colors=2
+  defaultnc=2
+  #havenc="$havenc -DHAVENC2"
+fi
+if test "X$NC" = "X3" -o "X$NC" = "Xall"; then
+  AC_DEFINE(HAVE_NC3, [], [include Nc=3 libraries])
+  colors=3
+  defaultnc=3
+  #havenc="$havenc -DHAVENC3"
+fi
 if test "X$NC" = "XN" -o "X$NC" = "Xall"; then
   AC_DEFINE(HAVE_NCN, [], [include Nc=N libraries])
   colors="'N'"
   defaultnc=3
   #havenc="$havenc -DHAVENCN"
 fi
-if test "X$NC" = "X3" -o "X$NC" = "Xall"; then
-  AC_DEFINE(HAVE_NC3, [], [include Nc=3 libraries])
-  if test -z $colors; then colors=3; fi
-  defaultnc=3
-  #havenc="$havenc -DHAVENC3"
+
+dnl --enable-colors=<ColorLib>
+AC_ARG_ENABLE(
+  colors,
+  AC_HELP_STRING([--enable-colors],
+    [make all fields use this color library (1,2,3,n)]),
+  AC_SUBST(COLORS, [$enableval]),
+  AC_SUBST(COLORS, [])
+)
+if test -n "$COLORS"; then
+  if test "$COLORS" = n; then
+    colors="'N'"
+  else
+    colors="$COLORS"
+    defaultnc="$COLORS"
+  fi
 fi
-if test "X$NC" = "X2" -o "X$NC" = "Xall"; then
-  AC_DEFINE(HAVE_NC2, [], [include Nc=2 libraries])
-  if test -z $colors; then colors=2; fi
-  defaultnc=2
-  #havenc="$havenc -DHAVENC2"
-fi
-if test "X$NC" = "X1" -o "X$NC" = "Xall"; then
-  AC_DEFINE(HAVE_NC1, [], [include Nc=1 libraries])
-  if test -z $colors; then colors=1; fi
-  defaultnc=1
-  #havenc="$havenc -DHAVENC1"
-fi
-if test "X$NC" = "X3"; then
+if test "X$NC" = "Xall" -a "$colors" = 3; then
   AC_DEFINE(HAVE_MG, [], [include multigrid])
 fi
 AC_DEFINE_UNQUOTED(QOPQDP_COLORS, [$colors], [default QOPQDP color library])
@@ -68,6 +85,21 @@ AC_DEFINE_UNQUOTED(QOPQDP_DEFAULTNC, [$defaultnc], [default QOPQDP Nc])
 AC_SUBST(QOPQDP_COLORS, [$colors])
 #AC_SUBST(QOPQDP_DEFAULTNC, [$defaultnc])
 
+# CUDA
+AC_ARG_WITH(
+  cuda,
+  AC_HELP_STRING([--with-cuda=<CUDA dir>],[location of CUDA library]),
+  [CUDADIR="$withval"; WITH_CUDA=1]
+)
+#AM_CONDITIONAL(HAVECUDA, [test -n "$WITH_CUDA"])
+#if test -n "$WITH_CUDA"; then
+#  AC_DEFINE(HAVE_CUDA, [], [include CUDA library])
+#fi
+#AC_SUBST(CUDADIR)
+#AC_SUBST(CUDA_CFLAGS, "-I$CUDADIR/include")
+#AC_SUBST(CUDA_LIBS, "-L$CUDADIR/lib -lcudart ")
+
+# QUDA
 AC_ARG_WITH(
   quda,
   AC_HELP_STRING([--with-quda=<QUDA dir>],[location of QUDA library]),
@@ -75,12 +107,17 @@ AC_ARG_WITH(
 )
 AM_CONDITIONAL(HAVEQUDA, [test -n "$WITH_QUDA"])
 if test -n "$WITH_QUDA"; then
-  AC_DEFINE(QUDA, [], [include QUDA library])
+  if test -z "$WITH_CUDA"; then
+    echo "error: specifying --with-quda requires --with-cuda"
+    exit 1
+  fi
+  AC_DEFINE(HAVE_QUDA, [], [include QUDA library])
 fi
 AC_SUBST(QUDADIR)
 AC_SUBST(QUDA_CFLAGS, "-I$QUDADIR/include")
-AC_SUBST(QUDA_LIBS, "-L$QUDADIR/lib -lquda")
+AC_SUBST(QUDA_LIBS, "-L$QUDADIR/lib -lquda -L$CUDADIR/lib64 -lcudart -lstdc++")
 
+# QOPQDP
 AC_ARG_WITH(
   qopqdp,
   AC_HELP_STRING([--with-qopqdp=<QOPQDP dir>],[location of QOPQDP libraries]),
@@ -89,7 +126,7 @@ AC_ARG_WITH(
 AC_SUBST(QOPQDPDIR)
 AM_CONDITIONAL(HAVEQOPQDP, [test -n "$WITH_QOPQDP"])
 if test -n "$WITH_QOPQDP"; then
-  AC_DEFINE(QOPQDP, [], [include QOPQDP library])
+  AC_DEFINE(HAVE_QOPQDP, [], [include QOPQDP library])
 fi
 
 AC_ARG_WITH(
@@ -120,12 +157,14 @@ AC_ARG_WITH(
 )
 AC_SUBST(QMPDIR)
 
-AC_SUBST(QOPQDP_CFLAGS, "-I${QOPQDPDIR}/include")
-AC_SUBST(QOPQDP_LIBS, "-L${QOPQDPDIR}/lib -lqopqdp")
-AC_SUBST(QDP_CFLAGS, "-I${QDPDIR}/include")
-AC_SUBST(QLA_CFLAGS, "-I${QLADIR}/include")
+qopqdpcflags="-I${QOPQDPDIR}/include"
+qdpcflags="-I${QDPDIR}/include"
+qlacflags="-I${QLADIR}/include"
+qiocflags="-I${QIODIR}/include"
+qopqdplibs="-L${QOPQDPDIR}/lib -lqopqdp"
 qdplibs="-L${QDPDIR}/lib"
 qlalibs="-L${QLADIR}/lib"
+qiolibs="-L${QIODIR}/lib -lqio -llime"
 if test "X$NC" = "X2" -o "X$NC" = "Xall"; then
   qdplibs="$qdplibs -lqdp_df2 -lqdp_f2 -lqdp_d2"
   qlalibs="$qlalibs -lqla_df2 -lqla_f2 -lqla_d2"
@@ -140,10 +179,6 @@ if test "X$NC" = "XN" -o "X$NC" = "Xall"; then
 fi
 qdplibs="$qdplibs -lqdp_df -lqdp_f -lqdp_d -lqdp_int -lqdp_common"
 qlalibs="$qlalibs -lqla_df -lqla_f -lqla_d -lqla_int -lqla_random -lqla_cmath -lm"
-AC_SUBST(QDP_LIBS, $qdplibs)
-AC_SUBST(QLA_LIBS, $qlalibs)
-AC_SUBST(QIO_CFLAGS, "-I${QIODIR}/include")
-AC_SUBST(QIO_LIBS, "-L${QIODIR}/lib -lqio -llime")
 
 # get QMP configuration
 if test "X${QMPDIR}X" = "XX" ; then
@@ -151,7 +186,6 @@ if test "X${QMPDIR}X" = "XX" ; then
 else
   AC_PATH_PROG([QMP_CONFIG], [qmp-config], [], [${QMPDIR}/bin ${PATH}])
 fi
-
 if test "X${QMP_CONFIG}X" != "XX" ; then
   AC_MSG_NOTICE([Found QMP configuration program ${QMP_CONFIG}])
   # use the QMP CC unless it is explicitly set by the user
@@ -159,25 +193,22 @@ if test "X${QMP_CONFIG}X" != "XX" ; then
     AC_SUBST(CC,  "`${QMP_CONFIG} --cc`")
     AC_MSG_NOTICE([QMP compiler: ${CC}])
   fi
-  AC_SUBST(QMP_CFLAGS,  "`${QMP_CONFIG} --cflags`")
-  AC_MSG_NOTICE([QMP compile flags: ${QMP_CFLAGS}])
-  AC_SUBST(QMP_LDFLAGS, "`${QMP_CONFIG} --ldflags`")
-  AC_MSG_NOTICE([QMP linking flags: ${QMP_LDFLAGS}])
-  AC_SUBST(QMP_LIBS,    "`${QMP_CONFIG} --libs`")
-  AC_MSG_NOTICE([QMP libraries flags: ${QMP_LIBS}])
+  qmpcflags="`${QMP_CONFIG} --cflags`"
+  AC_MSG_NOTICE([QMP compile flags: $qmpcflags])
+  qmpldflags="`${QMP_CONFIG} --ldflags`"
+  AC_MSG_NOTICE([QMP linking flags: $qmpldflags])
+  qmplibs="`${QMP_CONFIG} --libs`"
+  AC_MSG_NOTICE([QMP libraries flags: $qmplibs])
 else
   AC_MSG_WARN([QMP configuration program qmp-config not found.])
   AC_MSG_WARN([Set environment variables QMP_CFLAGS QMP_LDFAGS QMP_LIBS
     before configure])
 fi
 
-LUA_CFLAGS="-DLUA_USE_POSIX"
-AC_SUBST(LUA_CFLAGS)
+AC_SUBST(QOPQDP_CFLAGS, "$qopqdpcflags $qdpcflags $qlacflags $qiocflags $qmpcflags")
+AC_SUBST(QOPQDP_LIBS, "$qopqdplibs $qdplibs $qlalibs $qiolibs $qmpldflags $qmplibs")
 
-QOPQDP_CFLAGS="$QOPQDP_CFLAGS $QDP_CFLAGS $QLA_CFLAGS $QIO_CFLAGS $QMP_CFLAGS $havenc"
-AC_SUBST(QOPQDP_CFLAGS)
-QOPQDP_LIBS="$QOPQDP_LIBS $QDP_LIBS $QLA_LIBS $QIO_LIBS $QMP_LDFLAGS $QMP_LIBS"
-AC_SUBST(QOPQDP_LIBS)
+AC_SUBST(LUA_CFLAGS, "-DLUA_USE_POSIX")
 
 # Checks for programs.
 AC_PROG_LN_S

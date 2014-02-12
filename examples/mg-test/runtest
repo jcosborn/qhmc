@@ -1,6 +1,6 @@
 #!/bin/sh
 
-qhmc="../../main/qhmc"
+qhmc="../../bin/qhmc"
 hmc="../../hmc"
 
 export OMP_NUM_THREADS=1

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-qhmc="../../main/qhmc"
+qhmc="../../bin/qhmc"
 hmc="../../hmc"
 t="test.out"
 

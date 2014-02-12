@@ -25,9 +25,7 @@ void MatQuda(void *h_out, void *h_in, QudaInvertParam *inv_param);
 void
 qhmc_init_quda(int *argc, char ***argv)
 {
-  int device = 0; // FIXME
-  initQuda(device);
-  setVerbosityQuda(QUDA_SUMMARIZE, "QUDA: ", stdout);
+  // initialize when loading
 }
 
 void
@@ -36,9 +34,14 @@ qhmc_fini_quda(void)
   endQuda();
 }
 
+// should take a qopqdp gauge_t and load it
 static int
 quda_load(lua_State *L)
 {
+  //void initCommsGridQuda(int nDim, const int *dims, QudaCommsMap func, void *fdata);
+  //int device = 0; // FIXME
+  //initQuda(device);
+  //setVerbosityQuda(QUDA_SUMMARIZE, "QUDA: ", stdout);
   //QudaGaugeParam newQudaGaugeParam(void);
   //void loadGaugeQuda(void *h_gauge, QudaGaugeParam *param);
   return 0;

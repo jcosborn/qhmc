@@ -1,7 +1,5 @@
-*.swp
 *~
-*.o
-*.a
-*.gz
-#*
-*.out
+Makefile.in
+*.h.in
+configure
+autom4te.cache

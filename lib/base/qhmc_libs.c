@@ -1,4 +1,8 @@
 #include "qhmc_internal.h"
+#include <string.h>
+#include <libgen.h>
+
+static char **g_argv = NULL;
 
 void
 qhmc_init_libs(int *argc, char ***argv)
@@ -9,6 +13,7 @@ qhmc_init_libs(int *argc, char ***argv)
 #ifdef HAVE_QUDA
   qhmc_init_quda(argc, argv);
 #endif
+  g_argv = *argv;
 }
 
 void
@@ -20,6 +25,24 @@ qhmc_fini_libs(void)
 #ifdef HAVE_QUDA
   qhmc_fini_quda();
 #endif
+}
+
+static void
+addPath(lua_State* L, char *s)
+{
+  const int size = 1024;
+  char buf[size];
+  int rc = snprintf(buf,size, "package.path = '%s/?.lua;' .. package.path", s);
+  if(rc<0||rc>=size) {
+    printf("error %s:%s:%i: snprintf failed\n", __FILE__, __func__, __LINE__);
+    exit(1);
+  }
+  //printf("%s\n", buf);
+  rc = luaL_dostring(L, buf);
+  if(rc!=0) {
+    printf("error %s:%s:%i: luaL_dostring failed\n", __FILE__, __func__, __LINE__);
+    exit(1);
+  }
 }
 
 void
@@ -34,13 +57,27 @@ qhmc_open_libs(lua_State* L)
 #ifdef HAVE_QUDA
   qhmc_open_quda(L);
 #endif
-#if 1  // avoid loading 'lfs' since it is statically linked
-  int rc = luaL_dostring(L, "table.insert(package.searchers,1, \
-    function(m) local function ldr(x) return _ENV[x] end \
-    if(m=='lfs') then return ldr else return nil end end)");
-  if(rc!=0) {
-    printf("error: %s: luaL_dostring failed\n", __func__);
-    exit(1);
+
+  { // add search paths for libraries
+    char *dirc;
+    // srcdir
+    // installdir
+    // exedir
+    dirc = strdup(g_argv[0]);
+    addPath(L, dirname(dirc));
+    free(dirc);
+    // scriptdir
+    addPath(L, "./hmc");
+    addPath(L, ".");
   }
-#endif
+
+  { // avoid loading 'lfs' since it is statically linked
+    int rc = luaL_dostring(L, "table.insert(package.searchers,1, \
+      function(m) local function ldr(x) return _ENV[x] end	 \
+      if(m=='lfs') then return ldr else return nil end end)");
+    if(rc!=0) {
+      printf("error %s:%s:%i: luaL_dostring failed\n", __FILE__, __func__, __LINE__);
+      exit(1);
+    }
+  }
 }
