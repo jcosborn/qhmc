@@ -10,7 +10,8 @@ include_HEADERS = \
  qhmc.h \
  qhmc_internal.h \
  qhmc_base.h \
- qhmc_complex.h
+ qhmc_complex.h \
+ qhmc_qopqdp.h
 
 distclean-local:
 	rm -f qhmc_config.h
