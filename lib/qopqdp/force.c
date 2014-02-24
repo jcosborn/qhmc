@@ -60,7 +60,7 @@ qopqdp_force_clone(lua_State *L)
   force_t *f1 = qopqdp_force_create(L, 0, NULL);
   QDP_Subset sub = QDP_all;
   if(narg!=1) {
-    sub = qopqdp_check_subset(L, 2, f2->lat);
+    sub = qopqdp_check_qsubset(L, 2, f2->lat);
   }
   for(int i=0; i<f1->nd; i++) {
     QDP_M_eq_M(f1->force[i], f2->force[i], sub);
@@ -151,7 +151,7 @@ qopqdp_force_scale(lua_State *L)
   int nd = f->nd;
   double sa[nd];
   if(lua_type(L,2)==LUA_TTABLE) {
-    get_double_array(L, 2, nd, sa);
+    qhmc_get_double_array(L, 2, nd, sa);
   } else {
     double s = luaL_checknumber(L, 2);
     for(int i=0; i<nd; i++) sa[i] = s;
@@ -177,7 +177,7 @@ qopqdp_force_norm2(lua_State *L)
     tn[i] = t;
   }
   lua_pushnumber(L, nrm);
-  push_double_array(L, f->nd, tn);
+  qhmc_push_double_array(L, f->nd, tn);
   return 2;
 }
 
@@ -402,7 +402,7 @@ static struct luaL_Reg force_reg[] = {
 };
 
 force_t *
-qopqdp_force_create(lua_State* L, int nc, lattice_t *lat)
+qopqdp_force_create(lua_State *L, int nc, lattice_t *lat)
 {
 #define NC nc
   if(nc==0) nc = QOPQDP_DEFAULTNC;

@@ -124,11 +124,11 @@ qopqdp_dwquark_combine(lua_State *L)
   for(int i=0; i<nqs; i++) qassert(qd->ls==qs[i]->ls);
   int nc; get_table_len(L, 3, &nc);
   qassert(nqs==nc);
-  double c[nc]; get_double_array(L, 3, nc, c);
+  double c[nc]; qhmc_get_double_array(L, 3, nc, c);
   QLA_Real qc[nc]; for(int i=0; i<nc; i++) qc[i] = c[i];
   QDP_Subset sub = QDP_all;
   if(narg>3) {
-    sub = qopqdp_check_subset(L, 4, qd->lat);
+    sub = qopqdp_check_qsubset(L, 4, qd->lat);
   }
   for(int s=0; s<qd->ls; s++) {
     QDP_D_eq_r_times_D(qd->df[s], &qc[0], qs[0]->df[s], sub);
@@ -161,7 +161,7 @@ qopqdp_dwquark_norm2(lua_State *L)
       QDP_r_eq_norm2_D_multi(tnrm2, q->df[s], subs, ns);
       for(int i=0; i<ns; i++) nrm2[i] += tnrm2[i];
     }
-    push_double_array(L, ns, nrm2);
+    qhmc_push_double_array(L, ns, nrm2);
   }
   return 1;
 }
@@ -189,7 +189,7 @@ qopqdp_dwquark_redot(lua_State *L)
       QDP_r_eq_re_D_dot_D_multi(tredot, q1->df[s], q2->df[s], subs, ns);
       for(int i=0; i<ns; i++) redot[i] += tredot[i];
     }
-    push_double_array(L, ns, redot);
+    qhmc_push_double_array(L, ns, redot);
   }
   return 1;
 }
@@ -207,7 +207,7 @@ static struct luaL_Reg dwquark_reg[] = {
 };
 
 dwquark_t *
-qopqdp_dwquark_create(lua_State* L, int ls, int nc, lattice_t *lat)
+qopqdp_dwquark_create(lua_State *L, int ls, int nc, lattice_t *lat)
 {
 #define NC nc
   if(nc==0) nc = QOPQDP_DEFAULTNC;

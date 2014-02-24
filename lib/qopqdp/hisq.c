@@ -259,7 +259,7 @@ qopqdp_hisq_solve(lua_State *L)
   squark_t *qs = qopqdp_squark_check(L, 3);
   int nm; get_table_len(L, 4, &nm);
   qassert(nqd==nm);
-  double mass[nm]; get_double_array(L, 4, nm, mass);
+  double mass[nm]; qhmc_get_double_array(L, 4, nm, mass);
   double resid = luaL_checknumber(L, 5);
   QOP_evenodd_t eo=QOP_EVENODD;
   //int prec = 1;
@@ -389,7 +389,7 @@ qopqdp_hisq_force(lua_State *L)
   squark_t *q[nq]; qopqdp_squark_array_check(L, 3, nq, q);
   int ne; get_table_len(L, 4, &ne);
   qassert(nq==ne);
-  double eps[ne]; get_double_array(L, 4, ne, eps);
+  double eps[ne]; qhmc_get_double_array(L, 4, ne, eps);
   int prec = luaL_optint(L, 5, 1);
 
   QOP_info_t info;
@@ -431,7 +431,7 @@ qopqdp_hisq_force(lua_State *L)
 }
 
 static int
-qopqdp_hisq_squark(lua_State* L)
+qopqdp_hisq_squark(lua_State *L)
 {
   qassert(lua_gettop(L)==1);
   qopqdp_squark_create(L, 0, NULL);
@@ -533,7 +533,7 @@ static struct luaL_Reg hisq_reg[] = {
 };
 
 hisq_t *
-qopqdp_hisq_create(lua_State* L)
+qopqdp_hisq_create(lua_State *L)
 {
   hisq_t *h = lua_newuserdata(L, sizeof(hisq_t));
   h->fl = NULL;

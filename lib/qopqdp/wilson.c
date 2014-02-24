@@ -538,10 +538,10 @@ qopqdp_wilson_force(lua_State *L)
   wquark_t *qr[nqr]; qopqdp_wquark_array_check(L, 4, nqr, qr);
   int nm; get_table_len(L, 5, &nm);
   qassert(nql==nm);
-  double ms[nm]; get_double_array(L, 5, nm, ms);
+  double ms[nm]; qhmc_get_double_array(L, 5, nm, ms);
   int ne; get_table_len(L, 6, &ne);
   qassert(nql==ne);
-  double eps[ne]; get_double_array(L, 6, ne, eps);
+  double eps[ne]; qhmc_get_double_array(L, 6, ne, eps);
   int prec = 2;
   int deriv = 0;
   int all = 0;
@@ -629,7 +629,7 @@ qopqdp_wilson_force(lua_State *L)
 }
 
 static int
-qopqdp_wilson_quark(lua_State* L)
+qopqdp_wilson_quark(lua_State *L)
 {
   qassert(lua_gettop(L)==1);
   qopqdp_wquark_create(L, 0, NULL);
@@ -694,7 +694,7 @@ static struct luaL_Reg wilson_reg[] = {
 };
 
 wilson_t *
-qopqdp_wilson_create(lua_State* L)
+qopqdp_wilson_create(lua_State *L)
 {
   wilson_t *w = lua_newuserdata(L, sizeof(wilson_t));
   w->fl = NULL;

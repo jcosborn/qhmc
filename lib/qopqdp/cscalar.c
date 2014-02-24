@@ -59,7 +59,7 @@ qopqdp_cscalar_point(lua_State *L)
   qassert(narg==5);
   cscalar_t *s = qopqdp_cscalar_check(L, 1);
   int nd; get_table_len(L, 2, &nd);
-  int point[nd]; get_int_array(L, 2, nd, point);
+  int point[nd]; qhmc_get_int_array(L, 2, nd, point);
   double re = luaL_checknumber(L, 3);
   double im = luaL_checknumber(L, 4);
   int node = QDP_node_number(point);
@@ -126,12 +126,12 @@ qopqdp_cscalar_combine(lua_State *L)
   cscalar_t *ss[nss]; qopqdp_cscalar_array_check(L, 2, nss, ss);
   int nc; get_table_len(L, 3, &nc);
   qassert(nss==nc);
-  double c[nc]; get_double_array(L, 3, nc, c);
+  double c[nc]; qhmc_get_double_array(L, 3, nc, c);
   QLA_Real qc[nc]; for(int i=0; i<nc; i++) qc[i] = c[i];
   lattice_t *lat = sd->lat;
   QDP_Subset sub = QDP_all_L(lat->qlat);
   if(narg>3) {
-    sub = qopqdp_check_subset(L, 4, lat);
+    sub = qopqdp_check_qsubset(L, 4, lat);
   }
   QDP_C_eq_r_times_C(sd->c, &qc[0], ss[0]->c, sub);
   for(int i=1; i<nss; i++) {
@@ -154,7 +154,7 @@ qopqdp_cscalar_norm2(lua_State *L)
   } else {
     QLA_Real nrm2[ns];
     QDP_r_eq_norm2_C_multi(nrm2, s->c, subs, ns);
-    push_real_array(L, ns, nrm2);
+    qhmc_push_real_array(L, ns, nrm2);
   }
   return 1;
 }
@@ -174,7 +174,7 @@ qopqdp_cscalar_redot(lua_State *L)
   } else {
     QLA_Real redot[ns];
     QDP_r_eq_re_C_dot_C_multi(redot, s1->c, s2->c, subs, ns);
-    push_real_array(L, ns, redot);
+    qhmc_push_real_array(L, ns, redot);
   }
   return 1;
 }
@@ -193,7 +193,7 @@ static struct luaL_Reg cscalar_reg[] = {
 };
 
 cscalar_t *
-qopqdp_cscalar_create(lua_State* L, lattice_t *lat)
+qopqdp_cscalar_create(lua_State *L, lattice_t *lat)
 {
   if(lat==NULL) lat = qopqdp_get_default_lattice(L);
   cscalar_t *s = lua_newuserdata(L, sizeof(cscalar_t));

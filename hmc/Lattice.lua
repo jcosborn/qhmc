@@ -45,7 +45,8 @@ function latticemt.Set(self, opts)
 end
 
 function latticemt.Seed(self, seed)
-  qopqdp.seed(seed)
+  --qopqdp.seed(seed)
+  self.qdplat:seed(seed)
 end
 
 function latticemt.GaugeField(self, opts)

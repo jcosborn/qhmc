@@ -356,7 +356,7 @@ private_grelax(QDP_ColorMatrix* g, gauge_t* u, int j_decay, int su2_index,
 // is to not use overrelaxation.
 // THIS CODE ASSUMES AN ISOTROPIC, SU(3) LATTICE.
 int
-qopqdp_gauge_coulomb(lua_State* L)
+qopqdp_gauge_coulomb(lua_State *L)
 {
 #define NC QDP_get_nc(u->links[0])
   // Check 4 or 5 arguments.

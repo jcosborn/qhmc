@@ -20,78 +20,6 @@ qhmc_fini_qopqdp(void)
   QDP_finalize();
 }
 
-static int
-slice_func(int x[], void *args)
-{
-  int dir = *(int *)args;
-  return x[dir];
-}
-
-QDP_Subset *
-qhmcqdp_get_timeslices(lattice_t *lat)
-{
-  if(lat->timeslices==NULL) {
-    int dir = lat->nd - 1;
-    int n = QDP_coord_size(dir);
-    lat->timeslices = QDP_create_subset(slice_func,(void*)&dir,sizeof(dir),n);
-  }
-  return lat->timeslices;
-}
-
-static int
-staggered_func(int x[], void *args)
-{
-  int nd = *(int *)args;
-  int s = 0;
-  for(int i=nd-1; i>=0; i++) {
-    s *= 2;
-    s += x[i]&1;
-  }
-  return s;
-}
-
-QDP_Subset *
-qhmcqdp_get_staggered(lattice_t *lat)
-{
-  if(lat->staggered==NULL) {
-    int nd = QDP_ndim_L(lat->qlat);
-    int n = (int)floor(0.5+pow(2,nd));
-    lat->staggered = QDP_create_subset(staggered_func,(void*)&nd,sizeof(nd),n);
-  }
-  return lat->staggered;
-}
-
-// This is a private function which defines even/odd subsections
-// in different directions. Return 0 if an even coordinate, 1 if odd.
-// nd is a special case: we want coordinates all even or all odd.
-static int
-eodir_func(int x[], void *args)
-{
-  int dir = ((int*)args)[0];
-  int nd = ((int*)args)[1];
-  if (dir != nd) {
-    return x[dir]&1;
-  } else {
-    int k=0;
-    for(int i=0; i<nd; i++) k += x[i]&1;
-    if(k==0) return 0;
-    else if(k==nd) return 1;
-    return 2;
-  }
-}
-
-QDP_Subset *
-qhmcqdp_get_eodir(lattice_t *lat, int dir)
-{
-  if(lat->eodir[dir]==NULL) {
-    int nd = lat->nd;
-    int args[2] = {dir, nd};
-    // We get only even or odd for 0->nd-1. We get even, odd, or neither for nd.
-    lat->eodir[dir] = QDP_create_subset(eodir_func, (void*)args, sizeof(args), (dir==nd?3:2));
-  }
-  return lat->eodir[dir];
-}
-
 QOP_evenodd_t
 qopqdp_check_evenodd(lua_State *L, int idx)
 {
@@ -108,106 +36,151 @@ qopqdp_check_evenodd(lua_State *L, int idx)
   return eo;
 }
 
-QDP_Subset
-qopqdp_opt_subset(lua_State *L, int *idx, int reqd,
-		  lattice_t *lat, QDP_Subset def)
+static int
+subCopyHyper(QDP_Lattice *rlat, int x[], void *args)
 {
-  if(lat==NULL) lat = qopqdp_get_default_lattice(L);
-  QDP_Lattice *qlat = lat->qlat;
-  lua_pushvalue(L, *idx);
-  const char *s;
-  if(reqd) {
-    s = luaL_checkstring(L, -1);
-  } else {
-    s = luaL_optstring(L, -1, NULL);
+  int color = 0;
+  int nd = QDP_ndim_L(rlat);
+  int *sublen = (int *)args;
+  int *rof = sublen + nd;
+  int *rls = rof + nd;
+  for(int i=0; i<nd; i++) {
+    int k = (x[i] - rof[i] + rls[i])%rls[i];
+    if(k>=sublen[i]) color = 1;
   }
-  lua_pop(L, 1);
-  QDP_Subset sub = def;
-  if(s) {
-    switch(s[0]) {
-    case 'a': sub = QDP_all_L(qlat); break;
-    case 'e': sub = QDP_even_L(qlat); break;
-    case 'o': sub = QDP_odd_L(qlat); break;
-    case 't': 
-      if(strncmp(s,"timeslice",9)==0) {
-	int t;
-	int n = sscanf(s+9,"%i",&t);
-	if(n && t>=0 && t<QDP_coord_size_L(qlat,QDP_ndim_L(qlat)-1))
-	  sub = qhmcqdp_get_timeslices(lat)[t];
-      }
-      break;
-    }
-    if(sub==NULL) qlerror0(L, 1, "unknown subset %s\n", s);
-    (*idx)++;
+#if 0
+  if(color==0) {
+    printf("SUB:");
+    for(int i=0; i<nd; i++) printf(" %i", x[i]);
+    printf("\n");
   }
-  return sub;
+#endif
+  return color;
 }
 
-QDP_Subset *
-qopqdp_opt_subsets(lua_State *L, int *idx, int reqd,
-		   lattice_t *lat, QDP_Subset def[], int *nsub)
+// shift map from slat into rlat with offsets passed in args
+static void
+mapCopyHyper(QDP_Lattice *rlat, QDP_Lattice *slat, int rx[], int sx[],
+             int *num, int idx, QDP_ShiftDir fb, void *args)
 {
-  if(lat==NULL) lat = qopqdp_get_default_lattice(L);
-  QDP_Lattice *qlat = lat->qlat;
-  lua_pushvalue(L, *idx);
-  const char *s;
-  if(reqd) {
-    s = luaL_checkstring(L, -1);
-  } else {
-    s = luaL_optstring(L, -1, NULL);
-  }
-  lua_pop(L, 1);
-  QDP_Subset *subs = def;
-  if(s) {
-    switch(s[0]) {
-    case 'a':
-      subs = QDP_all_and_empty_L(qlat);
-      if(strcmp(s,"all")==0) *nsub = 1;
-      else *nsub = 2;
-      break;
-    case 'e':
-      subs = QDP_even_and_odd_L(qlat);
-      if(strcmp(s,"even")==0) *nsub = 1;
-      else *nsub = 2;
-      break;
-    case 'o': subs = 1+QDP_even_and_odd_L(qlat); *nsub = 1; break;
-    case 's':
-      if(strncmp(s,"staggered",9)==0) {
-	int ns = (int)floor(0.5+pow(2,QDP_ndim_L(qlat)));
-	if(strcmp(s+9,"")==0) {
-	  subs = qhmcqdp_get_staggered(lat);
-	  *nsub = ns;
-	} else {
-	  int t;
-	  int n = sscanf(s+9,"%i",&t);
-	  if(n && t>=0 && t<ns) {
-	    subs = &qhmcqdp_get_staggered(lat)[t];
-	    *nsub = 1;
-	  }
-	}
-      }
-      break;
-    case 't':
-      if(strncmp(s,"timeslice",9)==0) {
-	int nt = QDP_coord_size_L(qlat,QDP_ndim_L(qlat)-1);
-	if(strcmp(s+9,"s")==0) {
-	  subs = qhmcqdp_get_timeslices(lat);
-	  *nsub = nt;
-	} else {
-	  int t;
-	  int n = sscanf(s+9,"%i",&t);
-	  if(n && t>=0 && t<nt) {
-	    subs = &qhmcqdp_get_timeslices(lat)[t];
-	    *nsub = 1;
-	  }
-	}
-      }
-      break;
+  int rnd = QDP_ndim_L(rlat);
+  int snd = QDP_ndim_L(slat);
+  *num = 1;
+  if(fb==QDP_forward) {
+    int *rof = (int *)args;
+    int *rls = rof + rnd;
+    int *sd = rls + rnd;
+    int *sof = sd + rnd;
+    int *sls = sof + snd;
+#if 0
+    {
+      printf("rof:");
+      for(int i=0; i<rnd; i++) printf(" %i", rof[i]);
+      printf("rls:");
+      for(int i=0; i<rnd; i++) printf(" %i", rls[i]);
+      printf("sd: ");
+      for(int i=0; i<rnd; i++) printf(" %i", sd[i]);
+      printf("sof:");
+      for(int i=0; i<snd; i++) printf(" %i", sof[i]);
+      printf("sls:");
+      for(int i=0; i<snd; i++) printf(" %i", sls[i]);
     }
-    if(subs==NULL) qlerror0(L, 1, "unknown subset %s\n", s);
-    (*idx)++;
+#endif
+    for(int j=0; j<snd; j++) sx[j] = sof[j];
+    for(int i=0; i<rnd; i++) {
+      int k = (rx[i] - rof[i] + rls[i])%rls[i];
+      int j = sd[i];
+      sx[j] = (k + sx[j])%sls[j];
+      if(k>=sls[j]) *num = 0;
+    }
+#if 0
+    if(*num) {
+      printf("FWD:");
+      for(int i=0; i<rnd; i++) printf(" %i", rx[i]);
+      printf(" <-");
+      for(int i=0; i<snd; i++) printf(" %i", sx[i]);
+      printf("\n");
+    }
+#endif
+  } else { // QDP_backward
+    int *sof = (int *)args;
+    int *sls = sof + snd;
+    int *sd = sls + snd;
+    int *rof = sd + snd;
+    int *rls = rof + rnd;
+    for(int j=0; j<snd; j++) {
+      int i = sd[j];
+      int k = 0;
+      if(i>=0&&i<rnd) k = (rx[i] - rof[i] + rls[i])%rls[i];
+      sx[j] = (k + sof[j])%sls[j];
+      if(k>=sls[j]) *num = 0;
+    }
+#if 0
+    if(*num) {
+      printf("BCK:");
+      for(int i=0; i<snd; i++) printf(" %i", sx[i]);
+      printf(" ->");
+      for(int i=0; i<rnd; i++) printf(" %i", rx[i]);
+      printf("\n");
+    }
+#endif
   }
-  return subs;
+}
+
+// creates shifts and maps for copying hypercubic region of size rlen
+// from slat to rlat.
+// the point soff in slat will get copied to roff in rlat.
+// subsequent points in rlat will correspond to the permuted directions
+// in slat given by sdir
+// j = sdir[i]
+// r[i] = ( roff[i] + (s[j]-soff[j]+ss[j])%ss[j] )%rs[i]
+// s[j] = ( soff[j] + (r[i]-roff[i]+rs[i])%rs[i] )%ss[j]
+void
+qhmc_qopqdp_getCopyHyper(QDP_Shift *map, QDP_Subset **subset,
+			 QDP_Lattice *rlat, int roff[], int rlen[], int sdir[],
+			 QDP_Lattice *slat, int soff[], int num)
+{
+  int rnd = QDP_ndim_L(rlat);
+  int snd = QDP_ndim_L(slat);
+  //int sublen[rnd], rof[rnd], rs[rnd], sd[rnd], sof[snd], ss[snd];
+  int sublen[4*rnd+2*snd], *rof, *rs, *sd, *sof, *ss, nsub[rnd], nsubs=1;
+  rof = sublen + rnd;
+  rs = rof + rnd;
+  sd = rs + rnd;
+  sof = sd + rnd;
+  ss = sof + snd;
+  QDP_latsize_L(rlat, rs);
+  QDP_latsize_L(slat, ss);
+  // get subvolume size
+  for(int i=0; i<rnd; i++) {
+    sd[i] = sdir[i];
+    int j = sdir[i];
+    sublen[i] = rlen[i];
+    if(sublen[i]>rs[i]) sublen[i] = rs[i];
+    if(j<0||j>=snd) sublen[i] = 1;
+    else if(sublen[i]>ss[j]) sublen[i] = ss[j];
+    nsub[i] = (rlen[i]+sublen[i]-1)/sublen[i];
+    nsubs *= nsub[i];
+  }
+  if(num<0||num>=nsubs) {
+    *map = NULL;
+    *subset = NULL;
+    return;
+  }
+  // calculate which subvolume we will work on and adjust size if necessary
+  int n = num;
+  for(int j=0; j<snd; j++) sof[j] = soff[j];
+  for(int i=0; i<rnd; i++) {
+    int j = sdir[i];
+    int k = n%nsub[i];
+    n = n/nsub[i];
+    int off = k*sublen[i];
+    rof[i] = (roff[i]+off)%rs[i];
+    sof[j] = (sof[j]+off)%ss[j];
+    if(sublen[i]>(rlen[i]-off)) sublen[i] = rlen[i]-off;
+  }
+  *subset=QDP_create_subset_L(rlat,subCopyHyper,sublen,3*rnd*sizeof(int),2);
+  *map=QDP_create_map_L(rlat,slat,mapCopyHyper,rof,(3*rnd+2*snd)*sizeof(int));
 }
 
 int
@@ -217,7 +190,7 @@ qhmc_qopqdp_master(void)
 }
 
 static int
-qopqdp_master(lua_State* L)
+qopqdp_master(lua_State *L)
 {
   qassert(lua_gettop(L)==0);
   lua_pushboolean(L, qhmc_qopqdp_master());
@@ -225,7 +198,7 @@ qopqdp_master(lua_State* L)
 }
 
 static int
-qopqdp_dtime(lua_State* L)
+qopqdp_dtime(lua_State *L)
 {
   qassert(lua_gettop(L)==0);
   lua_pushnumber(L, QMP_time());
@@ -256,13 +229,13 @@ qopqdp_lattice(lua_State *L)
     int nd = QDP_ndim();
     int lat[nd];
     QDP_latsize(lat);
-    push_int_array(L, nd, lat);
+    qhmc_push_int_array(L, nd, lat);
   } else {
     int nd;
     get_table_len(L, -1, &nd);
     int size[nd];
-    get_int_array(L, -1, nd, size);
-    lattice_t *lat = qopqdp_lattice_create(L, nd, size);
+    qhmc_get_int_array(L, -1, nd, size);
+    lattice_t *lat = qopqdp_create_lattice(L, nd, size);
     lua_pushvalue(L, -1);
     lat->ref = luaL_ref(L, LUA_REGISTRYINDEX); // prevent gc
     if(QDP_get_default_lattice()==NULL) { // no default lattice
@@ -281,7 +254,7 @@ qopqdp_lattice(lua_State *L)
 }
 
 static int
-qopqdp_profile(lua_State* L)
+qopqdp_profile(lua_State *L)
 {
   int nargs = lua_gettop(L);
   qassert(nargs>=0 || nargs<=1);
@@ -298,7 +271,7 @@ qopqdp_profile(lua_State* L)
 }
 
 static int
-qopqdp_verbosity(lua_State* L)
+qopqdp_verbosity(lua_State *L)
 {
   int nargs = lua_gettop(L);
   qassert(nargs>=0 || nargs<=1);
@@ -315,7 +288,7 @@ qopqdp_verbosity(lua_State* L)
 }
 
 static int
-qopqdp_blocksize(lua_State* L)
+qopqdp_blocksize(lua_State *L)
 {
   BEGIN_ARGS;
   OPT_INT(new,0);
@@ -327,7 +300,7 @@ qopqdp_blocksize(lua_State* L)
 }
 
 static int
-qopqdp_readGroupSize(lua_State* L)
+qopqdp_readGroupSize(lua_State *L)
 {
   BEGIN_ARGS;
   OPT_INT(new,0);
@@ -339,7 +312,7 @@ qopqdp_readGroupSize(lua_State* L)
 }
 
 static int
-qopqdp_writeGroupSize(lua_State* L)
+qopqdp_writeGroupSize(lua_State *L)
 {
   BEGIN_ARGS;
   OPT_INT(new,0);
@@ -362,7 +335,7 @@ lex_int(QLA_Int *li, int coords[])
 }
 
 static int
-qopqdp_seed(lua_State* L)
+qopqdp_seed(lua_State *L)
 {
   qassert(lua_gettop(L)==1);
   int seed = luaL_checkint(L, 1);
@@ -491,18 +464,16 @@ qopqdp_reader(lua_State *L)
 
 // 1: filename
 // 2: metadata
+// 3: (opt) lattice
 static int
 qopqdp_writer(lua_State *L)
 {
-  int narg = lua_gettop(L);
-  qassert(narg==2);
-  lua_pushvalue(L, 1);
-  const char *fn = luaL_checkstring(L, -1);
-  lua_pop(L, 1);
-  lua_pushvalue(L, 2);
-  const char *md = luaL_checkstring(L, -1);
-  lua_pop(L, 1);
-  qopqdp_writer_create(L, fn, md);
+  BEGIN_ARGS;
+  GET_STRING(fn);
+  GET_STRING(md);
+  OPT_LATTICE(lat, NULL);
+  END_ARGS;
+  qopqdp_writer_create(L, fn, md, lat);
   return 1;
 }
 
@@ -547,7 +518,7 @@ static struct luaL_Reg qopqdp_reg[] = {
 };
 
 void
-qhmc_open_qopqdp(lua_State* L)
+qhmc_open_qopqdp(lua_State *L)
 {
   luaL_register(L, "qopqdp", qopqdp_reg);
   int jobnum = QMP_get_job_number();

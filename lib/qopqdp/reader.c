@@ -171,7 +171,7 @@ static struct luaL_Reg reader_reg[] = {
 };
 
 reader_t *
-qopqdp_reader_create(lua_State* L, const char *fn, lattice_t *lat)
+qopqdp_reader_create(lua_State *L, const char *fn, lattice_t *lat)
 {
   if(lat==NULL) lat = qopqdp_get_default_lattice(L);
   reader_t *r = lua_newuserdata(L, sizeof(reader_t));

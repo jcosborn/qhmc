@@ -104,4 +104,12 @@ qhmc_open_libs(lua_State* L)
     }
   }
 
+  { // load Init.lua
+    int rc = luaL_dostring(L, "require 'Init'");
+    if(rc!=0) {
+      printf("error %s:%s:%i: luaL_dostring failed\n", __FILE__, __func__, __LINE__);
+      exit(1);
+    }
+  }
+
 }

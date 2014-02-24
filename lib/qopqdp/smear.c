@@ -56,7 +56,7 @@ qopqdp_smear(lua_State *L)
     tableGetField(L, 3, "coeffs");
     // nc: number of coeffs.
     int nc; get_table_len(L, -1, &nc);
-    QLA_Real coeffs[nc]; get_real_array(L, -1, nc, coeffs);
+    QLA_Real coeffs[nc]; qhmc_get_real_array(L, -1, nc, coeffs);
     lua_pop(L, 1);
     qassert(nc==ng);
     int nd = sg[0]->nd;
@@ -73,7 +73,7 @@ qopqdp_smear(lua_State *L)
     // to indicate whether the gauge field needs a dagger or not
     tableGetField(L, 3, "adj");
     int na; get_table_len(L, -1, &na);
-    int adj[na]; get_bool_array(L, -1, na, adj);
+    int adj[na]; qhmc_get_bool_array(L, -1, na, adj);
     lua_pop(L, 1);
     qassert(na==ng);
     int nd = sg[0]->nd;
@@ -126,7 +126,7 @@ qopqdp_smear(lua_State *L)
     tableGetField(L, 3, "coeffs");
     int nc; get_table_len(L, -1, &nc);
     qassert(nc==4);
-    double coeffs[nc]; get_double_array(L, -1, nc, coeffs);
+    double coeffs[nc]; qhmc_get_double_array(L, -1, nc, coeffs);
     lua_pop(L, 1);
     QLA_Real a=coeffs[0], b=coeffs[1], c=coeffs[2], d=coeffs[3];
     int nd = sg[0]->nd;
@@ -175,7 +175,7 @@ qopqdp_smear(lua_State *L)
     tableGetField(L, 3, "rho");
     //ns: number of directions to apply smearing
     int ns; get_table_len(L, -1, &ns); 
-    double rho[ns]; get_double_array(L, -1, ns, rho);
+    double rho[ns]; qhmc_get_double_array(L, -1, ns, rho);
     lua_pop(L, 1);
     QDP_ColorMatrix *cm = QDP_create_M();
     for(int mu=0; mu<ns; mu++) {
@@ -233,7 +233,7 @@ qopqdp_smear(lua_State *L)
     for(int i=0; i<nout; i++) {
       topdir[i] = td[i];
       tableGetIndex(L, -1, i+1);
-      get_int_array(L, -1, nstaples[i], topdir[i]);
+      qhmc_get_int_array(L, -1, nstaples[i], topdir[i]);
       lua_pop(L, 1);
     }
     lua_pop(L, 1);
@@ -241,7 +241,7 @@ qopqdp_smear(lua_State *L)
     for(int i=0; i<nout; i++) {
       sidedir[i] = sd[i];
       tableGetIndex(L, -1, i+1);
-      get_int_array(L, -1, nstaples[i], sidedir[i]);
+      qhmc_get_int_array(L, -1, nstaples[i], sidedir[i]);
       lua_pop(L, 1);
     }
     lua_pop(L, 1);
@@ -249,7 +249,7 @@ qopqdp_smear(lua_State *L)
     for(int i=0; i<nout; i++) {
       toplinknum[i] = tn[i];
       tableGetIndex(L, -1, i+1);
-      get_int_array(L, -1, nstaples[i], toplinknum[i]);
+      qhmc_get_int_array(L, -1, nstaples[i], toplinknum[i]);
       lua_pop(L, 1);
     }
     lua_pop(L, 1);
@@ -257,7 +257,7 @@ qopqdp_smear(lua_State *L)
     for(int i=0; i<nout; i++) {
       sidelinknum[i] = sn[i];
       tableGetIndex(L, -1, i+1);
-      get_int_array(L, -1, nstaples[i], sidelinknum[i]);
+      qhmc_get_int_array(L, -1, nstaples[i], sidelinknum[i]);
       lua_pop(L, 1);
     }
     lua_pop(L, 1);
@@ -265,7 +265,7 @@ qopqdp_smear(lua_State *L)
     for(int i=0; i<nout; i++) {
       coeffs[i] = c[i];
       tableGetIndex(L, -1, i+1);
-      get_real_array(L, -1, nstaples[i], coeffs[i]);
+      qhmc_get_real_array(L, -1, nstaples[i], coeffs[i]);
       lua_pop(L, 1);
     }
     lua_pop(L, 1);
@@ -298,7 +298,7 @@ qopqdp_smearChain(lua_State *L)
     qassert(nf==2 && nfc==1 && nsg==1 && ng==2);
     tableGetField(L, 5, "coeffs");
     int nc; get_table_len(L, -1, &nc);
-    double coeffs[nc]; get_double_array(L, -1, nc, coeffs);
+    double coeffs[nc]; qhmc_get_double_array(L, -1, nc, coeffs);
     lua_pop(L, 1);
     qassert(nc==ng);
     QLA_Real c0 = coeffs[0];
@@ -314,7 +314,7 @@ qopqdp_smearChain(lua_State *L)
     qassert(nf==2 && nfc==1 && nsg==1 && ng==2);
     tableGetField(L, 5, "adj");
     int na; get_table_len(L, -1, &na);
-    int adj[na]; get_bool_array(L, -1, na, adj);
+    int adj[na]; qhmc_get_bool_array(L, -1, na, adj);
     lua_pop(L, 1);
     qassert(na==ng);
     int nd = f[0]->nd;
@@ -377,7 +377,7 @@ qopqdp_smearChain(lua_State *L)
     tableGetField(L, 5, "coeffs");
     int nc; get_table_len(L, -1, &nc);
     qassert(nc==4);
-    double coeffs[nc]; get_double_array(L, -1, nc, coeffs);
+    double coeffs[nc]; qhmc_get_double_array(L, -1, nc, coeffs);
     lua_pop(L, 1);
     QLA_Real a=coeffs[0], b=coeffs[1], c=coeffs[2], d=coeffs[3];
     QLA_Real detinv = -1/(a*d-b*c);
@@ -440,7 +440,7 @@ qopqdp_smearChain(lua_State *L)
     qassert(nf==1 && nfc==1 && nsg==1 && ng==1);
     tableGetField(L, 5, "rho");
     int ns; get_table_len(L, -1, &ns);
-    double rho[ns]; get_double_array(L, -1, ns, rho);
+    double rho[ns]; qhmc_get_double_array(L, -1, ns, rho);
     lua_pop(L, 1);
     int nd = sg[0]->nd;
     for(int mu=0; mu<nd; mu++) {
@@ -493,7 +493,7 @@ qopqdp_smearChain(lua_State *L)
     for(int i=0; i<nout; i++) {
       topdir[i] = td[i];
       tableGetIndex(L, -1, i+1);
-      get_int_array(L, -1, nstaples[i], topdir[i]);
+      qhmc_get_int_array(L, -1, nstaples[i], topdir[i]);
       lua_pop(L, 1);
     }
     lua_pop(L, 1);
@@ -501,7 +501,7 @@ qopqdp_smearChain(lua_State *L)
     for(int i=0; i<nout; i++) {
       sidedir[i] = sd[i];
       tableGetIndex(L, -1, i+1);
-      get_int_array(L, -1, nstaples[i], sidedir[i]);
+      qhmc_get_int_array(L, -1, nstaples[i], sidedir[i]);
       lua_pop(L, 1);
     }
     lua_pop(L, 1);
@@ -509,7 +509,7 @@ qopqdp_smearChain(lua_State *L)
     for(int i=0; i<nout; i++) {
       toplinknum[i] = tn[i];
       tableGetIndex(L, -1, i+1);
-      get_int_array(L, -1, nstaples[i], toplinknum[i]);
+      qhmc_get_int_array(L, -1, nstaples[i], toplinknum[i]);
       lua_pop(L, 1);
     }
     lua_pop(L, 1);
@@ -517,7 +517,7 @@ qopqdp_smearChain(lua_State *L)
     for(int i=0; i<nout; i++) {
       sidelinknum[i] = sn[i];
       tableGetIndex(L, -1, i+1);
-      get_int_array(L, -1, nstaples[i], sidelinknum[i]);
+      qhmc_get_int_array(L, -1, nstaples[i], sidelinknum[i]);
       lua_pop(L, 1);
     }
     lua_pop(L, 1);
@@ -525,7 +525,7 @@ qopqdp_smearChain(lua_State *L)
     for(int i=0; i<nout; i++) {
       coeffs[i] = c[i];
       tableGetIndex(L, -1, i+1);
-      get_real_array(L, -1, nstaples[i], coeffs[i]);
+      qhmc_get_real_array(L, -1, nstaples[i], coeffs[i]);
       lua_pop(L, 1);
     }
     lua_pop(L, 1);
@@ -546,7 +546,7 @@ static struct luaL_Reg qopqdp_reg[] = {
 };
 
 void
-open_qopqdp_smear(lua_State* L)
+open_qopqdp_smear(lua_State *L)
 {
   luaL_register(L, "qopqdp", qopqdp_reg);
 }

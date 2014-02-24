@@ -178,12 +178,14 @@ static struct luaL_Reg writer_reg[] = {
 };
 
 writer_t *
-qopqdp_writer_create(lua_State* L, const char *fn, const char *mds)
+qopqdp_writer_create(lua_State *L, const char *fn, const char *mds,
+		     lattice_t *lat)
 {
+  if(lat==NULL) lat = qopqdp_get_default_lattice(L);
   writer_t *w = lua_newuserdata(L, sizeof(writer_t));
   QDP_String *md = QDP_string_create();
   QDP_string_set(md, (char *)mds);
-  w->qw = QDP_open_write(md, (char*)fn, QDP_SINGLEFILE);
+  w->qw = QDP_open_write_L(lat->qlat, md, (char*)fn, QDP_SINGLEFILE);
   QDP_string_destroy(md);
   if(luaL_newmetatable(L, mtname)) {
     lua_pushvalue(L, -1);

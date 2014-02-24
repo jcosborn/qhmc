@@ -87,13 +87,15 @@
 #endif
 
 #if QOP_Precision == 'F'
-#define get_real_array get_float_array
-#define push_real_array push_float_array
+#define qhmc_get_real_array qhmc_get_float_array
+#define qhmc_push_real_array qhmc_push_float_array
+#define sum_real_array QMP_sum_float_array
 #define QDPOP(x) QDP_DF_ ## x
 #define QDPPO(x) QDP_FD_ ## x
 #else
-#define get_real_array get_double_array
-#define push_real_array push_double_array
+#define qhmc_get_real_array qhmc_get_double_array
+#define qhmc_push_real_array qhmc_push_double_array
+#define sum_real_array QMP_sum_double_array
 #define QDPOP(x) QDP_FD_ ## x
 #define QDPPO(x) QDP_DF_ ## x
 #endif
@@ -121,10 +123,13 @@ typedef struct {
   QDP_Subset *timeslices;
   QDP_Subset *staggered;
   QDP_Subset **eodir;
+  QDP_RandomState *rs;
   int nd;
   int ref;
+  char *defaultPrecision;
+  int defaultNc;
 } lattice_t;
-lattice_t *qopqdp_lattice_create(lua_State *L, int nd, int size[]);
+lattice_t *qopqdp_create_lattice(lua_State *L, int nd, int size[]);
 lattice_t *qopqdp_opt_lattice(lua_State *L, int *idx, int required, lattice_t *def);
 lattice_t *qopqdp_get_default_lattice(lua_State *L);
 #define qopqdp_check_lattice(L,i) qopqdp_opt_lattice(L,(int[]){i},1,NULL)
@@ -133,18 +138,319 @@ lattice_t *qopqdp_get_default_lattice(lua_State *L);
 
 
 typedef struct {
+  QDP_Subset *qgroup;
+  int refcount;
+} subsetGroup_t;
+subsetGroup_t *qhmc_qopqdp_subsetGroup_create(lua_State *L, QDP_Subset *qgroup);
+void qhmc_qopqdp_subsetGroup_free(lua_State *L, subsetGroup_t *sg);
+
+typedef struct {
+  QDP_Subset qsub;
+  subsetGroup_t *group;
+} subset_t;
+subset_t *qopqdp_subset_create(lua_State *L, QDP_Subset qsub, subsetGroup_t *group);
+subset_t *qhmc_qopqdp_opt_subset(lua_State *L, int *idx, int required, subset_t *def);
+int qhmc_qopqdp_opt_as_subset_array_len(lua_State *L, int idx, int required, int def);
+void qhmc_qopqdp_opt_as_subset_array(lua_State *L, int *idx, int required, int n, subset_t **t, int dn, subset_t **def);
+#define qopqdp_check_lsubset(L,i) qopqdp_opt_subset(L,(int[]){i},1,NULL)
+#define GET_LSUBSET(l) subset_t *l = qhmc_qopqdp_opt_subset(L,&nextarg,1,NULL)
+#define OPT_LSUBSET(l,d) subset_t *l = qhmc_qopqdp_opt_subset(L,&nextarg,0,d)
+QDP_Subset *qhmc_qopqdp_qsubset_from_string(lua_State *L, lattice_t *lat, const char *s, int *n);
+QDP_Subset qopqdp_opt_qsubset(lua_State *L, int *idx, int reqd,
+			      lattice_t *lat, QDP_Subset def);
+int qopqdp_opt_as_qsubset_array_len(lua_State *L, int idx, int required, lattice_t *lat, int def);
+void qopqdp_opt_as_qsubset_array(lua_State *L, int *idx, int required, lattice_t *lat, int n, QDP_Subset *t, int dn, QDP_Subset *def);
+#define qopqdp_check_qsubset(L,i,l) qopqdp_opt_qsubset(L,(int[]){i},1,l,NULL)
+#define GET_QSUBSET(s,l) QDP_Subset s = qopqdp_opt_qsubset(L,&nextarg,1,l,NULL)
+#define OPT_QSUBSET(s,l,d) QDP_Subset s = qopqdp_opt_qsubset(L,&nextarg,0,l,d)
+#define GET_AS_QSUBSET_ARRAY(n,t,l) int n=qopqdp_opt_as_qsubset_array_len(L,nextarg,1,l,0); QDP_Subset t[n]; qopqdp_opt_as_qsubset_array(L,&nextarg,1,l,n,t,0,NULL)
+#define OPT_AS_QSUBSET_ARRAY(n,t,l,dn,dt) int n=qopqdp_opt_as_qsubset_array_len(L,nextarg,0,l,dn); QDP_Subset t[n]; qopqdp_opt_as_qsubset_array(L,&nextarg,0,l,n,t,dn,dt)
+#define GET_QSUBSETS(s,n,l) GET_AS_QSUBSET_ARRAY(n,s,l)
+#define OPT_QSUBSETS(s,n,l,d,dn) OPT_AS_QSUBSET_ARRAY(n,s,l,dn,d)
+#define GET_SUBSET GET_QSUBSET
+#define OPT_SUBSET OPT_QSUBSET
+#define GET_SUBSETS GET_QSUBSETS
+#define OPT_SUBSETS OPT_QSUBSETS
+
+typedef struct {
   QDP_Reader *qr;
 } reader_t;
-reader_t *qopqdp_reader_create(lua_State* L, const char *fn, lattice_t *lat);
+reader_t *qopqdp_reader_create(lua_State *L, const char *fn, lattice_t *lat);
 reader_t *qopqdp_reader_check(lua_State *L, int idx);
 void qopqdp_get_prec_type_nc(QDP_Reader *qr, int *prec, int *type, int *nc);
+#define GET_READER(r) reader_t *r = qopqdp_reader_check(L,nextarg);nextarg++
 
 
 typedef struct {
   QDP_Writer *qw;
 } writer_t;
-writer_t *qopqdp_writer_create(lua_State* L, const char *fn, const char *mds);
+writer_t *qopqdp_writer_create(lua_State *L, const char *fn, const char *mds, lattice_t *lat);
 writer_t *qopqdp_writer_check(lua_State *L, int idx);
+#define GET_WRITER(r) writer_t *r = qopqdp_writer_check(L,nextarg);nextarg++
+
+
+typedef struct {
+  lattice_t *lat;
+  QDP_Lattice *qlat;
+  QDP_RandomState *field;
+  int nc;
+} qopqdp_rstate_t;
+qopqdp_rstate_t *qopqdp_rstate_create(lua_State *L, lattice_t *lat);
+qopqdp_rstate_t *qopqdp_rstate_create_unset(lua_State *L, lattice_t *lat);
+qopqdp_rstate_t *qopqdp_rstate_opt(lua_State *L, int *idx, int req, qopqdp_rstate_t *def);
+void qhmc_qopqdp_seed_func(QDP_RandomState *r, int seed, int uniform, QDP_Subset s);
+#define qopqdp_rstate_check(L,i) qopqdp_rstate_opt(L,(int[]){i},1,NULL)
+#define GET_QOPQDP_RSTATE(t) qopqdp_rstate_t *t = qopqdp_rstate_opt(L,&nextarg,1,NULL)
+#define OPT_QOPQDP_RSTATE(t,d) qopqdp_rstate_t *t = qopqdp_rstate_opt(L,&nextarg,0,d)
+#define OPT_QOPQDP_RSTATEO(t,d) qopqdp_rstateO_t *t = qopqdp_rstateO_opt(L,&nextarg,0,d)
+#define OPT_AS_QOPQDP_RSTATE_ARRAY(n,t,dn,dt) int n=qopqdp_rstate_as_array_opt_len(L,nextarg,0,dn); qopqdp_rstate_t *t[n]; qopqdp_rstate_as_array_opt(L,&nextarg,0,n,t,dn,dt)
+#define OPT_QOPQDP_QRSTATE(t,d) QDP_RandomState *t=d;do{qopqdp_rstate_t *_rs=qopqdp_rstate_opt(L,&nextarg,0,NULL);if(_rs!=NULL)t=_rs->field;}while(0)
+#define qopqdp_rstateO_t                 qopqdp_rstate_t
+#define qopqdp_rstateO_create            qopqdp_rstate_create
+#define qopqdp_rstateo_create_unset      qopqdp_rstate_create_unset
+#define qopqdp_rstateO_opt               qopqdp_rstate_opt
+
+
+typedef struct {
+  lattice_t *lat;
+  QDP_Lattice *qlat;
+  QDP_F_Real *field;
+  int nc;
+} qopqdp_realF_t;
+qopqdp_realF_t *qopqdp_realF_create(lua_State *L, lattice_t *lat);
+qopqdp_realF_t *qopqdp_realF_create_unset(lua_State *L, lattice_t *lat);
+qopqdp_realF_t *qopqdp_realF_opt(lua_State *L, int *idx, int req, qopqdp_realF_t *def);
+typedef struct {
+  lattice_t *lat;
+  QDP_Lattice *qlat;
+  QDP_D_Real *field;
+  int nc;
+} qopqdp_realD_t;
+qopqdp_realD_t *qopqdp_realD_create(lua_State *L, lattice_t *lat);
+qopqdp_realD_t *qopqdp_realD_create_unset(lua_State *L, lattice_t *lat);
+qopqdp_realD_t *qopqdp_realD_opt(lua_State *L, int *idx, int req, qopqdp_realD_t *def);
+#define qopqdp_real_check(L,i) qopqdp_real_opt(L,(int[]){i},1,NULL)
+#define GET_QOPQDP_REAL(t) qopqdp_real_t *t = qopqdp_real_opt(L,&nextarg,1,NULL)
+#define OPT_QOPQDP_REAL(t,d) qopqdp_real_t *t = qopqdp_real_opt(L,&nextarg,0,d)
+#define OPT_QOPQDP_REALO(t,d) qopqdp_realO_t *t = qopqdp_realO_opt(L,&nextarg,0,d)
+#define GET_AS_QOPQDP_REAL_ARRAY(n,t) int n=qopqdp_real_as_array_opt_len(L,nextarg,1,0); qopqdp_real_t *t[n]; qopqdp_real_as_array_opt(L,&nextarg,1,n,t,0,NULL)
+#define OPT_AS_QOPQDP_REAL_ARRAY(n,t,dn,dt) int n=qopqdp_real_as_array_opt_len(L,nextarg,0,dn); qopqdp_real_t *t[n]; qopqdp_real_as_array_opt(L,&nextarg,0,n,t,dn,dt)
+#if QOP_Precision == 'F'
+#define qopqdp_real_t                 qopqdp_realF_t
+#define qopqdp_real_create            qopqdp_realF_create
+#define qopqdp_real_create_unset      qopqdp_realF_create_unset
+#define qopqdp_real_opt               qopqdp_realF_opt
+#define qopqdp_real_as_array_opt_len  qopqdp_realF_as_array_opt_len
+#define qopqdp_real_as_array_opt      qopqdp_realF_as_array_opt
+#define qopqdp_realO_t                qopqdp_realD_t
+#define qopqdp_realO_create           qopqdp_realD_create
+#define qopqdp_realO_create_unset     qopqdp_realD_create_unset
+#define qopqdp_realO_opt              qopqdp_realD_opt
+#else
+#define qopqdp_real_t                 qopqdp_realD_t
+#define qopqdp_real_create            qopqdp_realD_create
+#define qopqdp_real_create_unset      qopqdp_realD_create_unset
+#define qopqdp_real_opt               qopqdp_realD_opt
+#define qopqdp_real_as_array_opt_len  qopqdp_realD_as_array_opt_len
+#define qopqdp_real_as_array_opt      qopqdp_realD_as_array_opt
+#define qopqdp_realO_t                qopqdp_realF_t
+#define qopqdp_realO_create           qopqdp_realF_create
+#define qopqdp_realO_create_unset     qopqdp_realF_create_unset
+#define qopqdp_realO_opt              qopqdp_realF_opt
+#endif
+
+
+typedef struct {
+  lattice_t *lat;
+  QDP_Lattice *qlat;
+  QDP_F_Complex *field;
+  int nc;
+} qopqdp_complexF_t;
+qopqdp_complexF_t *qopqdp_complexF_create(lua_State *L, lattice_t *lat);
+qopqdp_complexF_t *qopqdp_complexF_create_unset(lua_State *L, lattice_t *lat);
+qopqdp_complexF_t *qopqdp_complexF_opt(lua_State *L, int *idx, int req, qopqdp_complexF_t *def);
+typedef struct {
+  lattice_t *lat;
+  QDP_Lattice *qlat;
+  QDP_D_Complex *field;
+  int nc;
+} qopqdp_complexD_t;
+qopqdp_complexD_t *qopqdp_complexD_create(lua_State *L, lattice_t *lat);
+qopqdp_complexD_t *qopqdp_complexD_create_unset(lua_State *L, lattice_t *lat);
+qopqdp_complexD_t *qopqdp_complexD_opt(lua_State *L, int *idx, int req, qopqdp_complexD_t *def);
+#define qopqdp_complex_check(L,i) qopqdp_complex_opt(L,(int[]){i},1,NULL)
+#define GET_QOPQDP_COMPLEX(t) qopqdp_complex_t *t = qopqdp_complex_opt(L,&nextarg,1,NULL)
+#define OPT_QOPQDP_COMPLEX(t,d) qopqdp_complex_t *t = qopqdp_complex_opt(L,&nextarg,0,d)
+#define OPT_QOPQDP_COMPLEXO(t,d) qopqdp_complexO_t *t = qopqdp_complexO_opt(L,&nextarg,0,d)
+#define GET_AS_QOPQDP_COMPLEX_ARRAY(n,t) int n=qopqdp_complex_as_array_opt_len(L,nextarg,1,0); qopqdp_complex_t *t[n]; qopqdp_complex_as_array_opt(L,&nextarg,1,n,t,0,NULL)
+#define OPT_AS_QOPQDP_COMPLEX_ARRAY(n,t,dn,dt) int n=qopqdp_complex_as_array_opt_len(L,nextarg,0,dn); qopqdp_complex_t *t[n]; qopqdp_complex_as_array_opt(L,&nextarg,0,n,t,dn,dt)
+#if QOP_Precision == 'F'
+#define qopqdp_complex_t                 qopqdp_complexF_t
+#define qopqdp_complex_create            qopqdp_complexF_create
+#define qopqdp_complex_create_unset      qopqdp_complexF_create_unset
+#define qopqdp_complex_opt               qopqdp_complexF_opt
+#define qopqdp_complex_as_array_opt_len  qopqdp_complexF_as_array_opt_len
+#define qopqdp_complex_as_array_opt      qopqdp_complexF_as_array_opt
+#define qopqdp_complexO_t                qopqdp_complexD_t
+#define qopqdp_complexO_create           qopqdp_complexD_create
+#define qopqdp_complexO_create_unset     qopqdp_complexD_create_unset
+#define qopqdp_complexO_opt              qopqdp_complexD_opt
+#else
+#define qopqdp_complex_t                 qopqdp_complexD_t
+#define qopqdp_complex_create            qopqdp_complexD_create
+#define qopqdp_complex_create_unset      qopqdp_complexD_create_unset
+#define qopqdp_complex_opt               qopqdp_complexD_opt
+#define qopqdp_complex_as_array_opt_len  qopqdp_complexD_as_array_opt_len
+#define qopqdp_complex_as_array_opt      qopqdp_complexD_as_array_opt
+#define qopqdp_complexO_t                qopqdp_complexF_t
+#define qopqdp_complexO_create           qopqdp_complexF_create
+#define qopqdp_complexO_create_unset     qopqdp_complexF_create_unset
+#define qopqdp_complexO_opt              qopqdp_complexF_opt
+#endif
+
+
+typedef struct {
+  lattice_t *lat;
+  QDP_Lattice *qlat;
+  QDP_F_ColorVector *field;
+  int nc;
+} qopqdp_cvectorF_t;
+qopqdp_cvectorF_t *qopqdp_cvectorF_create(lua_State *L, int nc, lattice_t *lat);
+qopqdp_cvectorF_t *qopqdp_cvectorF_create_unset(lua_State *L, int nc, lattice_t *lat);
+qopqdp_cvectorF_t *qopqdp_cvectorF_opt(lua_State *L, int *idx, int req, qopqdp_cvectorF_t *def);
+typedef struct {
+  lattice_t *lat;
+  QDP_Lattice *qlat;
+  QDP_D_ColorVector *field;
+  int nc;
+} qopqdp_cvectorD_t;
+qopqdp_cvectorD_t *qopqdp_cvectorD_create(lua_State *L, int nc, lattice_t *lat);
+qopqdp_cvectorD_t *qopqdp_cvectorD_create_unset(lua_State *L, int nc, lattice_t *lat);
+qopqdp_cvectorD_t *qopqdp_cvectorD_opt(lua_State *L, int *idx, int req, qopqdp_cvectorD_t *def);
+#define qopqdp_cvector_check(L,i) qopqdp_cvector_opt(L,(int[]){i},1,NULL)
+#define GET_QOPQDP_CVECTOR(t) qopqdp_cvector_t *t = qopqdp_cvector_opt(L,&nextarg,1,NULL)
+#define OPT_QOPQDP_CVECTOR(t,d) qopqdp_cvector_t *t = qopqdp_cvector_opt(L,&nextarg,0,d)
+#define GET_AS_QOPQDP_CVECTOR_ARRAY(n,t) int n=qopqdp_cvector_as_array_opt_len(L,nextarg,1,0); qopqdp_cvector_t *t[n]; qopqdp_cvector_as_array_opt(L,&nextarg,1,n,t,0,NULL)
+#define OPT_AS_QOPQDP_CVECTOR_ARRAY(n,t,dn,dt) int n=qopqdp_cvector_as_array_opt_len(L,nextarg,0,dn); qopqdp_cvector_t *t[n]; qopqdp_cvector_as_array_opt(L,&nextarg,0,n,t,dn,dt)
+#if QOP_Precision == 'F'
+#define qopqdp_cvector_t                 qopqdp_cvectorF_t
+#define qopqdp_cvector_create            qopqdp_cvectorF_create
+#define qopqdp_cvector_create_unset      qopqdp_cvectorF_create_unset
+#define qopqdp_cvector_opt               qopqdp_cvectorF_opt
+#define qopqdp_cvector_as_array_opt_len  qopqdp_cvectorF_as_array_opt_len
+#define qopqdp_cvector_as_array_opt      qopqdp_cvectorF_as_array_opt
+#define qopqdp_cvectorO_t                qopqdp_cvectorD_t
+#define qopqdp_cvectorO_create           qopqdp_cvectorD_create
+#define qopqdp_cvectorO_create_unset     qopqdp_cvectorD_create_unset
+#define qopqdp_cvectorO_opt              qopqdp_cvectorD_opt
+#else
+#define qopqdp_cvector_t                 qopqdp_cvectorD_t
+#define qopqdp_cvector_create            qopqdp_cvectorD_create
+#define qopqdp_cvector_create_unset      qopqdp_cvectorD_create_unset
+#define qopqdp_cvector_opt               qopqdp_cvectorD_opt
+#define qopqdp_cvector_as_array_opt_len  qopqdp_cvectorD_as_array_opt_len
+#define qopqdp_cvector_as_array_opt      qopqdp_cvectorD_as_array_opt
+#define qopqdp_cvectorO_t                qopqdp_cvectorF_t
+#define qopqdp_cvectorO_create           qopqdp_cvectorF_create
+#define qopqdp_cvectorO_create_unset     qopqdp_cvectorF_create_unset
+#define qopqdp_cvectorO_opt              qopqdp_cvectorF_opt
+#endif
+
+
+typedef struct {
+  lattice_t *lat;
+  QDP_Lattice *qlat;
+  QDP_F_ColorMatrix *field;
+  int nc;
+} qopqdp_cmatrixF_t;
+qopqdp_cmatrixF_t *qopqdp_cmatrixF_create(lua_State *L, int nc, lattice_t *lat);
+qopqdp_cmatrixF_t *qopqdp_cmatrixF_create_unset(lua_State *L, int nc, lattice_t *lat);
+qopqdp_cmatrixF_t *qopqdp_cmatrixF_opt(lua_State *L, int *idx, int req, qopqdp_cmatrixF_t *def);
+typedef struct {
+  lattice_t *lat;
+  QDP_Lattice *qlat;
+  QDP_D_ColorMatrix *field;
+  int nc;
+} qopqdp_cmatrixD_t;
+qopqdp_cmatrixD_t *qopqdp_cmatrixD_create(lua_State *L, int nc, lattice_t *lat);
+qopqdp_cmatrixD_t *qopqdp_cmatrixD_create_unset(lua_State *L, int nc, lattice_t *lat);
+qopqdp_cmatrixD_t *qopqdp_cmatrixD_opt(lua_State *L, int *idx, int req, qopqdp_cmatrixD_t *def);
+#define qopqdp_cmatrix_check(L,i) qopqdp_cmatrix_opt(L,(int[]){i},1,NULL)
+#define GET_QOPQDP_CMATRIX(t) qopqdp_cmatrix_t *t = qopqdp_cmatrix_opt(L,&nextarg,1,NULL)
+#define OPT_QOPQDP_CMATRIX(t,d) qopqdp_cmatrix_t *t = qopqdp_cmatrix_opt(L,&nextarg,0,d)
+#define OPT_QOPQDP_CMATRIXO(t,d) qopqdp_cmatrixO_t *t = qopqdp_cmatrixO_opt(L,&nextarg,0,d)
+#define GET_AS_QOPQDP_CMATRIX_ARRAY(n,t) int n=qopqdp_cmatrix_as_array_opt_len(L,nextarg,1,0); qopqdp_cmatrix_t *t[n]; qopqdp_cmatrix_as_array_opt(L,&nextarg,1,n,t,0,NULL)
+#define OPT_AS_QOPQDP_CMATRIX_ARRAY(n,t,dn,dt) int n=qopqdp_cmatrix_as_array_opt_len(L,nextarg,0,dn); qopqdp_cmatrix_t *t[n]; qopqdp_cmatrix_as_array_opt(L,&nextarg,0,n,t,dn,dt)
+#if QOP_Precision == 'F'
+#define qopqdp_cmatrix_t                 qopqdp_cmatrixF_t
+#define qopqdp_cmatrix_create            qopqdp_cmatrixF_create
+#define qopqdp_cmatrix_create_unset      qopqdp_cmatrixF_create_unset
+#define qopqdp_cmatrix_opt               qopqdp_cmatrixF_opt
+#define qopqdp_cmatrix_as_array_opt_len  qopqdp_cmatrixF_as_array_opt_len
+#define qopqdp_cmatrix_as_array_opt      qopqdp_cmatrixF_as_array_opt
+#define qopqdp_cmatrixO_t                qopqdp_cmatrixD_t
+#define qopqdp_cmatrixO_create           qopqdp_cmatrixD_create
+#define qopqdp_cmatrixO_create_unset     qopqdp_cmatrixD_create_unset
+#define qopqdp_cmatrixO_opt              qopqdp_cmatrixD_opt
+#else
+#define qopqdp_cmatrix_t                 qopqdp_cmatrixD_t
+#define qopqdp_cmatrix_create            qopqdp_cmatrixD_create
+#define qopqdp_cmatrix_create_unset      qopqdp_cmatrixD_create_unset
+#define qopqdp_cmatrix_opt               qopqdp_cmatrixD_opt
+#define qopqdp_cmatrix_as_array_opt_len  qopqdp_cmatrixD_as_array_opt_len
+#define qopqdp_cmatrix_as_array_opt      qopqdp_cmatrixD_as_array_opt
+#define qopqdp_cmatrixO_t                qopqdp_cmatrixF_t
+#define qopqdp_cmatrixO_create           qopqdp_cmatrixF_create
+#define qopqdp_cmatrixO_create_unset     qopqdp_cmatrixF_create_unset
+#define qopqdp_cmatrixO_opt              qopqdp_cmatrixF_opt
+#endif
+
+
+typedef struct {
+  lattice_t *lat;
+  QDP_Lattice *qlat;
+  QDP_F_DiracFermion *field;
+  int nc;
+} qopqdp_dfermionF_t;
+qopqdp_dfermionF_t *qopqdp_dfermionF_create(lua_State *L, int nc, lattice_t *lat);
+qopqdp_dfermionF_t *qopqdp_dfermionF_create_unset(lua_State *L, int nc, lattice_t *lat);
+qopqdp_dfermionF_t *qopqdp_dfermionF_opt(lua_State *L, int *idx, int req, qopqdp_dfermionF_t *def);
+typedef struct {
+  lattice_t *lat;
+  QDP_Lattice *qlat;
+  QDP_D_DiracFermion *field;
+  int nc;
+} qopqdp_dfermionD_t;
+qopqdp_dfermionD_t *qopqdp_dfermionD_create(lua_State *L, int nc, lattice_t *lat);
+qopqdp_dfermionD_t *qopqdp_dfermionD_create_unset(lua_State *L, int nc, lattice_t *lat);
+qopqdp_dfermionD_t *qopqdp_dfermionD_opt(lua_State *L, int *idx, int req, qopqdp_dfermionD_t *def);
+#define qopqdp_dfermion_check(L,i) qopqdp_dfermion_opt(L,(int[]){i},1,NULL)
+#define GET_QOPQDP_DFERMION(t) qopqdp_dfermion_t *t = qopqdp_dfermion_opt(L,&nextarg,1,NULL)
+#define OPT_QOPQDP_DFERMION(t,d) qopqdp_dfermion_t *t = qopqdp_dfermion_opt(L,&nextarg,0,d)
+#define OPT_AS_QOPQDP_DFERMION_ARRAY(n,t,dn,dt) int n=qopqdp_dfermion_as_array_opt_len(L,nextarg,0,dn); qopqdp_dfermion_t *t[n]; qopqdp_dfermion_as_array_opt(L,&nextarg,0,n,t,dn,dt)
+#if QOP_Precision == 'F'
+#define qopqdp_dfermion_t                 qopqdp_dfermionF_t
+#define qopqdp_dfermion_create            qopqdp_dfermionF_create
+#define qopqdp_dfermion_create_unset      qopqdp_dfermionF_create_unset
+#define qopqdp_dfermion_opt               qopqdp_dfermionF_opt
+#define qopqdp_dfermion_as_array_opt_len  qopqdp_dfermionF_as_array_opt_len
+#define qopqdp_dfermion_as_array_opt      qopqdp_dfermionF_as_array_opt
+#define qopqdp_dfermionO_t                qopqdp_dfermionD_t
+#define qopqdp_dfermionO_create           qopqdp_dfermionD_create
+#define qopqdp_dfermionO_create_unset     qopqdp_dfermionD_create_unset
+#define qopqdp_dfermionO_opt              qopqdp_dfermionD_opt
+#else
+#define qopqdp_dfermion_t                 qopqdp_dfermionD_t
+#define qopqdp_dfermion_create            qopqdp_dfermionD_create
+#define qopqdp_dfermion_create_unset      qopqdp_dfermionD_create_unset
+#define qopqdp_dfermion_opt               qopqdp_dfermionD_opt
+#define qopqdp_dfermion_as_array_opt_len  qopqdp_dfermionD_as_array_opt_len
+#define qopqdp_dfermion_as_array_opt      qopqdp_dfermionD_as_array_opt
+#define qopqdp_dfermionO_t                qopqdp_dfermionF_t
+#define qopqdp_dfermionO_create           qopqdp_dfermionF_create
+#define qopqdp_dfermionO_create_unset     qopqdp_dfermionF_create_unset
+#define qopqdp_dfermionO_opt              qopqdp_dfermionF_opt
+#endif
 
 
 typedef struct {
@@ -152,7 +458,7 @@ typedef struct {
   QDP_Lattice *qlat;
   QDP_F_Complex *c;
 } cscalarF_t;
-cscalarF_t *qopqdp_cscalarF_create(lua_State* L, lattice_t *lat);
+cscalarF_t *qopqdp_cscalarF_create(lua_State *L, lattice_t *lat);
 cscalarF_t *qopqdp_cscalarF_check(lua_State *L, int idx);
 void qopqdp_cscalarF_array_check(lua_State *L, int idx, int n, cscalarF_t *s[n]);
 typedef struct {
@@ -160,7 +466,7 @@ typedef struct {
   QDP_Lattice *qlat;
   QDP_D_Complex *c;
 } cscalarD_t;
-cscalarD_t *qopqdp_cscalarD_create(lua_State* L, lattice_t *lat);
+cscalarD_t *qopqdp_cscalarD_create(lua_State *L, lattice_t *lat);
 cscalarD_t *qopqdp_cscalarD_check(lua_State *L, int idx);
 void qopqdp_cscalarD_array_check(lua_State *L, int idx, int n, cscalarD_t *s[n]);
 #define GET_CSCALAR(s) cscalar_t *s = qopqdp_cscalar_check(L,nextarg); nextarg++
@@ -199,7 +505,7 @@ typedef struct {
 gaugeF_t *qopqdp_gaugeF_create(lua_State *L, int nc, lattice_t *lat);
 gaugeF_t *qopqdp_gaugeF_check(lua_State *L, int idx);
 void qopqdp_gaugeF_array_check(lua_State *L, int idx, int n, gaugeF_t *g[n]);
-int qopqdp_gaugeF_coulomb(lua_State* L);
+int qopqdp_gaugeF_coulomb(lua_State *L);
 void qopqdp_F_makeSU(NCPROT QLA_F_ColorMatrix(*m), int idx, void *args);
 typedef struct {
   lattice_t *lat;
@@ -210,7 +516,7 @@ typedef struct {
 gaugeD_t *qopqdp_gaugeD_create(lua_State *L, int nc, lattice_t *lat);
 gaugeD_t *qopqdp_gaugeD_check(lua_State *L, int idx);
 void qopqdp_gaugeD_array_check(lua_State *L, int idx, int n, gaugeD_t *g[n]);
-int qopqdp_gaugeD_coulomb(lua_State* L);
+int qopqdp_gaugeD_coulomb(lua_State *L);
 void qopqdp_D_makeSU(NCPROT QLA_D_ColorMatrix(*m), int idx, void *args);
 #if QOP_Precision == 'F'
 #define gauge_t gaugeF_t
@@ -378,15 +684,10 @@ void qopqdp_dwquark_array_check(lua_State *L, int idx, int n, dwquark_t *q[n]);
 QDP_Subset *qhmcqdp_get_timeslices(lattice_t *lat);
 QDP_Subset *qhmcqdp_get_eodir(lattice_t *lat, int dir);
 QOP_evenodd_t qopqdp_check_evenodd(lua_State *L, int idx);
-QDP_Subset qopqdp_opt_subset(lua_State *L, int *idx, int reqd,
-			     lattice_t *lat, QDP_Subset def);
-QDP_Subset *qopqdp_opt_subsets(lua_State *L, int *idx, int reqd,
-			       lattice_t *lat, QDP_Subset def[], int *nsub);
-#define qopqdp_check_subset(L,i,l) qopqdp_opt_subset(L,(int[]){i},1,l,NULL)
-#define GET_SUBSET(s,l) QDP_Subset s = qopqdp_opt_subset(L,&nextarg,1,l,NULL)
-#define OPT_SUBSET(s,l,d) QDP_Subset s = qopqdp_opt_subset(L,&nextarg,0,l,d)
-#define GET_SUBSETS(s,n,l) int n=1; QDP_Subset *s = qopqdp_opt_subsets(L,&nextarg,1,l,NULL,&n)
-#define OPT_SUBSETS(s,n,l,d,dn) int n=dn; QDP_Subset *s = qopqdp_opt_subsets(L,&nextarg,0,l,d,&n)
+
+void qhmc_qopqdp_getCopyHyper(QDP_Shift *map, QDP_Subset **subset,
+			      QDP_Lattice *rlat, int roff[], int rlen[], int sdir[],
+			      QDP_Lattice *slat, int soff[], int num);
 
 QLA_Real infnorm_M(QDP_ColorMatrix *m, QDP_Subset s);
 int check_uniform_M(QDP_ColorMatrix *m, QDP_Subset s);
@@ -401,4 +702,4 @@ void exp_deriv_site(NCPROT QLA_ColorMatrix *deriv, QLA_Real *r,
 void exp_deriv(QDP_ColorMatrix *deriv, QLA_Real *r,
 	       QDP_ColorMatrix *M, QDP_ColorMatrix *chain, QDP_Subset sub);
 
-void open_qopqdp_smear(lua_State* L);
+void open_qopqdp_smear(lua_State *L);

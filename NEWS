@@ -1,5 +1,13 @@
+
+2014-02-18	James Osborn
+	added new fields mirroring QDP
+
+2014-02-13	James Osborn
+	added inter-lattice gauge field copy
+
 ===========================================================================
 2014-02-09      version 0.1.0
 ===========================================================================
 2014-02-09      James Osborn
-        Switched to autoconf.
+        switched to autoconf
+===========================================================================

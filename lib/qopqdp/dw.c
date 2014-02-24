@@ -380,10 +380,10 @@ qopqdp_dw_force(lua_State *L)
   dwquark_t *qr[nqr]; qopqdp_dwquark_array_check(L, 4, nqr, qr);
   int nm; get_table_len(L, 5, &nm);
   qassert(nql==nm);
-  double ms[nm]; get_double_array(L, 5, nm, ms);
+  double ms[nm]; qhmc_get_double_array(L, 5, nm, ms);
   int ne; get_table_len(L, 6, &ne);
   qassert(nql==ne);
-  double eps[ne]; get_double_array(L, 6, ne, eps);
+  double eps[ne]; qhmc_get_double_array(L, 6, ne, eps);
   int prec = luaL_optint(L, 7, 1);
 
   QOP_info_t info;
@@ -434,7 +434,7 @@ qopqdp_dw_force(lua_State *L)
 }
 
 static int
-qopqdp_dw_quark(lua_State* L)
+qopqdp_dw_quark(lua_State *L)
 {
   qassert(lua_gettop(L)==1);
   dw_t *dw = qopqdp_dw_check(L, 1);
@@ -500,7 +500,7 @@ static struct luaL_Reg dw_reg[] = {
 };
 
 dw_t *
-qopqdp_dw_create(lua_State* L)
+qopqdp_dw_create(lua_State *L)
 {
   int ls = luaL_checkinteger(L, 1);
   dw_t *w = lua_newuserdata(L, sizeof(dw_t));

@@ -74,7 +74,7 @@ qopqdp_squark_point(lua_State *L)
   GET_INT(color);
   GET_AS_COMPLEX(z);
   END_ARGS;
-  int point[nd]; get_int_array(L, ip, nd, point);
+  int point[nd]; qhmc_get_int_array(L, ip, nd, point);
   int node = QDP_node_number_L(q->qlat, point);
   if(node==QDP_this_node) {
     int index = QDP_index_L(q->qlat, point);
@@ -144,7 +144,7 @@ qopqdp_squark_combine(lua_State *L)
   qassert(nqs==nc);
   QDP_Subset sub = QDP_all;
   if(narg>3) {
-    sub = qopqdp_check_subset(L, 4, qd->lat);
+    sub = qopqdp_check_qsubset(L, 4, qd->lat);
   }
   for(int i=0; i<nqs; i++) {
     lua_pushinteger(L, i+1);
@@ -172,7 +172,7 @@ qopqdp_squark_getSite(lua_State *L)
   GET_SQUARK(q);
   GET_TABLE_LEN_INDEX(nd,ip);
   END_ARGS;
-  int site[nd]; get_int_array(L, ip, nd, site);
+  int site[nd]; qhmc_get_int_array(L, ip, nd, site);
   QLA_ColorVector qcv;
   int node = QDP_node_number_L(q->qlat, site);
   if(node==QDP_this_node) {
@@ -183,7 +183,7 @@ qopqdp_squark_getSite(lua_State *L)
     QLA_V_eq_zero(&qcv);
   }
   QMP_sum_double_array((double *)&qcv, 2*QLA_Nc);
-  push_complex_array(L, QLA_Nc, (qhmc_complex_t *)&qcv);
+  qhmc_push_complex_array(L, QLA_Nc, (qhmc_complex_t *)&qcv);
   return 1;
 #undef NC
 }
@@ -202,7 +202,7 @@ qopqdp_squark_norm2(lua_State *L)
   } else {
     QLA_Real nrm2[ns];
     QDP_r_eq_norm2_V_multi(nrm2, q->cv, subs, ns);
-    push_double_array(L, ns, nrm2);
+    qhmc_push_double_array(L, ns, nrm2);
   }
   return 1;
 }
@@ -222,7 +222,7 @@ qopqdp_squark_redot(lua_State *L)
   } else {
     QLA_Real redot[ns];
     QDP_r_eq_re_V_dot_V_multi(redot, q1->cv, q2->cv, subs, ns);
-    push_double_array(L, ns, redot);
+    qhmc_push_double_array(L, ns, redot);
   }
   return 1;
 }
@@ -250,7 +250,7 @@ qopqdp_squark_dot(lua_State *L)
       qdot[i].r = QLA_real(dot[i]);
       qdot[i].i = QLA_imag(dot[i]);
     }
-    push_complex_array(L, ns, qdot);
+    qhmc_push_complex_array(L, ns, qdot);
   }
   return 1;
 }
@@ -355,7 +355,7 @@ qopqdp_squark_rephase(lua_State *L)
   int phase_flag = luaL_checkint(L, 2); // Check for the phase flag.
   int nd; get_table_len(L, 3, &nd); // Get the length of the relative coordinate.
   int r0[nd];
-  get_int_array(L, 3, nd, r0);
+  qhmc_get_int_array(L, 3, nd, r0);
   relative_loc_esw = r0;
 
   // The phase flag is defined bit-wise.
@@ -430,7 +430,7 @@ qopqdp_squark_epscontr(lua_State *L)
       qval[i].r = QLA_real(val[i]);
       qval[i].i = QLA_imag(val[i]);
     }
-    push_complex_array(L, ns, qval);
+    qhmc_push_complex_array(L, ns, qval);
   }
   QDP_destroy_M(mat);
   QDP_destroy_C(determ);
@@ -544,8 +544,8 @@ qopqdp_squark_s4_ferm_observables(lua_State *L)
   QDP_destroy_V(temp_vec);
   QDP_destroy_C(temp_cmplx);
   
-  push_complex_array(L, 6, pbp_e);
-  push_complex_array(L, 6, pbp_o);
+  qhmc_push_complex_array(L, 6, pbp_e);
+  qhmc_push_complex_array(L, 6, pbp_o);
   
   return 2;
 #undef NC

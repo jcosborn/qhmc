@@ -357,7 +357,7 @@ qopqdp_asqtad_solve(lua_State *L)
   squark_t *qs = qopqdp_squark_check(L, 3);
   int nm; get_table_len(L, 4, &nm);
   qassert(nqd==nm);
-  double mass[nm]; get_double_array(L, 4, nm, mass);
+  double mass[nm]; qhmc_get_double_array(L, 4, nm, mass);
   double resid = luaL_checknumber(L, 5);
   QOP_evenodd_t eo=QOP_EVENODD;
   //int prec = 1;
@@ -486,7 +486,7 @@ qopqdp_asqtad_force(lua_State *L)
   squark_t *q[nq]; qopqdp_squark_array_check(L, 3, nq, q);
   int ne; get_table_len(L, 4, &ne);
   qassert(nq==ne);
-  double eps[ne]; get_double_array(L, 4, ne, eps);
+  double eps[ne]; qhmc_get_double_array(L, 4, ne, eps);
   int prec = 1;
   int deriv = 0;
   if(narg==5) { // options table
@@ -555,7 +555,7 @@ qopqdp_asqtad_force(lua_State *L)
 }
 
 static int
-qopqdp_asqtad_squark(lua_State* L)
+qopqdp_asqtad_squark(lua_State *L)
 {
   qassert(lua_gettop(L)==1);
   qopqdp_squark_create(L, 0, NULL);
@@ -622,7 +622,7 @@ static struct luaL_Reg asqtad_reg[] = {
 };
 
 asqtad_t *
-qopqdp_asqtad_create(lua_State* L)
+qopqdp_asqtad_create(lua_State *L)
 {
   asqtad_t *h = lua_newuserdata(L, sizeof(asqtad_t));
   h->fl = NULL;

@@ -107,13 +107,14 @@ make_herm(NCPROT QLA_ColorMatrix(*m), int idx, void *args)
 static int
 qopqdp_gauge_random(lua_State *L)
 {
-  qassert(lua_gettop(L)==1);
-  gauge_t *g = qopqdp_gauge_check(L, 1);
-  QLA_RandomState *qrs = QDP_expose_S(qopqdp_srs);
+  BEGIN_ARGS;
+  GET_GAUGE(g);
+  END_ARGS;
+  QLA_RandomState *qrs = QDP_expose_S(g->lat->rs);
   for(int i=0; i<g->nd; i++) {
     QDP_M_eq_funcia(g->links[i], gauge_random, qrs, QDP_all_L(g->qlat));
   }
-  QDP_reset_S(qopqdp_srs);
+  QDP_reset_S(g->lat->rs);
   return 0;
 }
 
@@ -238,24 +239,6 @@ qopqdp_gauge_save(lua_State *L)
 #undef NC
 }
 
-#if 0
-// 
-static void
-mapIdent(QDP_Lattice *rlat, QDP_Lattice *slat, int rx[], int sx[], int *num,
-	 int idx, QDP_ShiftDir fb, void *args)
-{
-  int rnd = QDP_ndim_L(rlat);
-  int snd = QDP_ndim_L(slat);
-  for(int i=0; i<snd; i++) {
-    int k = 0;
-    if(i<rnd) k = rx[i];
-    sx[i] = k;
-    if(k>=QDP_coord_size_L(slat,i)) *num = 0;
-  }
-  for(int i=snd; i<rnd; i++) if(rx[i]!=0) *num=0;
-}
-#endif
-
 // set from another field
 static int
 qopqdp_gauge_set(lua_State *L)
@@ -269,17 +252,42 @@ qopqdp_gauge_set(lua_State *L)
       QDP_M_eq_M(g1->links[i], g2->links[i], QDP_all_L(g1->qlat));
     }
   } else {
-#if 0
     // copy with truncation/replication
-    int nd = g1->nd<g2->nd ? g1->nd : g2->nd;
-    QDP_Shift map;
-    map = QDP_create_map_L(g1->qlat, g2->qlat, mapIdent, args, size);
-    for(int i=0; i<nd; i++) {
-      QDP_M_eq_sM(g1->links[i], g2->links[i],
-		  map, QDP_forward, QDP_all_L(g1->qlat));
+    QDP_Lattice *rlat = g1->qlat;
+    QDP_Lattice *slat = g2->qlat;
+    int rnd = QDP_ndim_L(rlat);
+    int snd = QDP_ndim_L(slat);
+    printf0("rls:");
+    for(int i=0; i<rnd; i++) printf0(" %i", QDP_coord_size_L(rlat,i));
+    printf0("\n");
+    printf0("sls:");
+    for(int i=0; i<snd; i++) printf0(" %i", QDP_coord_size_L(slat,i));
+    printf0("\n");
+    int roff[rnd], rlen[rnd], sdir[rnd], soff[snd];
+    for(int i=0; i<rnd; i++) {
+      roff[i] = 0;
+      rlen[i] = QDP_coord_size_L(rlat,i);
+      sdir[i] = i;
     }
-    QDP_destroy_map(map);
-#endif
+    for(int i=0; i<snd; i++) {
+      soff[i] = 0;
+    }
+    for(int s=0; ; s++) {
+      printf0("s: %i\n", s);
+      QDP_Subset *sub;
+      QDP_Shift shift;
+      qhmc_qopqdp_getCopyHyper(&shift, &sub, rlat, roff, rlen, sdir, slat, soff, s);
+      if(sub==NULL) break;
+      printf0("created subset and map\n");
+      for(int mu=0; mu<rnd; mu++) {
+	QDP_M_eq_sM(g1->links[mu], g2->links[mu], shift, QDP_forward, sub[0]);
+      }
+      printf0("finished shift\n");
+      QDP_destroy_shift(shift);
+      //printf0("destroyed map\n");
+      QDP_destroy_subset(sub);
+      //printf0("destroyed subset\n");
+    }
   }
   return 0;
 }
@@ -516,7 +524,7 @@ qopqdp_gauge_update(lua_State *L)
   int nd = f->nd;
   double eps[nd];
   if(lua_type(L,3)==LUA_TTABLE) {
-    get_double_array(L, 3, nd, eps);
+    qhmc_get_double_array(L, 3, nd, eps);
   } else {
     double s = luaL_checknumber(L, 3);
     for(int i=0; i<nd; i++) eps[i] = s;
@@ -589,7 +597,7 @@ qopqdp_gauge_loop(lua_State *L)
   GET_TABLE_LEN_INDEX(plen,pidx);
   OPT_SUBSETS(subs, ns, g->lat, QDP_all_and_empty_L(g->qlat), 1);
   END_ARGS;
-  int dirs[plen]; get_int_array(L, pidx, plen, dirs);
+  int dirs[plen]; qhmc_get_int_array(L, pidx, plen, dirs);
   QDP_Lattice *qlat = g->qlat;
   QDP_Subset all = QDP_all_L(qlat);
   QDP_Shift *neighbor = QDP_neighbor_L(qlat);
@@ -651,7 +659,7 @@ qopqdp_gauge_loop(lua_State *L)
   QDP_C_eq_trace_M(c, m[k], all);
   QDP_c_eq_sum_C_multi(qc, c, subs, ns);
   QDP_destroy_C(c);
-  double f = 1.0/(QLA_Nc*QDP_volume());
+  double f = 1.0/(QLA_Nc*QDP_volume_L(qlat));
   qhmc_complex_t cc[ns];
   for(int i=0; i<ns; i++) {
     cc[i].r = f*QLA_real(qc[i]);
@@ -660,7 +668,7 @@ qopqdp_gauge_loop(lua_State *L)
   if(ns==1) {
     qhmc_complex_create(L, cc[0].r, cc[0].i);
   } else {
-    push_complex_array(L, ns, cc);
+    qhmc_push_complex_array(L, ns, cc);
   }
 
   QDP_destroy_M(m[0]);
@@ -807,9 +815,9 @@ qopqdp_gauge_s4_gauge_observables(lua_State *L)
   
   // Return things.
   lua_pushnumber(L, plaq_ss);
-  push_real_array(L, 5, plaq_e);
-  push_real_array(L, 5, plaq_o);
-  
+  qhmc_push_real_array(L, 5, plaq_e);
+  qhmc_push_real_array(L, 5, plaq_o);
+
   return 3;
 #undef NC
 }
@@ -836,7 +844,7 @@ static struct luaL_Reg gauge_reg[] = {
 };
 
 gauge_t *
-qopqdp_gauge_create(lua_State* L, int nc, lattice_t *lat)
+qopqdp_gauge_create(lua_State *L, int nc, lattice_t *lat)
 {
 #define NC nc
   if(nc==0) nc = QOPQDP_DEFAULTNC;

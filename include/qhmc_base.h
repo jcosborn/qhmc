@@ -32,6 +32,7 @@
 #define qlassert0(L,x) do { if0 qlassert(L,x); } while(0)
 
 #define get_table_len(L, idx, n) luaL_checktype(L, idx, LUA_TTABLE); *(n) = lua_objlen(L, idx)
+#define tableLength(L, idx) lua_rawlen(L, idx)
 #define tableLoopKeys(L, idx)		\
   qassert(lua_type(L,idx)==LUA_TTABLE); \
   lua_pushnil(L);			\
@@ -52,27 +53,32 @@
 #define tableGetIndex(L, idx, key) lua_rawgeti(L, idx, key)
 
 #define BEGIN_ARGS int nextarg=1, nargs=lua_gettop(L)
-#define GET_STRING(v) const char *v=qhmc_opt_string(L,&nextarg,1,"")
+#define GET_STRING(v) const char *v=qhmc_opt_string(L,&nextarg,1,NULL)
 #define OPT_STRING(v,d) const char *v=qhmc_opt_string(L,&nextarg,0,d)
 #define GET_INT(v) int v=qhmc_opt_int(L,&nextarg,1,0)
 #define OPT_INT(v,d) int v=qhmc_opt_int(L,&nextarg,0,d)
 #define GET_DOUBLE(v) double v=qhmc_opt_double(L,&nextarg,1,0)
 #define OPT_DOUBLE(v,d) double v=qhmc_opt_double(L,&nextarg,0,d)
+#define OPT_FUNCTION_INDEX(f,d) int f=(d);if(lua_isfunction(L,nextarg))f=nextarg++
 #define GET_TABLE_LEN_INDEX(l,i) int l,i=nextarg; get_table_len(L,i,&l); nextarg++
+#define OPT_TABLE_LEN_INDEX(l,i) int l,i=0; { if(is_table(L,nextarg)) { i=nextarg; get_table_len(L,i,&l); nextarg++; } }
 #define GET_COMPLEX(v) qhmc_complex_t *v=qhmc_complex_check(L,nextarg); nextarg++
+#define OPT_COMPLEX(v,d) qhmc_complex_t *v=qhmc_opt_complex(L,&nextarg,0,d)
 #define GET_AS_COMPLEX(v) qhmc_complex_t v; qhmc_complex_get_as(L,nextarg,&v); nextarg++
+#define OPT_AS_COMPLEX_PTR(v,d) qhmc_complex_t _t ## v, *v = qhmc_opt_as_complex_ptr(L,&nextarg,0,&_t ## v,d)
 #define END_ARGS qassert(nextarg==nargs+1)
 
 const char *qhmc_opt_string(lua_State *L, int *idx, int required, char *def);
 int qhmc_opt_int(lua_State *L, int *idx, int required, int def);
 double qhmc_opt_double(lua_State *L, int *idx, int required, double def);
 
-void get_bool_array(lua_State *L, int idx, int n, int *a);
-void get_int_array(lua_State *L, int idx, int n, int *a);
-void push_int_array(lua_State *L, int n, int *a);
-void get_float_array(lua_State *L, int idx, int n, float *a);
-void get_double_array(lua_State *L, int idx, int n, double *a);
-void push_float_array(lua_State *L, int n, float *a);
-void push_double_array(lua_State *L, int n, double *a);
-void push_complex_array(lua_State *L, int n, qhmc_complex_t *a);
-const char *tableGetString(lua_State *L, int idx, char *key);
+void qhmc_get_bool_array(lua_State *L, int idx, int n, int *a);
+void qhmc_get_int_array(lua_State *L, int idx, int n, int *a);
+void qhmc_push_int_array(lua_State *L, int n, int *a);
+void qhmc_get_float_array(lua_State *L, int idx, int n, float *a);
+void qhmc_push_float_array(lua_State *L, int n, float *a);
+void qhmc_get_double_array(lua_State *L, int idx, int n, double *a);
+void qhmc_push_double_array(lua_State *L, int n, double *a);
+void qhmc_push_complex_array(lua_State *L, int n, qhmc_complex_t *a);
+const char *qhmc_tableGetString(lua_State *L, int idx, char *key);
+#define tableGetString qhmc_tableGetString
