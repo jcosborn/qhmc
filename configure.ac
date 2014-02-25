@@ -1,4 +1,4 @@
-AC_INIT(qhmc, 0.1.0, [osborn at alcf.anl.gov])
+AC_INIT(qhmc, 0.1.1, [osborn at alcf.anl.gov])
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE
 
