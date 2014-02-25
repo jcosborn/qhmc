@@ -23,7 +23,7 @@ DSRC = \
  cscalarD.c gaugeD.c forceD.c gaugefixD.c
 
 EXTRA_DIST = \
- lreal.c lcomplex.c lcmatrix.c \
+ field0.c lreal.c lcomplex.c lcmatrix.c \
  cscalar.c gauge.c force.c gaugefix.c
 
 ___libqhmc_qopqdp_a_SOURCES = \
