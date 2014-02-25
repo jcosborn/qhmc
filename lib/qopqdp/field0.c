@@ -24,6 +24,8 @@
 #define T3(a,b,c) a ## b ## c
 #define S4(a,b,c,d) T4(a,b,c,d)
 #define T4(a,b,c,d) a ## b ## c ## d
+#define S5(a,b,c,d,e) T5(a,b,c,d,e)
+#define T5(a,b,c,d,e) a ## b ## c ## d ## e
 static char *mtname = "qopqdp." STR(FTYPE);
 
 typedef S3(qopqdp_,FTYPE,_t) ftype_t;
@@ -71,14 +73,18 @@ typedef S2(QDP_3_,QDPT) qdptype3;
 #define SP3(a,b,c,m,...) SP(a,S2(b,c),m,__VA_ARGS__)
 #define SP4(a,b,c,d,m,...) SP(a,S3(b,c,d),m,__VA_ARGS__)
 #define SP5(a,b,c,d,e,m,...) SP(a,S4(b,c,d,e),m,__VA_ARGS__)
+#define SP6(a,b,c,d,e,f,m,...) SP(a,S5(b,c,d,e,f),m,__VA_ARGS__)
 #define C1x(t,a,b) ((t*)a,b)
 #define Cx1x(t,a,b,c) (a,(t*)b,c)
 #define C11x(t,a,b,c) ((t*)a,(t*)b,c)
 #define Cxx2x(t,a,b,c,d) (a,b,(t**)c,d)
 #define C1x1x(t,a,b,c,d) ((t*)a,b,(t*)c,d)
 #define Cx11x(t,a,b,c,d) (a,(t*)b,(t*)c,d)
+#define Cx1xx(t,a,b,c,d) (a,(t*)b,c,d)
+#define Cx11xx(t,a,b,c,d,e) (a,(t*)b,(t*)c,d,e)
 #define SP3x(a,b,c,m,...) S3(a,b,c)(__VA_ARGS__)
 #define SP4x(a,b,c,d,m,...) S4(a,b,c,d)(__VA_ARGS__)
+#define SP5x(a,b,c,d,e,m,...) S5(a,b,c,d,e)(__VA_ARGS__)
 
 typedef S2(QDP_,QDPT) qdptype;
 #ifdef PRECISE
@@ -102,10 +108,19 @@ typedef S2(QDP_D_,QDPT) qdptypeD;
 #define qdptimesc(f1,c,f2,s) SP4(QDP_,A,_eq_c_times_,A,C1x1x,f1,c,f2,s)
 #define qdppeqtimesc(f1,c,f2,s) SP4(QDP_,A,_peq_c_times_,A,C1x1x,f1,c,f2,s)
 #define qdpsum(r,f,s) SP4x(QDP_,AL,_eq_sum_,A,Cl1x,r,f,s)
+#define qdpsummulti(r,f,s,n) SP5x(QDP_,AL,_eq_sum_,A,_multi,Cl1xx,r,f,s,n)
 #define qdpnorm2(r,f,s) SP3(QDP_,r_eq_norm2_,A,Cx1x,r,f,s)
+#define qdpnorm2multi(r,f,s,n) SP4(QDP_,r_eq_norm2_,A,_multi,Cx1xx,r,f,s,n)
 #define qdplnorm2(r,f,s) SP3(QDP_,R_eq_norm2_,A,Cx1x,r,f,s)
-#define qdpdot(r,f1,f2,s) SP5(QDP_,r_eq_,A,_dot_,A,Cx11x,r,f1,f2,s)
+#define qdpdot(c,f1,f2,s) SP5(QDP_,c_eq_,A,_dot_,A,Cx11x,c,f1,f2,s)
+#define qdpdotmulti(c,f1,f2,s,n) SP6(QDP_,c_eq_,A,_dot_,A,_multi,Cx11xx,c,f1,f2,s,n)
+#ifdef ISREAL
+#define qdpredot(r,f1,f2,s) SP5(QDP_,r_eq_,A,_dot_,A,Cx11x,r,f1,f2,s)
+#define qdpredotmulti(r,f1,f2,s,n) SP6(QDP_,r_eq_,A,_dot_,A,_multi,Cx11xx,r,f1,f2,s,n)
+#else
 #define qdpredot(r,f1,f2,s) SP5(QDP_,r_eq_re_,A,_dot_,A,Cx11x,r,f1,f2,s)
+#define qdpredotmulti(r,f1,f2,s,n) SP6(QDP_,r_eq_re_,A,_dot_,A,_multi,Cx11xx,r,f1,f2,s,n)
+#endif
 #define qdpvread(r,m,f,n) SP3(QDP_,vread_,A,Cxx2x,r,m,f,n)
 #define qdpvwrite(r,m,f,n) SP3(QDP_,vwrite_,A,Cxx2x,r,m,f,n)
 #define qdpcreateF(l) S3(QDP_F_create_,A,_L)(l)
@@ -312,7 +327,7 @@ ftype_clone(lua_State *L)
 #ifdef PRECISE
   OPT_STRING(precision, t2->lat->defaultPrecision);
 #endif
-  OPT_SUBSET(sub, t2->lat, QDP_all_L(t2->qlat));
+  OPT_QSUBSET(sub, t2->lat, QDP_all_L(t2->qlat));
   END_ARGS;
 #ifdef PRECISE
   if(*precision == QOP_Precision) {
@@ -452,7 +467,7 @@ ftype_seed(lua_State *L)
   GET_FTYPE(t);
   GET_INT(seed);
   OPT_INT(uniform, -1);
-  OPT_SUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
   END_ARGS;
   qhmc_qopqdp_seed_func(t->field, seed, uniform, sub);
   return 0;
@@ -466,7 +481,7 @@ ftype_zero(lua_State *L)
 #define NC QDP_get_nc(t->field)
   BEGIN_ARGS;
   GET_FTYPE(t);
-  OPT_SUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
   END_ARGS;
   qdpzero(t->field, sub);
   return 0;
@@ -479,7 +494,7 @@ ftype_unit(lua_State *L)
 #define NC QDP_get_nc(t->field)
   BEGIN_ARGS;
   GET_FTYPE(t);
-  OPT_SUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
   END_ARGS;
   GET_QLA_UNIT(c);
   qdpTeqt(t->field, &c, sub);
@@ -543,87 +558,6 @@ ftype_point(lua_State *L)
 }
 
 static int
-ftype_random(lua_State *L)
-{
-#define NC QDP_get_nc(t->field)
-  BEGIN_ARGS;
-  GET_FTYPE(t);
-  OPT_QOPQDP_QRSTATE(rs, t->lat->rs);
-  OPT_DOUBLE(s, 1);
-  OPT_SUBSET(sub, t->lat, QDP_all_L(t->qlat));
-  END_ARGS;
-  qdpgaussian(t->field, rs, sub);
-  QLA_Real r = s*sqrt(0.5);  // normalize to sigma^2 = 1/2
-  qdptimesr(t->field, &r, t->field, sub);
-  return 0;
-#undef NC
-}
-
-static int
-ftype_randomU1(lua_State *L)
-{
-#define NC QDP_get_nc(t->field)
-  BEGIN_ARGS;
-  GET_FTYPE(t);
-  OPT_QOPQDP_QRSTATE(rs, t->lat->rs);
-  OPT_SUBSET(sub, t->lat, QDP_all_L(t->qlat));
-  END_ARGS;
-  qdpgaussian(t->field, rs, sub);
-  int i;
-  QDP_loop_sites(i, sub, {
-      qlatype *x = qdpptrreadwrite(t->field, i);
-#ifdef ISREAL
-      *x = (*x>=0) ? 1 : 0;
-#else
-      LOOP_FTYPE_ELEM {
-	QLA_Complex z = QLAELEM(*x);
-	QLA_Real n = QLA_norm2_c(z);
-	if(n==0) {
-	  QLA_c_eq_r(QLAELEM(*x), 1);
-	} else {
-	  n = 1/sqrt(n);
-	  QLA_c_eq_r_times_c(QLAELEM(*x), n, z);
-	}
-      } END_LOOP_FTYPE_ELEM;
-#endif
-    });
-  return 0;
-#undef NC
-}
-
-static int
-ftype_combine(lua_State *L)
-{
-#define NC QDP_get_nc(td->field)
-  BEGIN_ARGS;
-  GET_FTYPE(td);
-  GET_AS_FTYPE_ARRAY(ns,ts);
-  GET_TABLE_LEN_INDEX(cl,ci);
-  OPT_SUBSET(sub, td->lat, QDP_all_L(td->qlat));
-  END_ARGS;
-  for(int i=0; i<ns; i++) {
-    lua_pushinteger(L, i+1);
-    lua_gettable(L, ci);
-    if(lua_type(L,-1)==LUA_TNUMBER) {
-      QLA_Real r = lua_tonumber(L, -1);
-      if(i==0) { qdptimesr(td->field, &r, ts[0]->field, sub); }
-      else { qdppeqtimesr(td->field, &r, ts[i]->field, sub); }
-#ifndef ISREAL
-    } else { // complex
-      qhmc_complex_t *c = qhmc_complex_check(L, -1);
-      QLA_Complex z;
-      QLA_c_eq_r_plus_ir(z, c->r, c->i);
-      if(i==0) { qdptimesc(td->field, &z, ts[0]->field, sub); }
-      else { qdppeqtimesc(td->field, &z, ts[i]->field, sub); }
-#endif
-    }
-  }
-  return 0;
-#undef NC
-}
-
-// FIXME: only returns value on node containing site
-static int
 ftype_site(lua_State *L)
 {
 #define NC QDP_get_nc(t->field)
@@ -662,11 +596,165 @@ ftype_site(lua_State *L)
 #endif
     }
     sum_real_array((QLA_Real *)&q, sizeof(q)/sizeof(QLA_Real));
-    pushqlatype(L, NCARGT q);
+    pushqlatype(L, NCARGT &q);
 #if 0
   }
 #endif
   return rv;
+}
+
+// normalized to sigma = 1
+static int
+ftype_random(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  OPT_QOPQDP_QRSTATE(rs, t->lat->rs);
+  OPT_DOUBLE(s, 1);
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  END_ARGS;
+  qdpgaussian(t->field, rs, sub);
+  if(s!=1) {
+    QLA_Real r = s;  
+    qdptimesr(t->field, &r, t->field, sub);
+  }
+  return 0;
+#undef NC
+}
+
+static int
+ftype_randomU1(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  OPT_QOPQDP_QRSTATE(rs, t->lat->rs);
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  END_ARGS;
+  qdpgaussian(t->field, rs, sub);
+  int i;
+  QDP_loop_sites(i, sub, {
+      qlatype *x = qdpptrreadwrite(t->field, i);
+#ifdef ISREAL
+      *x = (*x>=0) ? 1 : -1;
+#else
+      LOOP_FTYPE_ELEM {
+	QLA_Complex z = QLAELEM(*x);
+	QLA_Real n = QLA_norm2_c(z);
+	if(n==0) {
+	  QLA_c_eq_r(QLAELEM(*x), 1);
+	} else {
+	  n = 1/sqrt(n);
+	  QLA_c_eq_r_times_c(QLAELEM(*x), n, z);
+	}
+      } END_LOOP_FTYPE_ELEM;
+#endif
+    });
+  return 0;
+#undef NC
+}
+
+static int
+ftype_normalize(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  OPT_DOUBLE(s, 1);
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  END_ARGS;
+  QLA_Real r;
+  qdpnorm2(&r, t->field, sub);
+  if(r==0) {
+    GET_QLA_UNIT(c);
+    qdpTeqt(t->field, &c, sub);
+    qdpnorm2(&r, t->field, sub);
+  }
+  r = s/sqrt(r);
+  qdptimesr(t->field, &r, t->field, sub);
+  return 0;
+#undef NC
+}
+
+static int
+ftype_lnormalize(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  OPT_DOUBLE(s, 1);
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  END_ARGS;
+  int i;
+  QDP_loop_sites(i, sub, {
+      qlatype *x = qdpptrreadwrite(t->field, i);
+#ifdef ISREAL
+      *x = (*x>=0) ? s : -s;
+#else
+      LOOP_FTYPE_ELEM {
+	QLA_Complex z = QLAELEM(*x);
+	QLA_Real n = QLA_norm2_c(z);
+	if(n==0) {
+	  QLA_c_eq_r(QLAELEM(*x), s);
+	} else {
+	  n = s/sqrt(n);
+	  QLA_c_eq_r_times_c(QLAELEM(*x), n, z);
+	}
+      } END_LOOP_FTYPE_ELEM;
+#endif
+    });
+  return 0;
+#undef NC
+}
+
+static int
+ftype_makeGroup(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  OPT_INT(g, GROUP_GL);
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  END_ARGS;
+  int i;
+  QDP_loop_sites(i, sub, {
+      qlatype *x = qdpptrreadwrite(t->field, i);
+      qlamakegroup(NCARGT x, g);
+    });
+  return 0;
+#undef NC
+}
+
+static int
+ftype_combine(lua_State *L)
+{
+#define NC QDP_get_nc(td->field)
+  BEGIN_ARGS;
+  GET_FTYPE(td);
+  GET_AS_FTYPE_ARRAY(ns,ts);
+  GET_TABLE_LEN_INDEX(cl,ci);
+  OPT_QSUBSET(sub, td->lat, QDP_all_L(td->qlat));
+  END_ARGS;
+  for(int i=0; i<ns; i++) {
+    lua_pushinteger(L, i+1);
+    lua_gettable(L, ci);
+    if(lua_type(L,-1)==LUA_TNUMBER) {
+      QLA_Real r = lua_tonumber(L, -1);
+      if(i==0) { qdptimesr(td->field, &r, ts[0]->field, sub); }
+      else { qdppeqtimesr(td->field, &r, ts[i]->field, sub); }
+#ifndef ISREAL
+    } else { // complex
+      qhmc_complex_t *c = qhmc_complex_check(L, -1);
+      QLA_Complex z;
+      QLA_c_eq_r_plus_ir(z, c->r, c->i);
+      if(i==0) { qdptimesc(td->field, &z, ts[0]->field, sub); }
+      else { qdppeqtimesc(td->field, &z, ts[i]->field, sub); }
+#endif
+    }
+  }
+  return 0;
+#undef NC
 }
 
 static int
@@ -675,11 +763,21 @@ ftype_sum(lua_State *L)
 #define NC QDP_get_nc(t->field)
   BEGIN_ARGS;
   GET_FTYPE(t);
-  OPT_SUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  OPT_AS_QSUBSET_ARRAY(ns, subs, t->lat, 1, QDP_all_and_empty_L(t->qlat));
   END_ARGS;
-  qlatype r;
-  qdpsum(&r, t->field, sub);
-  pushqlatype(L, NCARGT r);
+  if(ns==1) {
+    qlatype r;
+    qdpsum(&r, t->field, subs[0]);
+    pushqlatype(L, NCARGT &r);
+  } else {
+    qlatype r[ns];
+    qdpsummulti(r, t->field, subs, ns);
+    lua_createtable(L, ns, 0);
+    for(int i=0; i<ns; i++) {
+      pushqlatype(L, NCARGT &r[i]);
+      lua_rawseti(L, -2, i+1);
+    }
+  }
   return 1;
 #undef NC
 }
@@ -690,11 +788,17 @@ ftype_norm2(lua_State *L)
 #define NC QDP_get_nc(t->field)
   BEGIN_ARGS;
   GET_FTYPE(t);
-  OPT_SUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  OPT_AS_QSUBSET_ARRAY(ns, subs, t->lat, 1, QDP_all_and_empty_L(t->qlat));
   END_ARGS;
-  QLA_Real r;
-  qdpnorm2(&r, t->field, sub);
-  lua_pushnumber(L, r);
+  if(ns==1) {
+    QLA_Real r;
+    qdpnorm2(&r, t->field, subs[0]);
+    lua_pushnumber(L, r);
+  } else {
+    QLA_Real r[ns];
+    qdpnorm2multi(r, t->field, subs, ns);
+    qhmc_push_real_array(L, ns, r);
+  }
   return 1;
 #undef NC
 }
@@ -706,7 +810,7 @@ ftype_lnorm2(lua_State *L)
   BEGIN_ARGS;
   GET_FTYPE(t);
   OPT_QOPQDP_REAL(r, NULL);
-  OPT_SUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
   END_ARGS;
   int rv = 0;
   if(r==NULL) {
@@ -729,59 +833,97 @@ ftype_redot(lua_State *L)
   BEGIN_ARGS;
   GET_FTYPE(t1);
   GET_FTYPE(t2);
-  OPT_SUBSET(sub, t1->lat, QDP_all_L(t1->qlat));
+  OPT_AS_QSUBSET_ARRAY(ns, subs, t1->lat, 1, QDP_all_and_empty_L(t1->qlat));
   END_ARGS;
-  QLA_Real r;
-#ifdef ISREAL
-  qdpdot(&r, t1->field, t2->field, sub);
-#else
-  qdpredot(&r, t1->field, t2->field, sub);
-#endif
-  lua_pushnumber(L, r);
+  if(ns==1) {
+    QLA_Real r;
+    qdpredot(&r, t1->field, t2->field, subs[0]);
+    lua_pushnumber(L, r);
+  } else {
+    QLA_Real r[ns];
+    qdpredotmulti(r, t1->field, t2->field, subs, ns);
+    qhmc_push_real_array(L, ns, r);
+  }
   return 1;
 #undef NC
 }
+
+#ifndef ISREAL
+static int
+ftype_dot(lua_State *L)
+{
+#define NC QDP_get_nc(t1->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t1);
+  GET_FTYPE(t2);
+  OPT_AS_QSUBSET_ARRAY(ns, subs, t1->lat, 1, QDP_all_and_empty_L(t1->qlat));
+  END_ARGS;
+  if(ns==1) {
+    QLA_Complex c;
+    qdpdot(&c, t1->field, t2->field, subs[0]);
+    qhmc_complex_create(L, QLA_real(c), QLA_imag(c));
+  } else {
+    QLA_Complex c[ns];
+    qdpdotmulti(c, t1->field, t2->field, subs, ns);
+    qhmc_complex_t cc[ns];
+    for(int i=0; i<ns; i++) {
+      cc[i].r = QLA_real(c[i]);
+      cc[i].i = QLA_imag(c[i]);
+    }
+    qhmc_push_complex_array(L, ns, cc);
+  }
+  return 1;
+#undef NC
+}
+#endif
 
 #endif
 
 
 static struct luaL_Reg ftype_reg[] = {
-  { "__gc",      ftype_gc },
-  { "read",      ftype_read },
-  { "write",     ftype_write },
-  { "clone",     ftype_clone },
-  { "set",       ftype_set },
+  { "__gc",       ftype_gc },
+  { "read",       ftype_read },
+  { "write",      ftype_write },
+  { "clone",      ftype_clone },
+  { "set",        ftype_set },
 #ifdef ISRSTATE
-  { "seed",      ftype_seed },
+  { "seed",       ftype_seed },
 #endif
 #ifdef ARITH
-  { "zero",      ftype_zero },
-  { "unit",      ftype_unit },
-  { "point",     ftype_point },
-  { "random",    ftype_random },
-  { "randomU1",  ftype_randomU1 },
-  { "combine",   ftype_combine },
+  { "zero",       ftype_zero },
+  { "unit",       ftype_unit },
+  { "point",      ftype_point },
+  { "site",       ftype_site },
+  { "random",     ftype_random },
+  { "randomU1",   ftype_randomU1 },
+  { "normalize",  ftype_normalize },
+  { "lnormalize", ftype_lnormalize },
   //{ "checkU",   qopqdp_gauge_checkU },
   //{ "checkSU",  qopqdp_gauge_checkSU },
-  //{ "makeSU",   qopqdp_gauge_makeSU },
-  { "site",      ftype_site },
+  { "makeGroup",  ftype_makeGroup },
+  { "combine",   ftype_combine },
   { "sum",       ftype_sum },
   { "norm2",       ftype_norm2 },
   { "lnorm2",      ftype_lnorm2 },
   //{ "infnorm",    qopqdp_force_infnorm },
   { "reDot",       ftype_redot },
-  //{ "Re_dot",      qopqdp_squark_redot },
-  //{ "dot",         qopqdp_squark_dot },
+#ifdef ISREAL
+  { "dot",         ftype_redot },
+#else
+  { "dot",         ftype_dot },
+#endif
   //{ "gamma",      qopqdp_wquark_gamma },
   //{ "smearGauss", qopqdp_wquark_smearGauss },
 #endif
   { NULL, NULL}
 };
+// det
 // shift
 // transport
 // multiply (R*T,C*T,M*M,M1*M)
 // split/combine spin
 // nc*CV <-> CM
+// check/make: GL,U,H,AH,SL,SU,TGL,TH,TAH
 
 ftype_t *
 ftype_create_unset(lua_State *L, NCPROTT lattice_t *lat)

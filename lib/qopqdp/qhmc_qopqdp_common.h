@@ -483,7 +483,6 @@ void qopqdp_cscalarD_array_check(lua_State *L, int idx, int n, cscalarD_t *s[n])
 #endif
 
 
-#if 0 // not currently used
 #define GROUP_GL   0 // general
 #define GROUP_U    1 // unitary
 #define GROUP_H    2 // Hermitian
@@ -494,8 +493,8 @@ void qopqdp_cscalarD_array_check(lua_State *L, int idx, int n, cscalarD_t *s[n])
 #define GROUP_SU  (GROUP_S+GROUP_U)
 #define GROUP_TGL (GROUP_T+GROUP_GL)
 #define GROUP_TH  (GROUP_T+GROUP_H)
-#define GROUP_TAH (GROUP_T+GROUP_H)
-#endif
+#define GROUP_TAH (GROUP_T+GROUP_AH)
+#define GROUP_TYPE 3 // (g&GROUP_TYPE)->{GL,U,H,AH}
 typedef struct {
   lattice_t *lat;
   QDP_Lattice *qlat;

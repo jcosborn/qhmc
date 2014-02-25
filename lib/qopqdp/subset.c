@@ -267,7 +267,7 @@ opt_as_qsubset_array_real(lua_State *L, int idx, lattice_t *lat, QDP_Subset *t)
     int n = tableLength(L, idx);
     for(int i=1; i<=n; i++) {
       tableGetIndex(L, idx, i);
-      int nn = opt_qsubset_real(L, -1, lat, t+len);
+      int nn = opt_qsubset_real(L, -1, lat, t?t+len:t);
       lua_pop(L, 1);
       if(nn==0) {
 	if(i==1) break;
