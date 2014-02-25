@@ -634,11 +634,14 @@ ftype_randomU1(lua_State *L)
   END_ARGS;
   qdpgaussian(t->field, rs, sub);
   int i;
+#ifdef ISREAL
   QDP_loop_sites(i, sub, {
       qlatype *x = qdpptrreadwrite(t->field, i);
-#ifdef ISREAL
       *x = (*x>=0) ? 1 : -1;
+    });
 #else
+  QDP_loop_sites(i, sub, {
+      qlatype *x = qdpptrreadwrite(t->field, i);
       LOOP_FTYPE_ELEM {
 	QLA_Complex z = QLAELEM(*x);
 	QLA_Real n = QLA_norm2_c(z);
@@ -649,8 +652,8 @@ ftype_randomU1(lua_State *L)
 	  QLA_c_eq_r_times_c(QLAELEM(*x), n, z);
 	}
       } END_LOOP_FTYPE_ELEM;
-#endif
     });
+#endif
   return 0;
 #undef NC
 }
@@ -687,11 +690,14 @@ ftype_lnormalize(lua_State *L)
   OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
   END_ARGS;
   int i;
+#ifdef ISREAL
   QDP_loop_sites(i, sub, {
       qlatype *x = qdpptrreadwrite(t->field, i);
-#ifdef ISREAL
       *x = (*x>=0) ? s : -s;
+    });
 #else
+  QDP_loop_sites(i, sub, {
+      qlatype *x = qdpptrreadwrite(t->field, i);
       LOOP_FTYPE_ELEM {
 	QLA_Complex z = QLAELEM(*x);
 	QLA_Real n = QLA_norm2_c(z);
@@ -702,8 +708,8 @@ ftype_lnormalize(lua_State *L)
 	  QLA_c_eq_r_times_c(QLAELEM(*x), n, z);
 	}
       } END_LOOP_FTYPE_ELEM;
-#endif
     });
+#endif
   return 0;
 #undef NC
 }
