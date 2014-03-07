@@ -1,5 +1,8 @@
 #include <string.h>
 #include "qhmc_qopqdp_common.h"
+#ifdef HAVE_NC3
+#include <qdp_d3.h>
+#endif
 
 static char *mtname = "qopqdp.asqtad";
 
@@ -519,7 +522,14 @@ qopqdp_asqtad_force(lua_State *L)
     }
     QOP_F_rephase_G_qdp(flinks, h->r0, &h->bc, &h->ssign);
     if(deriv) {
-      QOP_F_asqtad_deriv_multi_qdp(&info, flinks, fforce, &h->coeffs, qeps, qcv, nq);
+      switch(QOP_Nc) {
+#ifdef HAVE_NC3
+      case 3:
+	QOP_F3_asqtad_deriv_multi_qdp(&info, (QDP_F3_ColorMatrix**)flinks, (QDP_F3_ColorMatrix**)fforce, &h->coeffs, qeps, (QDP_F3_ColorVector**)qcv, nq);
+	break;
+#endif
+      default: QOP_F_asqtad_deriv_multi_qdp(&info, flinks, fforce, &h->coeffs, qeps, qcv, nq);
+      }
       QOP_F_rephase_G_qdp(fforce, h->r0, &h->bc, &h->ssign);
     } else {
       QOP_F_asqtad_force_multi_qdp(&info, flinks, fforce, &h->coeffs, qeps, qcv, nq);
@@ -540,7 +550,14 @@ qopqdp_asqtad_force(lua_State *L)
     for(int i=0; i<f->nd; i++) QDP_M_eq_zero(f->force[i], QDP_all);
     QOP_rephase_G_qdp(h->g->links, h->r0, &h->bc, &h->ssign);
     if(deriv) {
-      QOP_asqtad_deriv_multi_qdp(&info, h->g->links, f->force, &h->coeffs, qeps, qcv, nq);
+      switch(QOP_Nc) {
+#ifdef HAVE_NC3
+      case 3:
+	QOP_3_asqtad_deriv_multi_qdp(&info, (QDP_3_ColorMatrix**)h->g->links, (QDP_3_ColorMatrix**)f->force, &h->coeffs, qeps, (QDP_3_ColorVector**)qcv, nq);
+	break;
+#endif
+      default: QOP_asqtad_deriv_multi_qdp(&info, h->g->links, f->force, &h->coeffs, qeps, qcv, nq);
+      }
       QOP_rephase_G_qdp(f->force, h->r0, &h->bc, &h->ssign);
     } else {
       QOP_asqtad_force_multi_qdp(&info, h->g->links, f->force, &h->coeffs, qeps, qcv, nq);

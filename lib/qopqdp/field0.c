@@ -54,7 +54,7 @@ typedef S3(qopqdp_,FTYPE,O_t) ftypeO_t;
 #define NCARGT NC,
 #define NCV NC
 #define SP(x,y,m,...)					\
-  switch(NC) {						\
+  switch(QDP_Nc) {						\
   case 1: I(S3(x,1_,y)m(qdptype1,__VA_ARGS__)); break;	\
   case 2: I(S3(x,2_,y)m(qdptype2,__VA_ARGS__)); break;	\
   case 3: I(S3(x,3_,y)m(qdptype3,__VA_ARGS__)); break;	\
@@ -81,6 +81,8 @@ typedef S2(QDP_3_,QDPT) qdptype3;
 #define C1x1x(t,a,b,c,d) ((t*)a,b,(t*)c,d)
 #define Cx11x(t,a,b,c,d) (a,(t*)b,(t*)c,d)
 #define Cx1xx(t,a,b,c,d) (a,(t*)b,c,d)
+#define C11xx(t,a,b,c,d) ((t*)a,(t*)b,c,d)
+#define C22xx(t,a,b,c,d) ((t**)a,(t**)b,c,d)
 #define Cx11xx(t,a,b,c,d,e) (a,(t*)b,(t*)c,d,e)
 #define SP3x(a,b,c,m,...) S3(a,b,c)(__VA_ARGS__)
 #define SP4x(a,b,c,d,m,...) S4(a,b,c,d)(__VA_ARGS__)
@@ -96,17 +98,24 @@ typedef S2(QDP_D_,QDPT) qdptypeD;
 #define qlaeq(f1,f2) SP4x(QLA_,A,_eq_,A,Cll,f1,f2)
 #define qdpcreate(l) S3(QDP_create_,A,_L)(l)
 #define qdpdestroy(f) S2(QDP_destroy_,A)(f)
+#define qdpdiscard(f) S2(QDP_discard_,A)(f)
 #define qdpzero(f,s) SP3(QDP_,A,_eq_zero,C1x,f,s)
 #define qdpTeqt(f,c,s) SP4x(QDP_,A,_eq_,AL,C1lx,f,c,s)
 #define qdpeq(f1,f2,s) SP4(QDP_,A,_eq_,A,C11x,f1,f2,s)
+#define qdpmeq(f1,f2,s) SP4(QDP_,A,_meq_,A,C11x,f1,f2,s)
+#define qdpvpeq(f1,f2,s,n) SP4(QDP_,A,_vpeq_,A,C22xx,f1,f2,s,n)
 #define qdpeqs(f1,f2,sh,sd,s) S4(QDP_,A,_eq_s,A)(f1,f2,sh,sd,s)
+#define qdpveqs(f1,f2,sh,sd,s,n) S4(QDP_,A,_veq_s,A)(f1,f2,sh,sd,s,n)
 #define qdpptrreadonly(f,s) S2(QDP_site_ptr_readonly_,A)(f,s)
 #define qdpptrreadwrite(f,s) S2(QDP_site_ptr_readwrite_,A)(f,s)
 #define qdpgaussian(f,r,s) SP3x(QDP_,A,_eq_gaussian_S,C1x,f,r,s)
-#define qdptimesr(f1,r,f2,s) SP4(QDP_,A,_eq_r_times_,A,C1x1x,f1,r,f2,s)
-#define qdppeqtimesr(f1,r,f2,s) SP4(QDP_,A,_peq_r_times_,A,C1x1x,f1,r,f2,s)
-#define qdptimesc(f1,c,f2,s) SP4(QDP_,A,_eq_c_times_,A,C1x1x,f1,c,f2,s)
-#define qdppeqtimesc(f1,c,f2,s) SP4(QDP_,A,_peq_c_times_,A,C1x1x,f1,c,f2,s)
+#define qdprtimes(f1,r,f2,s) SP4(QDP_,A,_eq_r_times_,A,C1x1x,f1,r,f2,s)
+#define qdppeqrtimes(f1,r,f2,s) SP4(QDP_,A,_peq_r_times_,A,C1x1x,f1,r,f2,s)
+#define qdpctimes(f1,c,f2,s) SP4(QDP_,A,_eq_c_times_,A,C1x1x,f1,c,f2,s)
+#define qdppeqctimes(f1,c,f2,s) SP4(QDP_,A,_peq_c_times_,A,C1x1x,f1,c,f2,s)
+#define qdpMtimes(f1,m,f2,s) SP4x(QDP_,A,_eq_M_times_,A,C1m1x,f1,m,f2,s)
+#define qdpveqMatimes(f1,m,f2,s,n) SP4x(QDP_,A,_veq_Ma_times_,A,C1m1xx,f1,m,f2,s,n)
+#define qdpvpeqMtimes(f1,m,f2,s,n) SP4x(QDP_,A,_vpeq_M_times_,A,C1m1xx,f1,m,f2,s,n)
 #define qdpsum(r,f,s) SP4x(QDP_,AL,_eq_sum_,A,Cl1x,r,f,s)
 #define qdpsummulti(r,f,s,n) SP5x(QDP_,AL,_eq_sum_,A,_multi,Cl1xx,r,f,s,n)
 #define qdpnorm2(r,f,s) SP3(QDP_,r_eq_norm2_,A,Cx1x,r,f,s)
@@ -354,81 +363,91 @@ ftype_set(lua_State *L)
   OPT_FTYPE(t2, NULL);
 #ifdef PRECISE
   OPT_FTYPEO(t2o, NULL);
+  OPT_AS_COMPLEX_PTR(z, NULL);
 #endif
+  OPT_QSUBSET(sub, t1->lat, QDP_all_L(t1->qlat));
   END_ARGS;
-  lattice_t *lat2 = NULL;
-  if(t2) lat2 = t2->lat;
 #ifdef PRECISE
-  else if(t2o) lat2 = t2o->lat;
-#endif
-  qassert(lat2!=NULL);
-  if(t1->qlat==lat2->qlat) {
-    if(t2) {
-      qdpeq(t1->field, t2->field, QDP_all_L(t1->qlat));
-#ifdef PRECISE
-    } else {
-      qdpeqO(t1->field, t2o->field, QDP_all_L(t1->qlat));
-#endif
-    }
+  if(z) { // set from constant
+    GET_QLA_CONST(c, z);
+    qdpTeqt(t1->field, &c, sub);
   } else {
-    // copy with truncation/replication
-    QDP_Lattice *rlat = t1->qlat;
-    QDP_Lattice *slat = lat2->qlat;
-    int rnd = QDP_ndim_L(rlat);
-    int snd = QDP_ndim_L(slat);
-    //printf0("rls:");
-    //for(int i=0; i<rnd; i++) printf0(" %i", QDP_coord_size_L(rlat,i));
-    //printf0("\n");
-    //printf0("sls:");
-    //for(int i=0; i<snd; i++) printf0(" %i", QDP_coord_size_L(slat,i));
-    //printf0("\n");
-    int roff[rnd], rlen[rnd], sdir[rnd], soff[snd];
-    for(int i=0; i<rnd; i++) {
-      roff[i] = 0;
-      rlen[i] = QDP_coord_size_L(rlat,i);
-      sdir[i] = i;
-    }
-    for(int i=0; i<snd; i++) {
-      soff[i] = 0;
-    }
-#ifdef PRECISE
-    qdptypeF *qt2 = NULL;
-    if(t2==NULL) {
-      qt2 = qdpcreateF(lat2->qlat);
-    }
 #endif
-    for(int s=0; ; s++) {
-      printf0("s: %i\n", s);
-      QDP_Subset *sub;
-      QDP_Shift shift;
-      qhmc_qopqdp_getCopyHyper(&shift, &sub, rlat, roff, rlen, sdir, slat, soff, s);
-      if(sub==NULL) break;
-      //printf0("created subset and map\n");
+    lattice_t *lat2 = NULL;
+    if(t2) lat2 = t2->lat;
+#ifdef PRECISE
+    else if(t2o) lat2 = t2o->lat;
+#endif
+    qassert(lat2!=NULL);
+    if(t1->qlat==lat2->qlat) {
       if(t2) {
-	qdpeqs(t1->field, t2->field, shift, QDP_forward, sub[0]);
+	qdpeq(t1->field, t2->field, sub);
 #ifdef PRECISE
       } else {
-#if QOP_Precision == 'F'
-	qdpeqO(qt2, t2o->field, sub[0]);
-	qdpeqs(t1->field, qt2, shift, QDP_forward, sub[0]);
-#else
-	qdpeqsO(qt2, t2o->field, shift, QDP_forward, sub[0]);
-	qdpeqO(t1->field, qt2, sub[0]);
-#endif
+	qdpeqO(t1->field, t2o->field, sub);
 #endif
       }
-      //printf0("finished shift\n");
-      QDP_destroy_shift(shift);
-      //printf0("destroyed map\n");
-      QDP_destroy_subset(sub);
-      //printf0("destroyed subset\n");
+    } else { // copy with truncation/replication
+      QDP_Lattice *rlat = t1->qlat;
+      QDP_Lattice *slat = lat2->qlat;
+      int rnd = QDP_ndim_L(rlat);
+      int snd = QDP_ndim_L(slat);
+      //printf0("rls:");
+      //for(int i=0; i<rnd; i++) printf0(" %i", QDP_coord_size_L(rlat,i));
+      //printf0("\n");
+      //printf0("sls:");
+      //for(int i=0; i<snd; i++) printf0(" %i", QDP_coord_size_L(slat,i));
+      //printf0("\n");
+      int roff[rnd], rlen[rnd], sdir[rnd], soff[snd];
+      for(int i=0; i<rnd; i++) {
+	roff[i] = 0;
+	rlen[i] = QDP_coord_size_L(rlat,i);
+	sdir[i] = i;
+      }
+      for(int i=0; i<snd; i++) {
+	soff[i] = 0;
+      }
+#ifdef PRECISE
+      qdptypeF *qt2 = NULL;
+      if(t2==NULL) {
+	qt2 = qdpcreateF(lat2->qlat);
+      }
+#endif
+      for(int s=0; ; s++) {
+	printf0("s: %i\n", s);
+	QDP_Subset *sub;
+	QDP_Shift shift;
+	qhmc_qopqdp_getCopyHyper(&shift, &sub, rlat, roff, rlen, sdir, slat, soff, s);
+	if(sub==NULL) break;
+	//printf0("created subset and map\n");
+	if(t2) {
+	  qdpeqs(t1->field, t2->field, shift, QDP_forward, sub[0]);
+#ifdef PRECISE
+	} else {
+#if QOP_Precision == 'F'
+	  qdpeqO(qt2, t2o->field, sub[0]);
+	  qdpeqs(t1->field, qt2, shift, QDP_forward, sub[0]);
+#else
+	  qdpeqsO(qt2, t2o->field, shift, QDP_forward, sub[0]);
+	  qdpeqO(t1->field, qt2, sub[0]);
+#endif
+#endif
+	}
+	//printf0("finished shift\n");
+	QDP_destroy_shift(shift);
+	//printf0("destroyed map\n");
+	QDP_destroy_subset(sub);
+	//printf0("destroyed subset\n");
     }
 #ifdef PRECISE
-    if(t2==NULL) {
-      qdpdestroyF(qt2);
-    }
+      if(t2==NULL) {
+	qdpdestroyF(qt2);
+      }
 #endif
+    }
+#ifdef PRECISE
   }
+#endif
   return 0;
 #undef NC
 }
@@ -617,7 +636,7 @@ ftype_random(lua_State *L)
   qdpgaussian(t->field, rs, sub);
   if(s!=1) {
     QLA_Real r = s;  
-    qdptimesr(t->field, &r, t->field, sub);
+    qdprtimes(t->field, &r, t->field, sub);
   }
   return 0;
 #undef NC
@@ -675,7 +694,7 @@ ftype_normalize(lua_State *L)
     qdpnorm2(&r, t->field, sub);
   }
   r = s/sqrt(r);
-  qdptimesr(t->field, &r, t->field, sub);
+  qdprtimes(t->field, &r, t->field, sub);
   return 0;
 #undef NC
 }
@@ -714,6 +733,38 @@ ftype_lnormalize(lua_State *L)
 #undef NC
 }
 
+static void
+projectGroup(NCPROTT qdptype *t, int g, QDP_Subset sub)
+{
+  int i;
+  QDP_loop_sites(i, sub, {
+      qlatype *x = qdpptrreadwrite(t, i);
+      qlamakegroup(NCARGT x, g);
+    });
+}
+
+static int
+ftype_checkGroup(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  OPT_INT(g, GROUP_GL);
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  END_ARGS;
+  qdptype *x = qdpcreate(t->qlat);
+  qdpeq(x, t->field, sub);
+  projectGroup(NCARGT x, g, sub);
+  qdpmeq(x, t->field, sub);
+  QLA_Real r;
+  qdpnorm2(&r, x, sub);
+  qdpdestroy(x);
+  r = r/NREAL;
+  lua_pushnumber(L, r);
+  return 1;
+#undef NC
+}
+
 static int
 ftype_makeGroup(lua_State *L)
 {
@@ -723,11 +774,7 @@ ftype_makeGroup(lua_State *L)
   OPT_INT(g, GROUP_GL);
   OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
   END_ARGS;
-  int i;
-  QDP_loop_sites(i, sub, {
-      qlatype *x = qdpptrreadwrite(t->field, i);
-      qlamakegroup(NCARGT x, g);
-    });
+  projectGroup(NCARGT t->field, g, sub);
   return 0;
 #undef NC
 }
@@ -747,15 +794,15 @@ ftype_combine(lua_State *L)
     lua_gettable(L, ci);
     if(lua_type(L,-1)==LUA_TNUMBER) {
       QLA_Real r = lua_tonumber(L, -1);
-      if(i==0) { qdptimesr(td->field, &r, ts[0]->field, sub); }
-      else { qdppeqtimesr(td->field, &r, ts[i]->field, sub); }
+      if(i==0) { qdprtimes(td->field, &r, ts[0]->field, sub); }
+      else { qdppeqrtimes(td->field, &r, ts[i]->field, sub); }
 #ifndef ISREAL
     } else { // complex
       qhmc_complex_t *c = qhmc_complex_check(L, -1);
       QLA_Complex z;
       QLA_c_eq_r_plus_ir(z, c->r, c->i);
-      if(i==0) { qdptimesc(td->field, &z, ts[0]->field, sub); }
-      else { qdppeqtimesc(td->field, &z, ts[i]->field, sub); }
+      if(i==0) { qdpctimes(td->field, &z, ts[0]->field, sub); }
+      else { qdppeqctimes(td->field, &z, ts[i]->field, sub); }
 #endif
     }
   }
@@ -885,30 +932,110 @@ ftype_dot(lua_State *L)
 
 #endif
 
+#ifdef SPIN
+// 1: dfermion
+// 2: gamma
+// 3: dfermion
+// 4: (optional) subset
+// TODO 5: (optional) options ("peq")
+static int
+ftype_gamma(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_FTYPE(t1);
+  GET_INT(g);
+  GET_FTYPE(t2);
+  OPT_SUBSET(sub, t1->lat, QDP_all_L(t1->qlat));
+  END_ARGS;
+  QDP_D_eq_gamma_times_D(t1->field, t2->field, g, sub);
+  return 0;
+}
+#endif
+
+
+#ifdef COLORED
+// 1: ftype
+// 2: gauge
+// 3: skipdir (1 based)
+// 3: r
+// 4: (optional) n
+static int
+ftype_smearGauss(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  GET_GAUGE(g);
+  GET_INT(skipdir);
+  GET_DOUBLE(r);
+  OPT_INT(n,1);
+  END_ARGS;
+  int nd = t->lat->nd, ns = 0;
+  qdptype *x, *xt[nd], *xs[nd], *xf[nd], *xb1[nd], *xb2[nd];
+  QDP_Shift sh[nd];
+  QDP_ShiftDir fwd[nd], bck[nd];
+  QDP_Subset sub = QDP_all_L(t->qlat);
+  x = qdpcreate(t->qlat);
+  for(int i=0; i<nd; i++) {
+    if(i+1==skipdir) continue;
+    xt[ns] = x;
+    xs[ns] = t->field;
+    xf[ns] = qdpcreate(t->qlat);
+    xb1[ns] = qdpcreate(t->qlat);
+    xb2[ns] = qdpcreate(t->qlat);
+    sh[ns] = QDP_neighbor_L(t->qlat)[i];
+    fwd[ns] = QDP_forward;
+    bck[ns] = QDP_backward;
+    ns++;
+  }
+  QLA_Real s0 = 1.0/(1.0+2*ns*r);
+  QLA_Real s1 = s0*r;
+  for(int i=0; i<n; i++) {
+    qdprtimes(x, &s1, t->field, sub);
+    qdpveqs(xf, xt, sh, fwd, sub, ns);
+    qdpveqMatimes(xb1, g->links, xt, sub, ns);
+    qdpveqs(xb2, xb1, sh, bck, sub, ns);
+    qdprtimes(t->field, &s0, t->field, sub);
+    qdpvpeqMtimes(xs, g->links, xf, sub, ns);
+    qdpvpeq(xs, xb2, sub, ns);
+    for(int i=0; i<ns; i++) {
+      qdpdiscard(xf[i]);
+      qdpdiscard(xb2[i]);
+    }
+  }
+  qdpdestroy(x);
+  for(int i=0; i<ns; i++) {
+    qdpdestroy(xf[i]);
+    qdpdestroy(xb1[i]);
+    qdpdestroy(xb2[i]);
+  }
+  return 0;
+#undef NC
+}
+#endif
 
 static struct luaL_Reg ftype_reg[] = {
-  { "__gc",       ftype_gc },
-  { "read",       ftype_read },
-  { "write",      ftype_write },
-  { "clone",      ftype_clone },
-  { "set",        ftype_set },
+  { "__gc",        ftype_gc },
+  { "read",        ftype_read },
+  { "write",       ftype_write },
+  { "clone",       ftype_clone },
+  { "set",         ftype_set },
 #ifdef ISRSTATE
-  { "seed",       ftype_seed },
+  { "seed",        ftype_seed },
 #endif
 #ifdef ARITH
-  { "zero",       ftype_zero },
-  { "unit",       ftype_unit },
-  { "point",      ftype_point },
-  { "site",       ftype_site },
-  { "random",     ftype_random },
-  { "randomU1",   ftype_randomU1 },
-  { "normalize",  ftype_normalize },
-  { "lnormalize", ftype_lnormalize },
-  //{ "checkU",   qopqdp_gauge_checkU },
-  //{ "checkSU",  qopqdp_gauge_checkSU },
-  { "makeGroup",  ftype_makeGroup },
-  { "combine",   ftype_combine },
-  { "sum",       ftype_sum },
+  { "zero",        ftype_zero },
+  { "unit",        ftype_unit },
+  { "point",       ftype_point },
+  { "site",        ftype_site },
+  { "random",      ftype_random },
+  { "randomU1",    ftype_randomU1 },
+  { "normalize",   ftype_normalize },
+  { "lnormalize",  ftype_lnormalize },
+  { "checkGroup",  ftype_checkGroup },
+  { "makeGroup",   ftype_makeGroup },
+  { "combine",     ftype_combine },
+  { "sum",         ftype_sum },
   { "norm2",       ftype_norm2 },
   { "lnorm2",      ftype_lnorm2 },
   //{ "infnorm",    qopqdp_force_infnorm },
@@ -918,12 +1045,16 @@ static struct luaL_Reg ftype_reg[] = {
 #else
   { "dot",         ftype_dot },
 #endif
-  //{ "gamma",      qopqdp_wquark_gamma },
-  //{ "smearGauss", qopqdp_wquark_smearGauss },
+#ifdef ISDFERMION
+  { "gamma",       ftype_gamma },
+#endif
+#endif // ARITH
+#ifdef COLORED
+  { "smearGauss",  ftype_smearGauss },
 #endif
   { NULL, NULL}
 };
-// det
+// det, tr
 // shift
 // transport
 // multiply (R*T,C*T,M*M,M1*M)

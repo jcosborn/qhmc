@@ -330,6 +330,7 @@ qopqdp_cvectorD_t *qopqdp_cvectorD_opt(lua_State *L, int *idx, int req, qopqdp_c
 #define qopqdp_cvector_check(L,i) qopqdp_cvector_opt(L,(int[]){i},1,NULL)
 #define GET_QOPQDP_CVECTOR(t) qopqdp_cvector_t *t = qopqdp_cvector_opt(L,&nextarg,1,NULL)
 #define OPT_QOPQDP_CVECTOR(t,d) qopqdp_cvector_t *t = qopqdp_cvector_opt(L,&nextarg,0,d)
+#define OPT_QOPQDP_CVECTORO(t,d) qopqdp_cvectorO_t *t = qopqdp_cvectorO_opt(L,&nextarg,0,d)
 #define GET_AS_QOPQDP_CVECTOR_ARRAY(n,t) int n=qopqdp_cvector_as_array_opt_len(L,nextarg,1,0); qopqdp_cvector_t *t[n]; qopqdp_cvector_as_array_opt(L,&nextarg,1,n,t,0,NULL)
 #define OPT_AS_QOPQDP_CVECTOR_ARRAY(n,t,dn,dt) int n=qopqdp_cvector_as_array_opt_len(L,nextarg,0,dn); qopqdp_cvector_t *t[n]; qopqdp_cvector_as_array_opt(L,&nextarg,0,n,t,dn,dt)
 #if QOP_Precision == 'F'
@@ -453,36 +454,6 @@ qopqdp_dfermionD_t *qopqdp_dfermionD_opt(lua_State *L, int *idx, int req, qopqdp
 #endif
 
 
-typedef struct {
-  lattice_t *lat;
-  QDP_Lattice *qlat;
-  QDP_F_Complex *c;
-} cscalarF_t;
-cscalarF_t *qopqdp_cscalarF_create(lua_State *L, lattice_t *lat);
-cscalarF_t *qopqdp_cscalarF_check(lua_State *L, int idx);
-void qopqdp_cscalarF_array_check(lua_State *L, int idx, int n, cscalarF_t *s[n]);
-typedef struct {
-  lattice_t *lat;
-  QDP_Lattice *qlat;
-  QDP_D_Complex *c;
-} cscalarD_t;
-cscalarD_t *qopqdp_cscalarD_create(lua_State *L, lattice_t *lat);
-cscalarD_t *qopqdp_cscalarD_check(lua_State *L, int idx);
-void qopqdp_cscalarD_array_check(lua_State *L, int idx, int n, cscalarD_t *s[n]);
-#define GET_CSCALAR(s) cscalar_t *s = qopqdp_cscalar_check(L,nextarg); nextarg++
-#if QOP_Precision == 'F'
-#define cscalar_t cscalarF_t
-#define qopqdp_cscalar_create qopqdp_cscalarF_create
-#define qopqdp_cscalar_check qopqdp_cscalarF_check
-#define qopqdp_cscalar_array_check qopqdp_cscalarF_array_check
-#else
-#define cscalar_t cscalarD_t
-#define qopqdp_cscalar_create qopqdp_cscalarD_create
-#define qopqdp_cscalar_check qopqdp_cscalarD_check
-#define qopqdp_cscalar_array_check qopqdp_cscalarD_array_check
-#endif
-
-
 #define GROUP_GL   0 // general
 #define GROUP_U    1 // unitary
 #define GROUP_H    2 // Hermitian
@@ -524,6 +495,7 @@ void qopqdp_D_makeSU(NCPROT QLA_D_ColorMatrix(*m), int idx, void *args);
 #define qopqdp_gaugeO_create qopqdp_gaugeD_create
 #define qopqdp_gauge_check qopqdp_gaugeF_check
 #define qopqdp_gauge_array_check qopqdp_gaugeF_array_check
+#define qopqdp_gaugeO_array_check qopqdp_gaugeD_array_check
 #define qopqdp_gauge_coulomb qopqdp_gaugeF_coulomb
 #define qopqdp_makeSU qopqdp_F_makeSU
 #else
@@ -533,6 +505,7 @@ void qopqdp_D_makeSU(NCPROT QLA_D_ColorMatrix(*m), int idx, void *args);
 #define qopqdp_gaugeO_create qopqdp_gaugeF_create
 #define qopqdp_gauge_check qopqdp_gaugeD_check
 #define qopqdp_gauge_array_check qopqdp_gaugeD_array_check
+#define qopqdp_gaugeO_array_check qopqdp_gaugeF_array_check
 #define qopqdp_gauge_coulomb qopqdp_gaugeD_coulomb
 #define qopqdp_makeSU qopqdp_D_makeSU
 #endif

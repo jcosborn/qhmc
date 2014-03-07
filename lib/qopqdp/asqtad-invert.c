@@ -1,5 +1,17 @@
 #include <math.h>
 #include "qhmc_qopqdp_common.h"
+#ifdef HAVE_NC1
+#include <qdp_f1.h>
+#include <qop_f1.h>
+#endif
+#ifdef HAVE_NC2
+#include <qdp_f2.h>
+#include <qop_f2.h>
+#endif
+#ifdef HAVE_NC3
+#include <qdp_f3.h>
+#include <qop_f3.h>
+#endif
 
 static void
 get_resid(QDP_ColorVector *r, QDP_ColorVector *x, QDP_ColorVector *b,
@@ -56,7 +68,21 @@ asqtadInvert(QOP_info_t *info, QOP_FermionLinksAsqtad *fla,
     QOP_resid_arg_t **ra = residarg;
     QLA_F_Real *mp = m;
     QDP_F_ColorVector **xp = x;
-    QOP_F_asqtad_invert_multi_qdp(info, ffla, invarg, &ra, &mp, &nm, &xp, &b, 1);
+    switch(QOP_Nc) {
+#ifdef HAVE_NC1
+    case 1: QOP_F1_asqtad_invert_multi_qdp(info, (QOP_F1_FermionLinksAsqtad*)ffla, invarg, &ra, &mp, &nm, (QDP_F1_ColorVector***)&xp, (QDP_F1_ColorVector**)&b, 1);
+      break;
+#endif
+#ifdef HAVE_NC2
+    case 2: QOP_F2_asqtad_invert_multi_qdp(info, (QOP_F2_FermionLinksAsqtad*)ffla, invarg, &ra, &mp, &nm, (QDP_F2_ColorVector***)&xp, (QDP_F2_ColorVector**)&b, 1);
+      break;
+#endif
+#ifdef HAVE_NC3
+    case 3: QOP_F3_asqtad_invert_multi_qdp(info, (QOP_F3_FermionLinksAsqtad*)ffla, invarg, &ra, &mp, &nm, (QDP_F3_ColorVector***)&xp, (QDP_F3_ColorVector**)&b, 1);
+      break;
+#endif
+    default: QOP_F_asqtad_invert_multi_qdp(info, ffla, invarg, &ra, &mp, &nm, &xp, &b, 1);
+    }
     for(int i=0; i<nm; i++) {
       QDP_DF_V_eq_V(prop[i], x[i], sub);
     }
@@ -93,7 +119,21 @@ asqtadInvert(QOP_info_t *info, QOP_FermionLinksAsqtad *fla,
       if(1) {
 	QDP_FD_V_eq_V(b, r, sub);
 	QDP_F_V_eq_zero(x[i], sub);
-	QOP_F_asqtad_invert_qdp(info, ffla, invarg, &res_arg, m[i], x[i], b);
+	switch(QOP_Nc) {
+#ifdef HAVE_NC1
+	case 1: QOP_F1_asqtad_invert_qdp(info, (QOP_F1_FermionLinksAsqtad*)ffla, invarg, &res_arg, m[i], (QDP_F1_ColorVector*)x[i], (QDP_F1_ColorVector*)b);
+	  break;
+#endif
+#ifdef HAVE_NC2
+	case 2: QOP_F2_asqtad_invert_qdp(info, (QOP_F2_FermionLinksAsqtad*)ffla, invarg, &res_arg, m[i], (QDP_F2_ColorVector*)x[i], (QDP_F2_ColorVector*)b);
+	  break;
+#endif
+#ifdef HAVE_NC3
+	case 3: QOP_F3_asqtad_invert_qdp(info, (QOP_F3_FermionLinksAsqtad*)ffla, invarg, &res_arg, m[i], (QDP_F3_ColorVector*)x[i], (QDP_F3_ColorVector*)b);
+	  break;
+#endif
+	default: QOP_F_asqtad_invert_qdp(info, ffla, invarg, &res_arg, m[i], x[i], b);
+	}
 	QDP_DF_V_eq_V(Dprop, x[i], sub);
       } else {
 	QDP_V_eq_zero(Dprop, sub);

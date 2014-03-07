@@ -26,29 +26,39 @@ get_asqtad_coeffs(lua_State *L, int idx, QOP_asqtad_coeffs_t *coeffs)
   }
 }
 
+// 1: table of output (smeared) gauge fields
+// 2: table of input gauge fields
+// 3: smearing parameters
 static int
 qopqdp_smear(lua_State *L)
 {
 #define NC QDP_get_nc(g[0]->links[0])
-  // take the first 3 elements of the lua_State stack
   qassert(lua_gettop(L)==3);
+  const char *type = tableGetString(L, 3, "type");
+  QOP_info_t info;
 
   // number of smeared gauge fields; 
-  // In the Lua binding, 
-  // this should be the first argument/table of the lua script
   int nsg; get_table_len(L, 1, &nsg);
   gauge_t *sg[nsg]; qopqdp_gauge_array_check(L, 1, nsg, sg);
+
+  if(strcmp(type,"precision")==0) {
+    int ng; get_table_len(L, 2, &ng);
+    gaugeO_t *g[ng]; qopqdp_gaugeO_array_check(L, 2, ng, g);
+    qassert(nsg==1 && ng==1);
+    int nd = sg[0]->nd;
+    for(int mu=0; mu<nd; mu++) {
+#if QOP_Precision == 'F'
+      QDP_FD_M_eq_M(sg[0]->links[mu], g[0]->links[mu], QDP_all_L(QDP_get_lattice_M(sg[0]->links[0])));
+#else
+      QDP_DF_M_eq_M(sg[0]->links[mu], g[0]->links[mu], QDP_all_L(QDP_get_lattice_M(sg[0]->links[0])));
+#endif
+    }
+    return 0;
+  }
 
   // number of input gauge fields 
   int ng; get_table_len(L, 2, &ng);
   gauge_t *g[ng]; qopqdp_gauge_array_check(L, 2, ng, g);
-
-  // smearing parameters;
-  // input is an associative table: 
-  // 	first element - type,
-  //	second element - coeffs 
-  const char *type = tableGetString(L, 3, "type");
-  QOP_info_t info;
 
   // sum over two gauge fields, needed for smearing
   if(strcmp(type,"sum")==0) {

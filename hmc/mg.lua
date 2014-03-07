@@ -5,6 +5,7 @@ function mgSetup(a)
   if mgIsSet then return end
   mgIsSet = true
   if noMG then return end
+  if not useMG then return end
   local kappa = 0.5/(mass+1.0+3.0*a.coeffs.aniso)
   printf("mass = %f, kappa = %f\n",mass, kappa)
 

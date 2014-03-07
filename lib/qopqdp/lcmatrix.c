@@ -12,6 +12,7 @@
 // QDP field type name
 #define QDPT ColorMatrix
 
+#define NREAL (2*(NC)*(NC))
 #define GET_COLOR_SPIN GET_INT(ic); GET_INT(jc)
 #define QLAELEM(x) QLA_elem_M(x,ic,jc)
 
@@ -21,14 +22,17 @@
 
 #define END_LOOP_FTYPE_ELEM } }
 
-#define GET_QLA_UNIT(x)					\
-  QLA_ColorMatrix x;					\
-  for(int ic=0; ic<QLA_Nc; ic++) {			\
-    for(int jc=0; jc<QLA_Nc; jc++) {			\
-      if(ic==jc) { QLA_c_eq_r(QLA_elem_M(x,ic,jc),1); }	\
-      else { QLA_c_eq_r(QLA_elem_M(x,ic,jc),0);	}	\
-    }							\
+#define GET_QLA_CONST2(x,zr,zi)						\
+  QLA_ColorMatrix x;							\
+  for(int ic=0; ic<QLA_Nc; ic++) {					\
+    for(int jc=0; jc<QLA_Nc; jc++) {					\
+      if(ic==jc) { QLA_c_eq_r_plus_ir(QLA_elem_M(x,ic,jc),zr,zi); }	\
+      else { QLA_c_eq_r(QLA_elem_M(x,ic,jc),0);	}			\
+    }									\
   }
+
+#define GET_QLA_UNIT(x)	   GET_QLA_CONST2(x,1,0)
+#define GET_QLA_CONST(x,z) GET_QLA_CONST2(x,(z)->r,(z)->i)
 
 static void
 qlamakegroup(int NC, QLA_ColorMatrix *x, int g)

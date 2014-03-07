@@ -368,16 +368,6 @@ qopqdp_random(lua_State *L)
   return 1;
 }
 
-static int
-qopqdp_cscalar(lua_State *L)
-{
-  BEGIN_ARGS;
-  OPT_LATTICE(lat, NULL);
-  END_ARGS;
-  qopqdp_cscalar_create(L, lat);
-  return 1;
-}
-
 // 1: precision
 // 2: nc
 // 3: lattice
@@ -504,7 +494,6 @@ static struct luaL_Reg qopqdp_reg[] = {
   { "writeGroupSize", qopqdp_writeGroupSize },
   { "seed",           qopqdp_seed },
   { "random",         qopqdp_random },
-  { "cscalar",        qopqdp_cscalar },
   { "gauge",          qopqdp_gauge },
   { "force",          qopqdp_force },
   { "asqtad",         qopqdp_asqtad },

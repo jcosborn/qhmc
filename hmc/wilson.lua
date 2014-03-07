@@ -4,7 +4,7 @@ require 'run'
 require 'mg'
 
 trace(doTrace)
-noMG = true
+--useMG = true
 
 local nx = nx or 4
 local nt = nt or 8
@@ -13,7 +13,7 @@ local beta_a = beta_a or 0
 local u0 = u0 or 1
 local aniso = aniso or {}
 local nf = nf or 2
-local mass = mass or 0.0
+--local mass = mass or 0.0
 --local rho = rho or 0.02
 local clov = clov or 0
 local clov_s = clov_s or clov
@@ -25,8 +25,8 @@ aniso.nu = aniso.nu or 1
 aniso.gmom = aniso.gmom or 1
 
 local rhmc = {}
-local hmcmasses = {mass, mass2}
---local hmcmasses = { mass, 1.4*mass }
+local hmcmasses = hmcmasses or {mass, mass2}
+local mass = mass or hmcmasses[1]
 local seed = seed or os.time()
 
 --local inlat = inlat or nil

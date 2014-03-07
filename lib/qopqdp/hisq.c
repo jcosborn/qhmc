@@ -1,5 +1,8 @@
 #include <string.h>
 #include "qhmc_qopqdp_common.h"
+#ifdef HAVE_NC3
+#include <qdp_d3.h>
+#endif
 
 static char *mtname = "qopqdp.hisq";
 
@@ -407,7 +410,13 @@ qopqdp_hisq_force(lua_State *L)
       fforce[i] = QDP_F_create_M();
       QDP_F_M_eq_zero(fforce[i], QDP_all);
     }
-    QOP_F_hisq_force_multi_qdp(&info, h->ffl, fforce, &h->coeffs, qeps, qcv, &nq);
+    switch(QOP_Nc) {
+#ifdef HAVE_NC3
+    case 3: QOP_F3_hisq_force_multi_qdp(&info, (QOP_F3_FermionLinksHisq*)h->ffl, (QDP_F3_ColorMatrix**)fforce, &h->coeffs, qeps, (QDP_F3_ColorVector**)qcv, &nq);
+      break;
+#endif
+    default: QOP_F_hisq_force_multi_qdp(&info, h->ffl, fforce, &h->coeffs, qeps, qcv, &nq);
+    }
     for(int i=0; i<f->nd; i++) {
       QDP_DF_M_eq_M(f->force[i], fforce[i], QDP_all);
       QDP_F_destroy_M(fforce[i]);
@@ -421,7 +430,13 @@ qopqdp_hisq_force(lua_State *L)
     QLA_Real qeps[ne]; for(int i=0; i<ne; i++) qeps[i] = 4*eps[i];
     QDP_ColorVector *qcv[nq]; for(int i=0; i<nq; i++) qcv[i] = q[i]->cv;
     for(int i=0; i<f->nd; i++) QDP_M_eq_zero(f->force[i], QDP_all);
-    QOP_hisq_force_multi_qdp(&info, h->fl, f->force, &h->coeffs, qeps, qcv, &nq);
+    switch(QOP_Nc) {
+#ifdef HAVE_NC3
+    case 3: QOP_3_hisq_force_multi_qdp(&info, (QOP_3_FermionLinksHisq*)h->fl, (QDP_3_ColorMatrix**)f->force, &h->coeffs, qeps, (QDP_3_ColorVector**)qcv, &nq);
+      break;
+#endif
+    default: QOP_hisq_force_multi_qdp(&info, h->fl, f->force, &h->coeffs, qeps, qcv, &nq);
+    }
   }
 
   f->time = info.final_sec;

@@ -12,6 +12,7 @@
 // QDP field type name
 #define QDPT Real
 
+#define NREAL 1
 #define GET_COLOR_SPIN (void)0
 #define QLAELEM(x) (x)
 
@@ -19,6 +20,7 @@
 #define END_LOOP_FTYPE_ELEM
 
 #define GET_QLA_UNIT(x) QLA_Real x = 1
+#define GET_QLA_CONST(x,z) QLA_Real x = (z)->r
 
 static void
 qlamakegroup(QLA_Real *x, int g)

@@ -325,12 +325,10 @@ qopqdp_opt_qsubset(lua_State *L, int *idx, int required,
 {
   if(lat==NULL) lat = qopqdp_get_default_lattice(L);
   int len = opt_qsubset_real(L, *idx, lat, NULL);
-  QDP_Subset qsub;
+  QDP_Subset qsub = def;
   if(len==0) {
     if(required) {
       qlerror0(L, 1, "invalid subset array at argument %i\n", *idx);
-    } else {
-      qsub = def;
     }
   } else {
     opt_qsubset_real(L, *idx, lat, &qsub);
