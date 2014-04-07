@@ -67,7 +67,7 @@ AC_ARG_ENABLE(
   AC_HELP_STRING([--enable-colors],
     [make all fields use this color library (1,2,3,n)]),
   AC_SUBST(COLORS, [$enableval]),
-  AC_SUBST(COLORS, [])
+  : #AC_SUBST(COLORS, [])
 )
 if test -n "$COLORS"; then
   if test "$COLORS" = n; then
