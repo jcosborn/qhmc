@@ -100,7 +100,7 @@
 #define QDPPO(x) QDP_DF_ ## x
 #endif
 
-#ifndef HAVE_MG
+#if !defined(HAVE_MG) && !defined(QOP_WilsonMg)
 #define QOP_WilsonMg void
 #define QOP_wilsonMgNew(...) NULL
 #define QOP_wilsonMgSet(...) ((void)0)

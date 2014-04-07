@@ -323,6 +323,7 @@ qopqdp_writeGroupSize(lua_State *L)
   return 1;
 }
 
+#if 0
 static void
 lex_int(QLA_Int *li, int coords[])
 {
@@ -333,22 +334,22 @@ lex_int(QLA_Int *li, int coords[])
   }
   *li = t;
 }
+#endif
 
 static int
 qopqdp_seed(lua_State *L)
 {
-  qassert(lua_gettop(L)==1);
-  int seed = luaL_checkint(L, 1);
-  QDP_Int *li = QDP_create_I();
-#ifdef QHMC_REPRO_UNIFORM
-  QDP_I_eq_i(li, (int[1]){0x55555555}, QDP_all);
-#else
-  QDP_I_eq_func(li, lex_int, QDP_all);
-#endif
-  QDP_S_eq_seed_i_I(qopqdp_srs, seed, li, QDP_all);
-  QDP_destroy_I(li);
-  QLA_Int i = QDP_volume()+QDP_this_node;
-  QLA_S_eq_seed_i_I(&qopqdp_nrs, seed, &i);
+  lattice_t *l = qopqdp_get_default_lattice(L);
+  BEGIN_ARGS;
+  GET_INT(seed);
+  OPT_INT(uniform, -1);
+  OPT_SUBSET(sub, l, QDP_all_L(l->qlat));
+  END_ARGS;
+  if(l->rs==NULL) {
+    l->rs = QDP_create_S_L(l->qlat);
+  }
+  qhmc_qopqdp_seed_func(l->rs, seed, uniform, sub);
+  qopqdp_srs = l->rs;
   return 0;
 }
 

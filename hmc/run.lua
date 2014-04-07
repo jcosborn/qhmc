@@ -50,10 +50,10 @@ function actsmt.load(a, fn)
   printf("new unitarity deviation avg: %g  max: %g\n", devavg, devmax)
 end
 
-function actsmt.save(a, fn)
+function actsmt.save(a, fn, ...)
   printf("saving lattice: %s\n", fn)
   local t0 = clock()
-  a.fields.G:save(fn)
+  a.fields.G:save(fn, ...)
   t0 = clock() - t0
   printf("save time: %g seconds\n", t0)
 end

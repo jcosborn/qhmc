@@ -224,7 +224,7 @@ qopqdp_wilson_mg_set(lua_State *L)
   wilson_t *w = qopqdp_wilson_check(L, 1);
   if(!w->mg) {
     //if(w->nc==3)
-      w->mg = QOP_wilsonMgNew();
+    w->mg = QOP_wilsonMgNew();
   }
 
   luaL_checktype(L, 2, LUA_TTABLE);
@@ -273,7 +273,11 @@ qopqdp_wilson_mg_setup(lua_State *L)
   qassert(nargs==1);
   wilson_t *w = qopqdp_wilson_check(L, 1);
   wilson_set(w, 1);
+#ifdef QOP_wilsonMgSetLinks
+  QOP_F_wilsonMgSetLinks(w->mg, w->ffl);
+#else
   QOP_wilsonMgSetLinks(w->mg, w->ffl);
+#endif
   QOP_wilsonMgSetup(w->mg);
   return 0;
 }
@@ -319,6 +323,7 @@ qopqdp_wilson_Ddag(lua_State *L)
 static int
 qopqdp_wilson_precD(lua_State *L)
 {
+#define NC QDP_get_nc(qd->df)
   int narg = lua_gettop(L);
   qassert(narg==4);
   wilson_t *w = qopqdp_wilson_check(L, 1);
@@ -327,11 +332,25 @@ qopqdp_wilson_precD(lua_State *L)
   double mass = luaL_checknumber(L, 4);
   wilson_set(w, 2);
   double k = kappa(w,mass);
+#if 0
   QOP_wilson_dslash_qdp(NULL, w->fl, k, 1, qd->df, qs->df, QOP_ODD, QOP_EVEN);
   QOP_wilson_dslash_qdp(NULL, w->fl, k, 1, qd->df, qd->df, QOP_EVEN, QOP_ODD);
   QLA_Real s = -4*k*k;
   QDP_D_eq_r_times_D_plus_D(qd->df, &s, qd->df, qs->df, QDP_even);
+#else
+  QDP_Lattice *lat = qs->qlat;
+  QDP_DiracFermion *t1 = QDP_create_D_L(lat);
+  QDP_DiracFermion *t2 = QDP_create_D_L(lat);
+  QOP_wilson_diaginv_qdp(NULL, w->fl, k, t1, qs->df, QOP_EVEN);
+  QOP_wilson_dslash_qdp(NULL, w->fl, k, 1, t2, t1, QOP_ODD, QOP_EVEN);
+  QOP_wilson_diaginv_qdp(NULL, w->fl, k, t1, t2, QOP_ODD);
+  QOP_wilson_dslash_qdp(NULL, w->fl, k, 1, t2, t1, QOP_EVEN, QOP_ODD);
+  QDP_D_eq_D_minus_D(qd->df, qs->df, t2, QDP_even);
+  QDP_destroy_D(t1);
+  QDP_destroy_D(t2);
+#endif
   return 0;
+#undef NC
 }
 
 static int
@@ -437,7 +456,11 @@ qopqdp_wilson_solve(lua_State *L)
   if(precNE==1) {
     if(w->mg) {
       wilson_set(w, 1);
+#ifdef QOP_wilsonMgSetLinks
+      QOP_F_wilsonMgSetLinks(w->mg, w->ffl);
+#else
       QOP_wilsonMgSetLinks(w->mg, w->ffl);
+#endif
       QDP_DiracFermion *ts = QDP_create_D();
       QDP_DiracFermion *td = QDP_create_D();
       // scale by 1/4kappa^2 and solve D
@@ -445,12 +468,15 @@ qopqdp_wilson_solve(lua_State *L)
       QDP_D_eq_r_times_D(ts, &s, qs->df, QDP_even);
       QDP_D_eq_zero(ts, QDP_odd);
       QDP_D_eq_zero(td, QDP_all);
-      QOP_D3_wilsonMgSolve(&info, w->mg, w->fl, &invarg, &resarg, k, td, ts);
+#ifndef QOP_wilsonMgSolve
+#define QOP_wilsonMgSolve QOP_D3_wilsonMgSolve
+#endif
+      QOP_wilsonMgSolve(&info, w->mg, w->fl, &invarg, &resarg, k, td, ts);
       // solve D^dag
       QDP_D_eq_gamma_times_D(ts, td, 15, QDP_even);
       QDP_D_eq_zero(ts, QDP_odd);
       QDP_D_eq_zero(td, QDP_all);
-      QOP_D3_wilsonMgSolve(&info, w->mg, w->fl, &invarg, &resarg, k, td, ts);
+      QOP_wilsonMgSolve(&info, w->mg, w->fl, &invarg, &resarg, k, td, ts);
       QDP_D_eq_gamma_times_D(qd->df, td, 15, QDP_even);
       QDP_destroy_D(td);
       QDP_destroy_D(ts);
@@ -463,7 +489,11 @@ qopqdp_wilson_solve(lua_State *L)
   } else {
     if(w->mg) {
       wilson_set(w, 1);
+#ifdef QOP_wilsonMgSetLinks
+      QOP_F_wilsonMgSetLinks(w->mg, w->ffl);
+#else
       QOP_wilsonMgSetLinks(w->mg, w->ffl);
+#endif
       if(invarg.evenodd!=QOP_EVENODD) {
 	QDP_DiracFermion *ts = QDP_create_D();
 	QDP_DiracFermion *td = QDP_create_D();
@@ -475,7 +505,7 @@ qopqdp_wilson_solve(lua_State *L)
 	  QDP_D_eq_zero(ts, QDP_even);
 	  QDP_D_eq_D(ts, qs->df, QDP_odd);
 	}
-	QOP_D3_wilsonMgSolve(&info,w->mg,w->fl,&invarg,&resarg,k,td,ts);
+	QOP_wilsonMgSolve(&info,w->mg,w->fl,&invarg,&resarg,k,td,ts);
 	if(invarg.evenodd==QOP_EVEN) {
 	  QDP_D_eq_D(qd->df, td, QDP_even);
 	} else {
@@ -484,7 +514,7 @@ qopqdp_wilson_solve(lua_State *L)
 	QDP_destroy_D(td);
 	QDP_destroy_D(ts);
       } else {
-	QOP_D3_wilsonMgSolve(&info,w->mg,w->fl,&invarg,&resarg,k,qd->df,qs->df);
+	QOP_wilsonMgSolve(&info,w->mg,w->fl,&invarg,&resarg,k,qd->df,qs->df);
       }
     } else {
       //wilsonInvert(&info, fla, &invarg, rap, mass, nm, qqd, qs->df);

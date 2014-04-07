@@ -111,6 +111,11 @@ for i=1,#hmcmasses do
 end
 local npseudo = #rhmc
 
+local mdcgresid = {}
+for i=1,#hmcmasses do
+  mdcgresid[i] = (type(mdresid)=="table") and mdresid[i] or mdresid
+end
+
 local p = {}
 p.latsize = { nx, nx, nx, nt }
 p.seed = seed or os.time()
@@ -181,7 +186,7 @@ for j=1,npseudo do
   rhmc1[j].GR[1] = {}
   rhmc1[j].GR[1].resid = grcg.resid
   rhmc1[j].FA.resid = facg.resid
-  rhmc1[j].MD.resid = mdcg.resid
+  rhmc1[j].MD.resid = mdcgresid[1+math.floor(((j-1)*4+0.5)/nf)]
   rhmc1[j].GR[1].solveopts = {
     prec = grcg.prec,
     restart = grcg.restart

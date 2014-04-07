@@ -1,7 +1,16 @@
 #include <string.h>
 #include "qhmc_qopqdp_common.h"
+#ifdef HAVE_NC1
+#include <qdp_d1.h>
+#include <qop_d1.h>
+#endif
+#ifdef HAVE_NC2
+#include <qdp_d2.h>
+#include <qop_d2.h>
+#endif
 #ifdef HAVE_NC3
 #include <qdp_d3.h>
+#include <qop_d3.h>
 #endif
 
 static char *mtname = "qopqdp.asqtad";
@@ -352,6 +361,7 @@ C_eq_1_div_C(QDP_Complex *r, QDP_Complex *a)
 static int
 qopqdp_asqtad_solve(lua_State *L)
 {
+#define NC QDP_get_nc(qs->cv)
   int narg = lua_gettop(L);
   qassert(narg>=5 && narg<=7);
   asqtad_t *h = qopqdp_asqtad_check(L, 1);
@@ -430,8 +440,36 @@ qopqdp_asqtad_solve(lua_State *L)
     //QDP_reset_V(qs->cv);
   }
 #endif
+
   QOP_info_t info;
-  asqtadInvert(&info, h->fl, &invarg, rap, mass, nm, qqd, qs->cv);
+#ifdef QOP_asqtad_solve_multi_qdp
+  if(eo!=QOP_EVENODD) {
+    invarg.mixed_rsq = 0;
+    QDP_ColorVector *srcs[nm];
+    for(int i=0; i<nm; i++) srcs[i] = qs->cv;
+    //QOP_verbose(QOP_VERB_MED);
+    switch(QOP_Nc) {
+#ifdef HAVE_NC1
+    case 1: QOP_1_asqtad_solve_multi_qdp(&info, (QOP_1_FermionLinksAsqtad*)h->fl,&invarg,rap,mass,(QDP_1_ColorVector**)qqd,(QDP_1_ColorVector**)srcs,nm);
+      break;
+#endif
+#ifdef HAVE_NC2
+    case 2: QOP_2_asqtad_solve_multi_qdp(&info, (QOP_2_FermionLinksAsqtad*)h->fl,&invarg,rap,mass,(QDP_2_ColorVector**)qqd,(QDP_2_ColorVector**)srcs,nm);
+      break;
+#endif
+#ifdef HAVE_NC3
+      case 3: QOP_3_asqtad_solve_multi_qdp(&info, (QOP_3_FermionLinksAsqtad*)h->fl,&invarg,rap,mass,(QDP_3_ColorVector**)qqd,(QDP_3_ColorVector**)srcs,nm);
+      break;
+#endif
+    default:
+      QOP_asqtad_solve_multi_qdp(&info,h->fl,&invarg,rap,mass,qqd,srcs,nm);
+    }
+  } else
+#endif
+    {
+      asqtadInvert(&info, h->fl, &invarg, rap, mass, nm, qqd, qs->cv);
+    }
+
 #if 0
   {
     int i;
@@ -475,6 +513,7 @@ qopqdp_asqtad_solve(lua_State *L)
   h->flops = info.final_flop;
   h->its = resarg[0].final_iter;
   return 0;
+#undef NC
 }
 
 static int
