@@ -10,13 +10,13 @@ function hmcstep(fields, params)
   local Snew = fields:action()
 
   local ds = Snew - Sold
-  printf("Sold: %-12.10g  Snew: %-12.10g\n", Sold, Snew)
+  printf("Sold: %20.6f  Snew: %20.6f\n", Sold, Snew)
 
   if params.checkReverse then
     fields:reverse()
     integrate(fields, intparams)
     local Srev = fields:action()
-    printf("Sold: %-12.10g  Srev: %-12.10g  dS: %-12.10g\n", Sold, Srev, Srev-Sold)
+    printf("Sold: %20.6f Srev: %20.6f dS: %20.6f\n", Sold, Srev, Srev-Sold)
     fields:endReverse()
   end
 

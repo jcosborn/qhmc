@@ -44,7 +44,7 @@ function fieldsmt.action(f)
   end
   local Sfq = f.a.f:action(f.G)
   local S = Sgq + Sgp + Sfq
-  printf("Sgq: %-12.10g  Sgp: %-12.10g  Sfq: %-12.10g\n", Sgq, Sgp, Sfq)
+  printf("Sgq: %20.6f  Sgp: %20.6f  Sfq: %20.6f\n", Sgq, Sgp, Sfq)
   return S
 end
 
