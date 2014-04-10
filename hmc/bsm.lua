@@ -2,7 +2,6 @@ require 'common'
 require 'run'
 
 --profile = 1
-if qopverb then qopqdp.verbosity(qopverb) end
 
 local nx = nx or 8
 local nt = nt or 4
@@ -284,6 +283,7 @@ else
     acts:unit()
   end
 end
+if qopverb then qopqdp.verbosity(qopverb) end
 
 local ps,pt = acts.fields.G:plaq()
 printf("plaq ss: %g  st: %g  tot: %g\n", ps, pt, 0.5*(ps+pt))
