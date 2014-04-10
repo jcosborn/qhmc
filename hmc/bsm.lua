@@ -17,7 +17,12 @@ local grresid = faresid
 local mdresid = mdresid or 1e-5
 local restart = 2000
 local use_prev_soln = use_prev_soln or 0
+local mixedRsq = mixedRsq or 0
 --printf("faresid: %g\n", faresid)
+
+local doGfix = doGfix or true
+local doSpectrum = doSpectrum or false
+local doS4obs = doS4obs or false
 
 local rhmc = {}
 --local hmcmasses = { mass }
@@ -187,15 +192,18 @@ for j=1,npseudo do
   rhmc1[j].MD.resid = mdcgresid[1+math.floor(((j-1)*4+0.5)/nf)]
   rhmc1[j].GR[1].solveopts = {
     prec = grcg.prec,
-    restart = grcg.restart
+    restart = grcg.restart,
+    mixed_rsq = mixedRsq
   }
   rhmc1[j].FA.solveopts = {
     prec = facg.prec,
-    restart = facg.restart
+    restart = facg.restart,
+    mixed_rsq = mixedRsq
   }
   rhmc1[j].MD.solveopts = {
     prec = mdcg.prec,
     restart = mdcg.restart,
+    mixed_rsq = mixedRsq,
     use_prev_soln = use_prev_soln
   }
   rhmc1[j].MD.ffprec = ffprec
@@ -209,59 +217,65 @@ r.pbp = pbp
 
 function r.meas(a, r)
   local G = a.fields.G
-  G.g:coulomb(3, 1e-6, 1500, 1.8);
-  G.nupdate = G.nupdate + 1
+  if doGfix then
+    G.g:coulomb(3, 1e-6, 1500, 1.8);
+    G.nupdate = G.nupdate + 1
+  end
 
-  -- Wall pions!
-  for j=2,nt-1,8 do
-    pions_wall = a.f:pions_wall(G, {j}, mass, 1e-6, {prec = prec, restart = 500})
-    --pions_wall = a.f:pions_wall(G,{2,10,18,26},mass,1e-6, {prec = prec, restart = 5000})
+  if doSpectrum then
+    -- Wall pions!
+    for j=2,nt-1,8 do
+      pions_wall = a.f:pions_wall(G, {j}, mass, 1e-6, {prec = prec, restart = 500})
+      --pions_wall = a.f:pions_wall(G,{2,10,18,26},mass,1e-6, {prec = prec, restart = 5000})
 
-    printf("Source %i\n", j);
-    printf("Local Pions\n");
-    printf("\tPion5\t\tPion5_4\n");
-    for i = 1,#(pions_wall.pion5) do
-      printf("%i\t%.6e\t%.6e\n", i-1, pions_wall.pion5[i], pions_wall.pion5_gamma4[i]);
-    end
+      printf("Source %i\n", j);
+      printf("Local Pions\n");
+      printf("\tPion5\t\tPion5_4\n");
+      for i = 1,#(pions_wall.pion5) do
+	printf("%i\t%.6e\t%.6e\n", i-1, pions_wall.pion5[i], pions_wall.pion5_gamma4[i]);
+      end
 
-    printf("Local Baryon\n")
-    printf("\tNucleon\n")
-    for i = 1,#(pions_wall.pion5) do
-      printf("%i\t%.6e\n", i-1, pions_wall.nucleon[i].r)
-      --printf("%i\t%s\n", i-1, tostring(pions_wall.nucleon[i]))
-    end
+      printf("Local Baryon\n")
+      printf("\tNucleon\n")
+      for i = 1,#(pions_wall.pion5) do
+	printf("%i\t%.6e\n", i-1, pions_wall.nucleon[i].r)
+	--printf("%i\t%s\n", i-1, tostring(pions_wall.nucleon[i]))
+      end
 
-    printf("\nNonlocal Pions + Check\n")
-    printf("\tPion5\tPion5_4\tPion_i5\tPion_ij\n");
-    for i = 1,#(pions_wall.pion5) do
-      printf("%i\t%.6e\t%.6e\t%.6e\t%.6e\n", i-1, pions_wall.pion5_ck[i],
-	     pions_wall.pion5_gamma4_ck[i], pions_wall.pion_i5[i], pions_wall.pion_ij[i]);
-    end
+      printf("\nNonlocal Pions + Check\n")
+      printf("\tPion5\tPion5_4\tPion_i5\tPion_ij\n");
+      for i = 1,#(pions_wall.pion5) do
+	printf("%i\t%.6e\t%.6e\t%.6e\t%.6e\n", i-1, pions_wall.pion5_ck[i],
+	       pions_wall.pion5_gamma4_ck[i], pions_wall.pion_i5[i], pions_wall.pion_ij[i]);
+      end
 
-    printf("Nonlocal Baryons\n");
-    printf("\tNucleon\tDelta\n");
-    for i = 1,#(pions_wall.pion5) do
-      printf("%i\t%.6e\t%.6e\n", i-1, pions_wall.nucleon_ck[i].r, pions_wall.delta[i].r);
+      printf("Nonlocal Baryons\n");
+      printf("\tNucleon\tDelta\n");
+      for i = 1,#(pions_wall.pion5) do
+	printf("%i\t%.6e\t%.6e\n", i-1, pions_wall.nucleon_ck[i].r, pions_wall.delta[i].r);
+      end
     end
   end
 
-  local masses = {mass, 2*mass};
-  local s4_check = a.f:s4_broken_observe(G, masses, 1e-6, {prec = prec, restart = 5000}, 1)
+  if doS4obs then
+    local masses = {mass, 2*mass};
+    local s4_check = a.f:s4_broken_observe(G, masses, 1e-6, {prec = prec, restart = 5000}, 1)
 
-  printf("MEASplaq_ss %.12e\n", s4_check.s4_g_plaq);
-  printf("MEASplaq_t even %.12e odd %.12e\n", s4_check.s4_g_even[1], s4_check.s4_g_odd[1]);
-  printf("MEASplaq_x even %.12e odd %.12e\n", s4_check.s4_g_even[2], s4_check.s4_g_odd[2]);
-  printf("MEASplaq_y even %.12e odd %.12e\n", s4_check.s4_g_even[3], s4_check.s4_g_odd[3]);
-  printf("MEASplaq_z even %.12e odd %.12e\n", s4_check.s4_g_even[4], s4_check.s4_g_odd[4]);
-  printf("MEASplaq_a even %.12e odd %.12e\n", s4_check.s4_g_even[5], s4_check.s4_g_odd[5]);
+    printf("MEASplaq_ss %.12e\n", s4_check.s4_g_plaq);
+    printf("MEASplaq_t even %.12e odd %.12e\n", s4_check.s4_g_even[1], s4_check.s4_g_odd[1]);
+    printf("MEASplaq_x even %.12e odd %.12e\n", s4_check.s4_g_even[2], s4_check.s4_g_odd[2]);
+    printf("MEASplaq_y even %.12e odd %.12e\n", s4_check.s4_g_even[3], s4_check.s4_g_odd[3]);
+    printf("MEASplaq_z even %.12e odd %.12e\n", s4_check.s4_g_even[4], s4_check.s4_g_odd[4]);
+    printf("MEASplaq_a even %.12e odd %.12e\n", s4_check.s4_g_even[5], s4_check.s4_g_odd[5]);
 
-  for i,v in ipairs(masses) do
-    printf("MEASpbp_all m %.4e even %.12e %.12e odd %.12e %.12e\n", v, s4_check.s4_f_even[i][1].r, s4_check.s4_f_even[i][1].i, s4_check.s4_f_odd[i][1].r, s4_check.s4_f_odd[i][1].i);
-    printf("MEASpbp_1 m %.4e even %.12e %.12e odd %.12e %.12e\n",  v,s4_check.s4_f_even[i][2].r, s4_check.s4_f_even[i][2].i, s4_check.s4_f_odd[i][2].r, s4_check.s4_f_odd[i][2].i);
-    printf("MEASpbp_t m %.4e even %.12e %.12e odd %.12e %.12e\n", v, s4_check.s4_f_even[i][3].r, s4_check.s4_f_even[i][3].i, s4_check.s4_f_odd[i][3].r, s4_check.s4_f_odd[i][3].i);
-    printf("MEASpbp_x m %.4e even %.12e %.12e odd %.12e %.12e\n", v, s4_check.s4_f_even[i][4].r, s4_check.s4_f_even[i][4].i, s4_check.s4_f_odd[i][4].r, s4_check.s4_f_odd[i][4].i);
-    printf("MEASpbp_y m %.4e even %.12e %.12e odd %.12e %.12e\n", v, s4_check.s4_f_even[i][5].r, s4_check.s4_f_even[i][5].i, s4_check.s4_f_odd[i][5].r, s4_check.s4_f_odd[i][5].i);
-    printf("MEASpbp_z m %.4e even %.12e %.12e odd %.12e %.12e\n", v, s4_check.s4_f_even[i][6].r, s4_check.s4_f_even[i][6].i, s4_check.s4_f_odd[i][6].r, s4_check.s4_f_odd[i][6].i);
+    for i,v in ipairs(masses) do
+      printf("MEASpbp_all m %.4e even %.12e %.12e odd %.12e %.12e\n", v, s4_check.s4_f_even[i][1].r, s4_check.s4_f_even[i][1].i, s4_check.s4_f_odd[i][1].r, s4_check.s4_f_odd[i][1].i);
+      printf("MEASpbp_1 m %.4e even %.12e %.12e odd %.12e %.12e\n",  v,s4_check.s4_f_even[i][2].r, s4_check.s4_f_even[i][2].i, s4_check.s4_f_odd[i][2].r, s4_check.s4_f_odd[i][2].i);
+      printf("MEASpbp_t m %.4e even %.12e %.12e odd %.12e %.12e\n", v, s4_check.s4_f_even[i][3].r, s4_check.s4_f_even[i][3].i, s4_check.s4_f_odd[i][3].r, s4_check.s4_f_odd[i][3].i);
+      printf("MEASpbp_x m %.4e even %.12e %.12e odd %.12e %.12e\n", v, s4_check.s4_f_even[i][4].r, s4_check.s4_f_even[i][4].i, s4_check.s4_f_odd[i][4].r, s4_check.s4_f_odd[i][4].i);
+      printf("MEASpbp_y m %.4e even %.12e %.12e odd %.12e %.12e\n", v, s4_check.s4_f_even[i][5].r, s4_check.s4_f_even[i][5].i, s4_check.s4_f_odd[i][5].r, s4_check.s4_f_odd[i][5].i);
+      printf("MEASpbp_z m %.4e even %.12e %.12e odd %.12e %.12e\n", v, s4_check.s4_f_even[i][6].r, s4_check.s4_f_even[i][6].i, s4_check.s4_f_odd[i][6].r, s4_check.s4_f_odd[i][6].i);
+    end
   end
 end
 

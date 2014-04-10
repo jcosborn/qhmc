@@ -378,6 +378,7 @@ qopqdp_asqtad_solve(lua_State *L)
   int restart = 500;
   int max_restarts = 5;
   int use_prev_soln = 0;
+  double mixed_rsq = 0;
   int nextarg = 6;
   if(narg>=nextarg && lua_isstring(L, nextarg)) {
     eo = qopqdp_check_evenodd(L, nextarg);
@@ -388,12 +389,15 @@ qopqdp_asqtad_solve(lua_State *L)
       qlerror0(L,1,"expecting solver paramter table\n");
     }
 #define seti(s) lua_getfield(L,nextarg,#s);if(!lua_isnil(L,-1))s=luaL_checkint(L,-1);lua_pop(L,1)
+#define setd(s) lua_getfield(L,nextarg,#s);if(!lua_isnil(L,-1))s=luaL_checknumber(L,-1);lua_pop(L,1)
     //seti(prec);
     seti(max_iter);
     seti(restart);
     seti(max_restarts);
     seti(use_prev_soln);
+    setd(mixed_rsq);
 #undef seti
+#undef setd
   }
   if(max_iter<0) max_iter = restart*max_restarts;
 
@@ -444,7 +448,7 @@ qopqdp_asqtad_solve(lua_State *L)
   QOP_info_t info;
 #ifdef QOP_asqtad_solve_multi_qdp
   if(eo!=QOP_EVENODD) {
-    invarg.mixed_rsq = 0;
+    invarg.mixed_rsq = mixed_rsq;
     QDP_ColorVector *srcs[nm];
     for(int i=0; i<nm; i++) srcs[i] = qs->cv;
     //QOP_verbose(QOP_VERB_MED);
