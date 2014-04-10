@@ -1,9 +1,8 @@
-package.path = package.path .. ";" .. arg[0]:gsub("[^/]*.lua","?.lua")
-package.path = package.path .. ";./hmc/?.lua"
 require 'common'
 require 'run'
 
 --profile = 1
+if qopverb then qopqdp.verbosity(qopverb) end
 
 local nx = nx or 8
 local nt = nt or 4
