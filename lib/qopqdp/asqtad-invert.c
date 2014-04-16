@@ -54,6 +54,7 @@ asqtadInvert(QOP_info_t *info, QOP_FermionLinksAsqtad *fla,
   for(int i=0; i<nm; i++) {
     m[i] = masses[i];
     x[i] = QDP_F_create_V();
+    QDP_F_V_eq_zero(x[i], sub);
     residarg[i]->final_iter = 0;
     residarg[i]->final_restart = 0;
   }

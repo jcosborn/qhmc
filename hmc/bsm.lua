@@ -13,9 +13,9 @@ local mass = mass or 0.01
 local mass2 = mass2 or 0.1
 local prec = prec or 1
 local faresid = faresid or 1e-5
-local grresid = faresid
+local grresid = grresid or faresid
 local mdresid = mdresid or 1e-5
-local restart = 2000
+local restart = restart or 2000
 local use_prev_soln = use_prev_soln or 0
 local mixedRsq = mixedRsq or 0
 --printf("faresid: %g\n", faresid)

@@ -1,4 +1,3 @@
-package.path = arg[0]:gsub("[^/]*.lua","?.lua") .. ";./hmc/?.lua;" .. package.path
 require 'common'
 require 'run'
 
