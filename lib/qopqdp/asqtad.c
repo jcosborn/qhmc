@@ -228,20 +228,23 @@ qopqdp_asqtad_set_opts(void)
 {
   QOP_opt_t opt[3];
   opt[0].tag = "st";
-  opt[0].value = 1;
   opt[1].tag = "ns";
-  opt[1].value = 8;
   opt[2].tag = "nm";
+#ifdef __bg__
+  opt[0].value = 0;
+  opt[1].value = 8;
+  opt[2].value = 8;
+  QDP_set_block_size(1024);
+#else
+  opt[0].value = 1;
+  opt[1].value = 8;
   opt[2].value = 16;
+  QDP_set_block_size(1024);
+#endif
   QOP_asqtad_invert_set_opts(opt, 3);
   opt[0].tag = "fnmat_src_min";
   opt[0].value = 0;
   QOP_asqtad_force_set_opts(opt, 1);
-#ifdef __bg__
-  //QDP_set_block_size(64);
-#else
-  //QDP_set_block_size(1024);
-#endif
   {
     QOP_opt_t opt = {.tag="reunit_allow_svd",.value=0};
     QOP_hisq_links_set_opts(&opt, 1);
