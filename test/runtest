@@ -1,0 +1,32 @@
+#!/bin/sh
+
+qhmc="$1"
+script="$2"
+srcdir="`dirname $script`"
+base="`basename $script .lua`"
+out="$base.out"
+ref="$srcdir/$base.ref"
+
+echo "# $qhmc $script $out"
+$qhmc $script >$out
+rc="$?"
+if [ $rc -ne 0 ]; then
+  echo "1..1"
+  echo "not ok 1 - nonzero exit value"
+  exit $rc
+fi  
+
+if [ ! -f $ref ]; then
+  echo "1..1"
+  echo "not ok 1 - can't find reference output $ref"
+  exit 1
+fi
+
+d="`diff $out $ref`"
+echo "$d"
+
+if [ -n "$d" ]; then
+  echo "1..1"
+  echo "not ok 1 - found differences"
+  exit 1
+fi
