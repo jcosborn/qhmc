@@ -1,8 +1,6 @@
 require 'common'
 require 'run'
 
---profile = 1
-
 local nx = nx or 8
 local nt = nt or 4
 local beta = beta or 6
@@ -18,38 +16,28 @@ local mdresid = mdresid or 1e-5
 local restart = restart or 2000
 local use_prev_soln = use_prev_soln or 0
 local mixedRsq = mixedRsq or 0
---printf("faresid: %g\n", faresid)
 
 local doGfix = doGfix or true
 local doSpectrum = doSpectrum or false
 local doS4obs = doS4obs or false
 
 local rhmc = {}
---local hmcmasses = { mass }
 local hmcmasses = hmcmasses or { mass, mass2 }
---local hmcmasses = { mass, 2*mass, 3*mass, 4*mass, 5*mass, 6*mass, 7*mass, 8*mass }
---local seed = 1316844761
 local seed = seed or os.time()
 
 local inlat = inlat or nil
---local inlat = "f8x88b40m01.100"
---local inlat = "l84f8b40m04a.2700.scidac"
 local outlat = outlat or nil
---local outlat = "f8x88b40m01.100"
 
 local ntraj = ntraj or 10
 local tau = tau or 1
-ngpfs = ngpfs or 5
+local ngpfs = ngpfs or 5
 --lambdaG = lambdaG or 0.2
 --lambdaF = lambdaF or 0.2
 local nsteps = nsteps or 80
 local nsteps2 = nsteps2 or 80
 
 local ngsteps = ngsteps or ngpfs*nsteps
---local nfsteps = nfsteps or { nsteps }
 local nfsteps = nfsteps or { nsteps, nsteps2 }
---local nfsteps = { 80, 80 }
---local nfsteps = { 100, 100, 100, 100, 100, 100, 100, 200 }
 nfsteps = repelem(nfsteps, nf/4)
 local grcg = { prec=prec, resid=grresid, restart=restart }
 local facg = { prec=prec, resid=faresid, restart=restart }
@@ -106,13 +94,16 @@ end
 for i=1,#hmcmasses do
   for j=1,nf/4 do
     if i<#hmcmasses then
+      printf("Setting pseudo: i=mass j=species -> %i\t%i\t%g\t%g\n",i,j,hmcmasses[i],hmcmasses[i+1])
       setpseudo(rhmc, hmcmasses[i], hmcmasses[i+1])
     else
+      printf("Setting pseudo: i=mass j=species -> %i\t%i\t%g\n",i,j,hmcmasses[i])
       setpseudo(rhmc, hmcmasses[i])
     end
   end
 end
 local npseudo = #rhmc
+myprint("Number of pseudo: ",npseudo,"\n")
 
 local mdcgresid = {}
 for i=1,#hmcmasses do
@@ -305,6 +296,13 @@ printf("plaq ss: %g  st: %g  tot: %g\n", ps, pt, 0.5*(ps+pt))
 local nlats = nlats or 1
 
 for nl=1,nlats do
+  if warmup and traj<warmup then
+    r.md = true
+  else
+    r.md = false
+  end
+
+  r.ntraj = ntraj
   acts:run(r)
   traj = traj + ntraj
   if latpat then

@@ -257,6 +257,30 @@ qhmc_complex_meq(lua_State *L)
   return 0;
 }
 
+static int
+qhmc_complex_sqrt(lua_State *L)
+{
+  qhmc_complex_t *c = qhmc_complex_check(L, 1);
+  double r = c->r;
+  double i = c->i;
+  double n = r*r + i*i;
+  double sr = sqrt(fabs(0.5*(n+r)));
+  double si = copysign(sqrt(fabs(0.5*(n-r))), i);
+  qhmc_complex_create(L, sr, si);
+  return 1;
+}
+
+static int
+qhmc_complex_norm2(lua_State *L)
+{
+  qhmc_complex_t *c = qhmc_complex_check(L, 1);
+  double r = c->r;
+  double i = c->i;
+  double n = r*r + i*i;
+  lua_pushnumber(L, n);
+  return 1;
+}
+
 static struct luaL_Reg qhmc_complex_mt_reg[] = {
   { "__add",      qhmc_complex_add },
   { "__sub",      qhmc_complex_sub },
@@ -272,6 +296,8 @@ static struct luaL_Reg qhmc_complex_mt_reg[] = {
   { "conj",       qhmc_complex_conj },
   { "peq",        qhmc_complex_peq },
   { "meq",        qhmc_complex_meq },
+  { "sqrt",       qhmc_complex_sqrt },
+  { "norm2",      qhmc_complex_norm2 },
   { NULL, NULL}
 };
 

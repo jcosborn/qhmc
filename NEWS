@@ -1,5 +1,12 @@
+===========================================================================
+2014-05-12      version 0.1.2
+===========================================================================
+2014-05-12	James Osborn
+	started adding test suite
+	fixed bugs in new subset passing
+
 2014-04-06	James Osborn
-	testing new asqtad solver
+	testing new QOPQDP asqtad solver
 
 ===========================================================================
 2014-02-25      version 0.1.1

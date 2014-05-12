@@ -272,7 +272,7 @@ ftype_read(lua_State *L)
   lua_pushstring(L, QDP_string_ptr(md));
   QDP_string_destroy(md);
   dt += QDP_time();
-  printf0("%s: %g seconds\n", __func__, dt);
+  //printf0("%s: %g seconds\n", __func__, dt);
   return 1;
 #undef NC
 }
@@ -321,7 +321,7 @@ ftype_write(lua_State *L)
 #endif
   QDP_string_destroy(md);
   dt += QDP_time();
-  printf0("%s: %g seconds\n", __func__, dt);
+  //printf0("%s: %g seconds\n", __func__, dt);
   return 0;
 #undef NC
 }
@@ -414,7 +414,7 @@ ftype_set(lua_State *L)
       }
 #endif
       for(int s=0; ; s++) {
-	printf0("s: %i\n", s);
+	//printf0("s: %i\n", s);
 	QDP_Subset *sub;
 	QDP_Shift shift;
 	qhmc_qopqdp_getCopyHyper(&shift, &sub, rlat, roff, rlen, sdir, slat, soff, s);
@@ -816,9 +816,9 @@ ftype_sum(lua_State *L)
 #define NC QDP_get_nc(t->field)
   BEGIN_ARGS;
   GET_FTYPE(t);
-  OPT_AS_QSUBSET_ARRAY(ns, subs, t->lat, 1, QDP_all_and_empty_L(t->qlat));
+  OPT_AS_QSUBSET_ARRAY(ns, subs, t->lat, -1, QDP_all_and_empty_L(t->qlat));
   END_ARGS;
-  if(ns==1) {
+  if(ns==-1) {
     qlatype r;
     qdpsum(&r, t->field, subs[0]);
     pushqlatype(L, NCARGT &r);
@@ -841,9 +841,9 @@ ftype_norm2(lua_State *L)
 #define NC QDP_get_nc(t->field)
   BEGIN_ARGS;
   GET_FTYPE(t);
-  OPT_AS_QSUBSET_ARRAY(ns, subs, t->lat, 1, QDP_all_and_empty_L(t->qlat));
+  OPT_AS_QSUBSET_ARRAY(ns, subs, t->lat, -1, QDP_all_and_empty_L(t->qlat));
   END_ARGS;
-  if(ns==1) {
+  if(ns==-1) {
     QLA_Real r;
     qdpnorm2(&r, t->field, subs[0]);
     lua_pushnumber(L, r);
@@ -886,9 +886,9 @@ ftype_redot(lua_State *L)
   BEGIN_ARGS;
   GET_FTYPE(t1);
   GET_FTYPE(t2);
-  OPT_AS_QSUBSET_ARRAY(ns, subs, t1->lat, 1, QDP_all_and_empty_L(t1->qlat));
+  OPT_AS_QSUBSET_ARRAY(ns, subs, t1->lat, -1, QDP_all_and_empty_L(t1->qlat));
   END_ARGS;
-  if(ns==1) {
+  if(ns==-1) {
     QLA_Real r;
     qdpredot(&r, t1->field, t2->field, subs[0]);
     lua_pushnumber(L, r);
@@ -909,9 +909,9 @@ ftype_dot(lua_State *L)
   BEGIN_ARGS;
   GET_FTYPE(t1);
   GET_FTYPE(t2);
-  OPT_AS_QSUBSET_ARRAY(ns, subs, t1->lat, 1, QDP_all_and_empty_L(t1->qlat));
+  OPT_AS_QSUBSET_ARRAY(ns, subs, t1->lat, -1, QDP_all_and_empty_L(t1->qlat));
   END_ARGS;
-  if(ns==1) {
+  if(ns==-1) {
     QLA_Complex c;
     qdpdot(&c, t1->field, t2->field, subs[0]);
     qhmc_complex_create(L, QLA_real(c), QLA_imag(c));

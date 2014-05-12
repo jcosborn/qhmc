@@ -65,6 +65,15 @@ function gaugecoeffs.dbw2(p)
 end
 function gaugecoeffs.symanzik_1loop(p)
   local u0 = p.u0 or 1
+  local u2 = u0*u0
+  local lu0 = math.log(u0)
+  local c = { plaq=1, adjplaq=0 }
+  c.rect = -(1 -0.6264*lu0 ) / (20*u2)
+  c.pgm = 0.04335*lu0 / u2
+  return c
+end
+function gaugecoeffs.symanzik_1loop_nf(p)
+  local u0 = p.u0 or 1
   local nf = p.nf or 0
   local u2 = u0*u0
   local lu0 = math.log(u0)

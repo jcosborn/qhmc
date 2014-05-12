@@ -529,6 +529,11 @@ qopqdp_gauge_update(lua_State *L)
     double s = luaL_checknumber(L, 3);
     for(int i=0; i<nd; i++) eps[i] = s;
   }
+  {
+    QLA_ColorMatrix *cm = QDP_expose_M(f->force[0]);
+    printf("%g\t%g\n", eps[0], QLA_imag(QLA_elem_M(*cm,0,0)));
+    QDP_reset_M(f->force[0]);
+  }
   //get_gauge_links(g);
   QDP_ColorMatrix *m1 = QDP_create_M_L(g->qlat);
   QDP_ColorMatrix *m2 = QDP_create_M_L(g->qlat);

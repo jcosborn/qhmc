@@ -163,8 +163,9 @@ void qopqdp_opt_as_qsubset_array(lua_State *L, int *idx, int required, lattice_t
 #define qopqdp_check_qsubset(L,i,l) qopqdp_opt_qsubset(L,(int[]){i},1,l,NULL)
 #define GET_QSUBSET(s,l) QDP_Subset s = qopqdp_opt_qsubset(L,&nextarg,1,l,NULL)
 #define OPT_QSUBSET(s,l,d) QDP_Subset s = qopqdp_opt_qsubset(L,&nextarg,0,l,d)
-#define GET_AS_QSUBSET_ARRAY(n,t,l) int n=qopqdp_opt_as_qsubset_array_len(L,nextarg,1,l,0); QDP_Subset t[n]; qopqdp_opt_as_qsubset_array(L,&nextarg,1,l,n,t,0,NULL)
-#define OPT_AS_QSUBSET_ARRAY(n,t,l,dn,dt) int n=qopqdp_opt_as_qsubset_array_len(L,nextarg,0,l,dn); QDP_Subset t[n]; qopqdp_opt_as_qsubset_array(L,&nextarg,0,l,n,t,dn,dt)
+// n = -1 if single subset requested (not array)
+#define GET_AS_QSUBSET_ARRAY(n,t,l) int n=qopqdp_opt_as_qsubset_array_len(L,nextarg,1,l,0); QDP_Subset t[abs(n)]; qopqdp_opt_as_qsubset_array(L,&nextarg,1,l,n,t,0,NULL)
+#define OPT_AS_QSUBSET_ARRAY(n,t,l,dn,dt) int n=qopqdp_opt_as_qsubset_array_len(L,nextarg,0,l,dn); QDP_Subset t[abs(n)]; qopqdp_opt_as_qsubset_array(L,&nextarg,0,l,n,t,dn,dt)
 #define GET_QSUBSETS(s,n,l) GET_AS_QSUBSET_ARRAY(n,s,l)
 #define OPT_QSUBSETS(s,n,l,d,dn) OPT_AS_QSUBSET_ARRAY(n,s,l,dn,d)
 #define GET_SUBSET GET_QSUBSET

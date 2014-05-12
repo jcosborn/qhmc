@@ -1,4 +1,4 @@
-SUBDIRS = . include lib bin .
+SUBDIRS = . include lib bin test .
 
 DISTCHECK_CONFIGURE_FLAGS = @DISTCHECK_CONFIGURE_FLAGS@
 

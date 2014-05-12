@@ -211,9 +211,9 @@ qopqdp_wquark_norm2(lua_State *L)
 {
   BEGIN_ARGS;
   GET_WQUARK(q);
-  OPT_SUBSETS(subs, ns, q->lat, QDP_all_and_empty_L(q->qlat), 1);
+  OPT_AS_QSUBSET_ARRAY(ns, subs, q->lat, -1, QDP_all_and_empty_L(q->qlat));
   END_ARGS;
-  if(ns==1) {
+  if(ns==-1) {
     QLA_Real nrm2;
     QDP_r_eq_norm2_D(&nrm2, q->df, subs[0]);
     lua_pushnumber(L, nrm2);
@@ -234,9 +234,9 @@ qopqdp_wquark_redot(lua_State *L)
   BEGIN_ARGS;
   GET_WQUARK(q1);
   GET_WQUARK(q2);
-  OPT_SUBSETS(subs, ns, q1->lat, QDP_all_and_empty_L(q1->qlat), 1);
+  OPT_AS_QSUBSET_ARRAY(ns, subs, q1->lat, -1, QDP_all_and_empty_L(q1->qlat));
   END_ARGS;
-  if(ns==1) {
+  if(ns==-1) {
     QLA_Real redot;
     QDP_r_eq_re_D_dot_D(&redot, q1->df, q2->df, subs[0]);
     lua_pushnumber(L, redot);
@@ -257,9 +257,9 @@ qopqdp_wquark_imdot(lua_State *L)
   BEGIN_ARGS;
   GET_WQUARK(q1);
   GET_WQUARK(q2);
-  OPT_SUBSETS(subs, ns, q1->lat, QDP_all_and_empty_L(q1->qlat), 1);
+  OPT_AS_QSUBSET_ARRAY(ns, subs, q1->lat, -1, QDP_all_and_empty_L(q1->qlat));
   END_ARGS;
-  if(ns==1) {
+  if(ns==-1) {
     QLA_Complex dot;
     QDP_c_eq_D_dot_D(&dot, q1->df, q2->df, subs[0]);
     lua_pushnumber(L, QLA_imag(dot));
@@ -282,9 +282,9 @@ qopqdp_wquark_dot(lua_State *L)
   BEGIN_ARGS;
   GET_WQUARK(q1);
   GET_WQUARK(q2);
-  OPT_SUBSETS(subs, ns, q1->lat, QDP_all_and_empty_L(q1->qlat), 1);
+  OPT_AS_QSUBSET_ARRAY(ns, subs, q1->lat, -1, QDP_all_and_empty_L(q1->qlat));
   END_ARGS;
-  if(ns==1) {
+  if(ns==-1) {
     QLA_Complex dot;
     QDP_c_eq_D_dot_D(&dot, q1->df, q2->df, subs[0]);
     qhmc_complex_create(L, QLA_real(dot), QLA_imag(dot));

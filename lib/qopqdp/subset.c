@@ -40,7 +40,7 @@ int
 qhmc_qopqdp_opt_as_subset_array_len(lua_State *L, int idx, int required,
 				    int def)
 {
-  int len = def, tlen = 1, i = idx;
+  int len = def, tlen = -1, i = idx;
   int type = lua_type(L, idx);
   if(type==LUA_TTABLE) {
     tlen = tableLength(L, idx);
@@ -74,7 +74,7 @@ qhmc_qopqdp_opt_as_subset_array(lua_State *L, int *idx, int required,
     }
     lua_pop(L, 1);
     if(t==NULL) {
-      for(int i=0; i<n; i++) t[i] = def[i];
+      for(int i=0; i<abs(n); i++) t[i] = def[i];
     } else {
       for(int i=0; i<n; i++) {
         tableGetIndex(L, *idx, i+1);
@@ -126,7 +126,7 @@ staggered_func(QDP_Lattice *lat, int x[], void *args)
 {
   int nd = *(int *)args;
   int s = 0;
-  for(int i=nd-1; i>=0; i++) {
+  for(int i=nd-1; i>=0; i--) {
     s *= 2;
     s += x[i]&1;
   }
@@ -138,9 +138,11 @@ qhmcqdp_get_staggered(lattice_t *lat)
 {
   if(lat->staggered==NULL) {
     int nd = QDP_ndim_L(lat->qlat);
-    int n = (int)floor(0.5+pow(2,nd));
+    int n = 1 << nd;
+    //printf("creating staggered: %i %i\n", nd, n);
     lat->staggered =
       QDP_create_subset_L(lat->qlat, staggered_func, (void*)&nd,sizeof(nd),n);
+    //printf("... done.\n");
   }
   return lat->staggered;
 }
@@ -200,7 +202,7 @@ qhmc_qopqdp_qsubset_from_string(lua_State *L, lattice_t *lat,
   case 'o': subs = 1+QDP_even_and_odd_L(qlat); *n = 1; break;
   case 's':
     if(strncmp(s,"staggered",9)==0) {
-      int ns = (int)floor(0.5+pow(2,QDP_ndim_L(qlat)));
+      int ns = 1 << QDP_ndim_L(qlat);
       if(strcmp(s+9,"")==0) {
 	subs = qhmcqdp_get_staggered(lat);
 	*n = ns;
@@ -277,6 +279,7 @@ opt_as_qsubset_array_real(lua_State *L, int idx, lattice_t *lat, QDP_Subset *t)
     }
   } else {
     len = opt_qsubset_real(L, idx, lat, t);
+    if(len==1) len = -1; // use -1 for non-array return
   }
   return len;
 }
@@ -312,7 +315,7 @@ qopqdp_opt_as_qsubset_array(lua_State *L, int *idx, int required,
     if(required) {
       qlerror0(L, 1, "invalid subset array at argument %i\n", *idx);
     } else {
-      for(int i=0; i<dn; i++) t[i] = def[i];
+      for(int i=0; i<abs(dn); i++) t[i] = def[i];
     }
   } else {
     (*idx)++;

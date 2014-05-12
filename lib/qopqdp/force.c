@@ -122,17 +122,19 @@ qopqdp_force_random(lua_State *L)
 #define NC QDP_get_nc(f->force[0])
   qassert(lua_gettop(L)==1);
   force_t *f = qopqdp_force_check(L, 1);
+  QDP_RandomState *rs = f->lat->rs;
+  qassert(rs!=NULL);
   if(QLA_Nc==3) { // use MILC conventions
-    QLA_RandomState *s = QDP_expose_S(qopqdp_srs);
+    QLA_RandomState *s = QDP_expose_S(rs);
     for(int i=0; i<f->nd; i++) {
       QDP_M_eq_funcia(f->force[i], randforce, s, QDP_all_L(f->qlat));
       //{ QLA_Real s=1.1; QDP_M_eq_r_times_M(f->force[i], &s, f->force[i], QDP_all); }
     }
-    QDP_reset_S(qopqdp_srs);
+    QDP_reset_S(rs);
   } else {
     QDP_ColorMatrix *m = QDP_create_M_L(f->qlat);
     for(int i=0; i<f->nd; i++) {
-      QDP_M_eq_gaussian_S(m, qopqdp_srs, QDP_all_L(f->qlat));
+      QDP_M_eq_gaussian_S(m, rs, QDP_all_L(f->qlat));
       QDP_M_eq_antiherm_M(f->force[i], m, QDP_all_L(f->qlat));
     }
     QDP_destroy_M(m);
@@ -406,16 +408,15 @@ qopqdp_force_create(lua_State *L, int nc, lattice_t *lat)
 {
 #define NC nc
   if(nc==0) nc = QOPQDP_DEFAULTNC;
-  QDP_Lattice *qlat = QDP_get_default_lattice();
-  if(lat) qlat = lat->qlat;
-  int nd = QDP_ndim_L(qlat);
+  if(lat==NULL) lat = qopqdp_get_default_lattice(L);
+  int nd = QDP_ndim_L(lat->qlat);
   force_t *f = lua_newuserdata(L, sizeof(force_t)+nd*sizeof(QDP_ColorMatrix*));
   f->nd = nd;
   f->lat = lat;
-  f->qlat = qlat;
+  f->qlat = lat->qlat;
   f->nc = nc;
   for(int i=0; i<nd; i++) {
-    f->force[i] = QDP_create_M_L(qlat);
+    f->force[i] = QDP_create_M_L(lat->qlat);
     QDP_M_eq_zero(f->force[i], QDP_all);
   }
   if(luaL_newmetatable(L, fmtname)) {

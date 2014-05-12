@@ -23,9 +23,9 @@ local function setGR(a)
     if gr[2] then
       gr.mass2 = gr[2]
       gr.qt = getqt(a,qti); qti = qti + 1
+      a.ncg = a.ncg + 1; gr.cgnum = a.ncg
+      gr.resid = gr.resid or 1e-5
     end
-    gr.resid = 1e-5 or gr.resid
-    a.ncg = a.ncg + 1; gr.cgnum = a.ncg
   end
 end
 
@@ -42,7 +42,7 @@ local function setFA(a)
       fa.mass2 = fa[2]
       fa.qt = getqt(a,qti); qti = qti + 1
     end
-    fa.resid = 1e-5 or fa.resid
+    fa.resid = fa.resid or 1e-5
     a.ncg = a.ncg + 1; fa.cgnum = a.ncg
   end
 end
@@ -61,7 +61,7 @@ local function setMD(a)
       md.mass2 = md[2]
       md.qt = getqt(a,qti); qti = qti + 1
     end
-    md.resid = 1e-5 or md.resid
+    md.resid = md.resid or 1e-5
     a.ncg = a.ncg + 1; md.cgnum = a.ncg
   end
 end

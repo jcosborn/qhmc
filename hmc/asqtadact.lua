@@ -44,7 +44,7 @@ local function setGR(a)
 	t.pt = nil
 	t.masses = nil
       else
-	t.resid = 1e-5 or t.resid
+	t.resid = t.resid or 1e-5
 	a.ncg = a.ncg + 1; t.cgnum = a.ncg
       end
     end
@@ -81,7 +81,7 @@ local function setFA(a)
 	end
       end
       printf("%i %i : %s\n", i, j, tostring(t.resid))
-      fa.resid = 1e-5 or t.resid
+      fa.resid = fa.resid or 1e-5
     end
     if #fa.pt == 0 then
       fa.pt = nil
@@ -96,7 +96,7 @@ local function setMD(a)
   local qti = 1
   for i=1,a.npseudo do
     local t = a.rhmc[i].MD
-    t.resid = 1e-5 or t.resid
+    t.resid = t.resid or 1e-5
     a.ncg = a.ncg + 1; t.cgnum = a.ncg
     t.ff = a.ff
     t.pt = {}

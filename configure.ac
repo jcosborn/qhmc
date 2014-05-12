@@ -1,4 +1,4 @@
-AC_INIT(qhmc, 0.1.1, [osborn at alcf.anl.gov])
+AC_INIT(qhmc, 0.1.2, [osborn at alcf.anl.gov])
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE
 
@@ -250,4 +250,5 @@ AC_CONFIG_FILES(lib/luafilesystem/Makefile)
 AC_CONFIG_FILES(lib/qopqdp/Makefile)
 AC_CONFIG_FILES(lib/quda/Makefile)
 AC_CONFIG_FILES(bin/Makefile)
+AC_CONFIG_FILES(test/Makefile)
 AC_OUTPUT

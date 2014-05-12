@@ -28,6 +28,9 @@ local rhmc = {}
 local hmcmasses = hmcmasses or {mass, mass2}
 local mass = mass or hmcmasses[1]
 local seed = seed or os.time()
+local faresid = faresid or 1e-8
+local grresid = grresid or faresid
+local mdresid = mdresid or 1e-5
 
 --local inlat = inlat or nil
 local inlat = inlat or nil
@@ -42,19 +45,19 @@ local nfsteps = nfsteps or { 80 }
 --local nfsteps = { 80, 80 }
 
 nfsteps = repelem(nfsteps, nf/2)
-local grcg = { prec=2, resid=1e-8, restart=500 }
-local facg = { prec=2, resid=1e-8, restart=500 }
-local mdcg = { prec=2, resid=1e-8, restart=500 }
+local grcg = { prec=2, resid=grresid, restart=500 }
+local facg = { prec=2, resid=faresid, restart=500 }
+local mdcg = { prec=2, resid=mdresid, restart=500 }
 local ffprec = 2
 --local gintalg = {type="leapfrog"}
 --local gintalg = {type="omelyan"}
 --local gintalg = {type="omelyan", lambda=0.22}
-local gintalg = {type="2MNV", lambda=0.1932}
+local gintalg = gintalg or {type="2MNV", lambda=0.1932}
 --local gintalg = {type="omelyan", lambda=0.33}
 
 --local fintalg = {type="leapfrog"}
 --local fintalg = {type="omelyan", lambda=0.22}
-local fintalg = {type="2MNV", lambda=0.1932}
+local fintalg = fintalg or {type="2MNV", lambda=0.1932}
 
 local pbp = {}
 pbp[1] = { reps=1 }
@@ -114,8 +117,9 @@ p.nf = nf
 p.u0 = u0
 p.xi0 = aniso.xi0
 p.gmom_var = { 1, 1, 1, aniso.gmom }
+--p.gmom_var = { -1, -1, -1, -aniso.gmom }
 --p.gaugeact = {type="symanzik_1loop_hisq", u0=p.u0, nf=p.nf}
-p.gaugeact = {type="plaquette"}
+p.gaugeact = gact or {type="plaquette"}
 p.npseudo = npseudo
 p.fermact = {type="wilson", rhmc=rhmc}
 p.fermact.smear = smear

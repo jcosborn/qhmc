@@ -176,7 +176,7 @@ qhmc_qopqdp_getCopyHyper(QDP_Shift *map, QDP_Subset **subset,
     n = n/nsub[i];
     int off = k*sublen[i];
     rof[i] = (roff[i]+off)%rs[i];
-    sof[j] = (sof[j]+off)%ss[j];
+    if(j>=0&&j<snd) sof[j] = (sof[j]+off)%ss[j];
     if(sublen[i]>(rlen[i]-off)) sublen[i] = rlen[i]-off;
   }
   *subset=QDP_create_subset_L(rlat,subCopyHyper,sublen,3*rnd*sizeof(int),2);
