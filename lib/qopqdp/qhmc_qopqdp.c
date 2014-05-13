@@ -350,6 +350,8 @@ qopqdp_seed(lua_State *L)
   }
   qhmc_qopqdp_seed_func(l->rs, seed, uniform, sub);
   qopqdp_srs = l->rs;
+  QLA_Int i = 987654321 + QDP_this_node;
+  QLA_S_eq_seed_i_I(&qopqdp_nrs, seed, &i);
   return 0;
 }
 
@@ -357,7 +359,7 @@ static int
 qopqdp_random(lua_State *L)
 {
   qassert(lua_gettop(L)==0);
-  double r=0;
+  double r = 0;
   if(QDP_this_node==0) {
     QLA_Real t;
     QLA_R_eq_random_S(&t, &qopqdp_nrs);
