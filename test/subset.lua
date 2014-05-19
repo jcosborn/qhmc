@@ -3,6 +3,8 @@ nt = 4
 ls = { nx, nx, nx, nt }
 L = qopqdp.lattice(ls)
 
+TESTON()
+
 f = L:real()
 f:zero()
 f:unit()
@@ -23,3 +25,5 @@ f:zero(se)
 print(f:norm2(se))
 print(f:norm2(so))
 print(f:norm2(sa))
+
+TESTOFF()

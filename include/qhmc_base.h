@@ -82,3 +82,5 @@ void qhmc_push_double_array(lua_State *L, int n, double *a);
 void qhmc_push_complex_array(lua_State *L, int n, qhmc_complex_t *a);
 const char *qhmc_tableGetString(lua_State *L, int idx, char *key);
 #define tableGetString qhmc_tableGetString
+
+void qhmc_open_qhmc(lua_State *L);

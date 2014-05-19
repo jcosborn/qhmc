@@ -1,0 +1,10 @@
+#loading: /home/osborn/lqcd/install/qhmc-git/hmc/Init.lua
+#runtest: using temp file momentum.lua.tmp
+#ndim = 4
+#numsites = 256
+#len = 4 4 4 4
+#nsquares = 1 1 1 1
+a: (0,0)  e: (0,0)  o: (0,0)
+a: (3072,0)  e: (1536,0)  o: (1536,0)
+a: (-2660.4300404258,1536)  e: (-1330.2150202129,768)  o: (-1330.2150202129,768)
+a: (-665.10751010645,384)  e: (-332.55375505322,192)  o: (-332.55375505322,192)

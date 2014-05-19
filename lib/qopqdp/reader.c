@@ -18,17 +18,16 @@ qopqdp_reader_check(lua_State *L, int idx)
   return r;
 }
 
-static void
-qopqdp_reader_free(lua_State *L, int idx)
-{
-  reader_t *r = qopqdp_reader_check(L, idx);
-  QDP_close_read(r->qr);
-}
-
 static int
-qopqdp_reader_gc(lua_State *L)
+qopqdp_reader_close(lua_State *L)
 {
-  qopqdp_reader_free(L, -1);
+  BEGIN_ARGS;
+  GET_READER(r);
+  END_ARGS;
+  if(r->open) {
+    QDP_close_read(r->qr);
+    r->open = 0;
+  }
   return 0;
 }
 
@@ -165,7 +164,8 @@ qopqdp_reader_read(lua_State *L)
 }
 
 static struct luaL_Reg reader_reg[] = {
-  { "__gc",    qopqdp_reader_gc },
+  { "__gc",    qopqdp_reader_close },
+  { "close",   qopqdp_reader_close },
   { "read",    qopqdp_reader_read },
   { NULL, NULL}
 };
@@ -177,6 +177,7 @@ qopqdp_reader_create(lua_State *L, const char *fn, lattice_t *lat)
   reader_t *r = lua_newuserdata(L, sizeof(reader_t));
   QDP_String *md = QDP_string_create();
   r->qr = QDP_open_read_L(lat->qlat, md, (char*)fn);
+  r->open = 1;
   if(luaL_newmetatable(L, mtname)) {
     lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");

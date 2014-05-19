@@ -15,9 +15,9 @@ if f.zero then f:zero() end
 f:write(writer, "test2")
 
 reader,md = L:reader(fn)
-print(md)
+TESTOUT("file metadata: %s\n", md)
 
 md = f:read(reader)
-print(md)
+TESTOUT("record metadata: %s\n", md)
 
 os.remove(fn)

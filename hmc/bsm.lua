@@ -17,7 +17,7 @@ local restart = restart or 2000
 local use_prev_soln = use_prev_soln or 0
 local mixedRsq = mixedRsq or 0
 
-local doGfix = doGfix or true
+local doGfix = doGfix or false
 local doSpectrum = doSpectrum or false
 local doS4obs = doS4obs or false
 
@@ -46,10 +46,10 @@ local ffprec = prec
 --local gintalg = {type="leapfrog"}
 --local gintalg = {type="omelyan"}
 --local gintalg = {type="omelyan", lambda=0.2}
-local gintalg = {type="omelyan", lambda=lambdaG}
+local gintalg = gintalg or {type="omelyan", lambda=lambdaG}
 --local gintalg = {type="2MNV", lambda=lambdaG}
 --local fintalg = {type="omelyan", lambda=0.2}
-local fintalg = {type="omelyan", lambda=lambdaF}
+local fintalg = fintalg or {type="omelyan", lambda=lambdaF}
 --local fintalg = {type="2MNV", lambda=lambdaF}
 
 local pbp = {}
@@ -295,6 +295,14 @@ printf("plaq ss: %g  st: %g  tot: %g\n", ps, pt, 0.5*(ps+pt))
 
 local nlats = nlats or 1
 
+--[[
+L = qopqdp.defaultLattice()
+rdr = L:reader("test.rs")
+rs = L:getRstate()
+rs:read(rdr)
+rdr:close()
+--]]
+
 for nl=1,nlats do
   if warmup and traj<warmup then
     r.md = true
@@ -312,3 +320,11 @@ for nl=1,nlats do
     acts:save(outlat)
   end
 end
+
+--[[
+L = qopqdp.defaultLattice()
+rs = L:getRstate()
+w = L:writer("test.rs","metadata")
+rs:write(w,"metadata")
+w:close()
+--]]

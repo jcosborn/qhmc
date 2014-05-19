@@ -12,11 +12,19 @@ fintalg = { type="leapfrog" }
 hmcmasses = { 0 }
 --rho = 0.2
 tau = 0.1
-ngsteps = 10
+ngsteps = 20
 nfsteps = { 10 }
-faresid = 1e-6
-mdresid = 1e-6
+faresid = 1e-8
+mdresid = 1e-8
 warmup = 1
-ntraj = 2
+ntraj = 1
+nlats = 2
 
 require 'wilson'
+
+TESTPAT("^plaq")
+TESTPAT("^S")
+TESTPAT("deltaS")
+TESTPAT("unitarity")
+TESTPAT("^1")
+TESTPAT("MEAS")

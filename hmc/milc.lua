@@ -11,7 +11,7 @@ function milcrat(fn)
   return t
 end
 
-local infile = arg[1]
+local infile = infile or arg[1]
 if not infile then
   printf("no input file: %s %s\n", arg[-1], arg[0])
   exit(1)

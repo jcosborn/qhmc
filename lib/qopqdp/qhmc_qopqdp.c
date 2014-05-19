@@ -222,6 +222,20 @@ qopqdp_get_default_lattice(lua_State *L)
 }
 
 static int
+qopqdp_defaultLattice(lua_State *L)
+{
+  BEGIN_ARGS;
+  OPT_LATTICE(l, NULL);
+  END_ARGS;
+  if(l) {
+    qopqdp_set_default_lattice(L, 1);
+    return 0;
+  }
+  lua_getfield(L, LUA_REGISTRYINDEX, "defaultLattice");
+  return 1;
+}
+
+static int
 qopqdp_lattice(lua_State *L)
 {
   int nargs = lua_gettop(L);
@@ -490,6 +504,7 @@ static struct luaL_Reg qopqdp_reg[] = {
   { "master",         qopqdp_master },
   { "dtime",          qopqdp_dtime },
   { "lattice",        qopqdp_lattice },
+  { "defaultLattice", qopqdp_defaultLattice },
   { "profile",        qopqdp_profile },
   { "verbosity",      qopqdp_verbosity },
   { "blocksize",      qopqdp_blocksize },

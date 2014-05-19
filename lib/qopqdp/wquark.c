@@ -91,6 +91,59 @@ qopqdp_wquark_point(lua_State *L)
   return 0;
 }
 
+// 1: wquark
+// 2: space-time momentum
+// 3: color momentum
+// 4: spin momentum
+// 5: space-time offset
+// 6: color offset
+// 7: spin offset
+// 8: subset
+static int
+qopqdp_wquark_momentum(lua_State *L)
+{
+#define NC QDP_get_nc(q->df)
+  BEGIN_ARGS;
+  GET_WQUARK(q);
+  GET_TABLE_LEN_INDEX(nd, pi);
+  GET_INT(pc);
+  GET_INT(ps);
+  GET_TABLE_LEN_INDEX(nd2, oi);
+  GET_INT(oc);
+  GET_INT(os);
+  OPT_SUBSET(sub, q->lat, QDP_all_L(q->qlat));
+  END_ARGS;
+  qassert(nd==nd2);
+  qassert(nd==q->lat->nd);
+  int p[nd]; qhmc_get_int_array(L, pi, nd, p);
+  int o[nd]; qhmc_get_int_array(L, oi, nd, o);
+  int mynode = QDP_this_node;
+  double m[nd];
+  for(int i=0; i<nd; i++) {
+    m[i] = (6.2831853071795864769*p[i])/QDP_coord_size(i);
+  }
+  double mc = (6.2831853071795864769*pc)/QLA_Nc;
+  double ms = (6.2831853071795864769*ps)/QLA_Ns;
+  int s;
+  QDP_loop_sites(s, sub, {
+      QLA_DiracFermion *df = QDP_site_ptr_readwrite_D(q->df,s);
+      int x[nd];
+      QDP_get_coords(x, mynode, s);
+      double px0 = 0;
+      for(int i=0; i<nd; i++) {
+	px0 += m[i]*(x[i]-o[i]);
+      }
+      for(int ic=0; ic<QLA_Nc; ic++) {
+	for(int is=0; is<QLA_Ns; is++) {
+	  double px = px0 + mc*(ic-oc) + ms*(is-os);
+	  QLA_C_eq_cexpi_R(&QLA_elem_D(*df,ic,is), &px);
+	}
+      }
+    });
+  return 0;
+#undef NC
+}
+
 static int
 qopqdp_wquark_random(lua_State *L)
 {
@@ -375,6 +428,7 @@ static struct luaL_Reg wquark_reg[] = {
   { "clone",      qopqdp_wquark_clone },
   { "zero",       qopqdp_wquark_zero },
   { "point",      qopqdp_wquark_point },
+  { "momentum",   qopqdp_wquark_momentum },
   { "random",     qopqdp_wquark_random },
   { "randomU1",   qopqdp_wquark_randomU1 },
   { "set",        qopqdp_wquark_set },

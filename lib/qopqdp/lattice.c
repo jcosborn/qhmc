@@ -63,6 +63,31 @@ qopqdp_lattice_seed(lua_State *L)
   return 0;
 }
 
+static int
+qopqdp_lattice_get_rstate(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_LATTICE(l);
+  END_ARGS;
+  if(l->rs==NULL) {
+    lua_pushnil(L);
+  } else {
+    qopqdp_rstate_wrap(L, l, l->rs, 0);
+  }
+  return 1;
+}
+
+static int
+qopqdp_lattice_set_rstate(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_LATTICE(l);
+  GET_QOPQDP_RSTATE(rs);
+  END_ARGS;
+  l->rs = rs->field;
+  return 0;
+}
+
 // 1: lattice
 // 2: string or function
 // return: subset or array of subsets
@@ -188,6 +213,8 @@ static struct luaL_Reg lattice_reg[] = {
   { "subset",         qopqdp_lattice_subset },
   { "reader",         qopqdp_lattice_reader },
   { "writer",         qopqdp_lattice_writer },
+  { "getRstate",      qopqdp_lattice_get_rstate },
+  { "setRstate",      qopqdp_lattice_set_rstate },
   { "rstate",         qopqdp_rstate },
   { "real",           qopqdp_real },
   { "complex",        qopqdp_complex },

@@ -3,6 +3,8 @@ nt = 4
 ls = { nx, nx, nx, nt }
 L = qopqdp.lattice(ls)
 
+TESTON()
+
 function test(x)
   local sa = L:subset("all")
   local ra = f:norm2(sa)
@@ -25,3 +27,5 @@ f:point({0,0,0,1},2)
 test()
 
 print(f:point({0,0,0,1}))
+
+TESTOFF()

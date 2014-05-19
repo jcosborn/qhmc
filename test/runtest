@@ -5,10 +5,11 @@ script="$2"
 srcdir="`dirname $script`"
 base="`basename $script .lua`"
 out="$base.out"
+run="$srcdir/runtest.lua"
 ref="$srcdir/$base.ref"
 
-echo "# $qhmc $script $out"
-$qhmc $script >$out
+echo "# $qhmc $run $script $out"
+$qhmc $run $script >$out
 rc="$?"
 if [ $rc -ne 0 ]; then
   echo "1..1"
@@ -22,7 +23,7 @@ if [ ! -f $ref ]; then
   exit 1
 fi
 
-d="`diff $out $ref`"
+d="`diff -I'^#' $out $ref`"
 echo "$d"
 
 if [ -n "$d" ]; then

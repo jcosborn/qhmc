@@ -1,4 +1,0 @@
-fieldIO.lua
-norm2.lua
-point.lua
-subset.lua

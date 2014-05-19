@@ -18,17 +18,16 @@ qopqdp_writer_check(lua_State *L, int idx)
   return w;
 }
 
-static void
-qopqdp_writer_free(lua_State *L, int idx)
-{
-  writer_t *w = qopqdp_writer_check(L, idx);
-  QDP_close_write(w->qw);
-}
-
 static int
-qopqdp_writer_gc(lua_State *L)
+qopqdp_writer_close(lua_State *L)
 {
-  qopqdp_writer_free(L, -1);
+  BEGIN_ARGS;
+  GET_WRITER(w);
+  END_ARGS;
+  if(w->open) {
+    QDP_close_write(w->qw);
+    w->open = 0;
+  }
   return 0;
 }
 
@@ -171,7 +170,8 @@ qopqdp_writer_prop(lua_State *L)
 }
 
 static struct luaL_Reg writer_reg[] = {
-  { "__gc",    qopqdp_writer_gc },
+  { "__gc",    qopqdp_writer_close },
+  { "close",   qopqdp_writer_close },
   { "write",   qopqdp_writer_write },
   { "prop",    qopqdp_writer_prop },
   { NULL, NULL}
@@ -186,6 +186,7 @@ qopqdp_writer_create(lua_State *L, const char *fn, const char *mds,
   QDP_String *md = QDP_string_create();
   QDP_string_set(md, (char *)mds);
   w->qw = QDP_open_write_L(lat->qlat, md, (char*)fn, QDP_SINGLEFILE);
+  w->open = 1;
   QDP_string_destroy(md);
   if(luaL_newmetatable(L, mtname)) {
     lua_pushvalue(L, -1);

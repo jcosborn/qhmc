@@ -4,7 +4,7 @@ ls = { nx, nx, nx, nt }
 L = qopqdp.lattice(ls)
 L:seed(98765321)
 
-printf("BEGIN_TEST\n")
+TESTON()
 
 --f = L:real()
 f = L:cmatrix()
@@ -26,4 +26,4 @@ subs = {L:subset("even"),L:subset("odd")}
 a = f:norm2(subs)
 myprint(a,"\n")
 
-printf("END_TEST\n")
+TESTOFF()

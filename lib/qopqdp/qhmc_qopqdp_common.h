@@ -175,6 +175,7 @@ void qopqdp_opt_as_qsubset_array(lua_State *L, int *idx, int required, lattice_t
 
 typedef struct {
   QDP_Reader *qr;
+  int open;
 } reader_t;
 reader_t *qopqdp_reader_create(lua_State *L, const char *fn, lattice_t *lat);
 reader_t *qopqdp_reader_check(lua_State *L, int idx);
@@ -184,6 +185,7 @@ void qopqdp_get_prec_type_nc(QDP_Reader *qr, int *prec, int *type, int *nc);
 
 typedef struct {
   QDP_Writer *qw;
+  int open;
 } writer_t;
 writer_t *qopqdp_writer_create(lua_State *L, const char *fn, const char *mds, lattice_t *lat);
 writer_t *qopqdp_writer_check(lua_State *L, int idx);
@@ -195,9 +197,11 @@ typedef struct {
   QDP_Lattice *qlat;
   QDP_RandomState *field;
   int nc;
+  int doGC;
 } qopqdp_rstate_t;
 qopqdp_rstate_t *qopqdp_rstate_create(lua_State *L, lattice_t *lat);
 qopqdp_rstate_t *qopqdp_rstate_create_unset(lua_State *L, lattice_t *lat);
+qopqdp_rstate_t *qopqdp_rstate_wrap(lua_State *L, lattice_t *lat, QDP_RandomState *field, int doGC);
 qopqdp_rstate_t *qopqdp_rstate_opt(lua_State *L, int *idx, int req, qopqdp_rstate_t *def);
 void qhmc_qopqdp_seed_func(QDP_RandomState *r, int seed, int uniform, QDP_Subset s);
 #define qopqdp_rstate_check(L,i) qopqdp_rstate_opt(L,(int[]){i},1,NULL)
@@ -217,6 +221,7 @@ typedef struct {
   QDP_Lattice *qlat;
   QDP_F_Real *field;
   int nc;
+  int doGC;
 } qopqdp_realF_t;
 qopqdp_realF_t *qopqdp_realF_create(lua_State *L, lattice_t *lat);
 qopqdp_realF_t *qopqdp_realF_create_unset(lua_State *L, lattice_t *lat);
@@ -226,6 +231,7 @@ typedef struct {
   QDP_Lattice *qlat;
   QDP_D_Real *field;
   int nc;
+  int doGC;
 } qopqdp_realD_t;
 qopqdp_realD_t *qopqdp_realD_create(lua_State *L, lattice_t *lat);
 qopqdp_realD_t *qopqdp_realD_create_unset(lua_State *L, lattice_t *lat);
@@ -240,6 +246,7 @@ qopqdp_realD_t *qopqdp_realD_opt(lua_State *L, int *idx, int req, qopqdp_realD_t
 #define qopqdp_real_t                 qopqdp_realF_t
 #define qopqdp_real_create            qopqdp_realF_create
 #define qopqdp_real_create_unset      qopqdp_realF_create_unset
+#define qopqdp_real_wrap              qopqdp_realF_wrap
 #define qopqdp_real_opt               qopqdp_realF_opt
 #define qopqdp_real_as_array_opt_len  qopqdp_realF_as_array_opt_len
 #define qopqdp_real_as_array_opt      qopqdp_realF_as_array_opt
@@ -251,6 +258,7 @@ qopqdp_realD_t *qopqdp_realD_opt(lua_State *L, int *idx, int req, qopqdp_realD_t
 #define qopqdp_real_t                 qopqdp_realD_t
 #define qopqdp_real_create            qopqdp_realD_create
 #define qopqdp_real_create_unset      qopqdp_realD_create_unset
+#define qopqdp_real_wrap              qopqdp_realD_wrap
 #define qopqdp_real_opt               qopqdp_realD_opt
 #define qopqdp_real_as_array_opt_len  qopqdp_realD_as_array_opt_len
 #define qopqdp_real_as_array_opt      qopqdp_realD_as_array_opt
@@ -266,6 +274,7 @@ typedef struct {
   QDP_Lattice *qlat;
   QDP_F_Complex *field;
   int nc;
+  int doGC;
 } qopqdp_complexF_t;
 qopqdp_complexF_t *qopqdp_complexF_create(lua_State *L, lattice_t *lat);
 qopqdp_complexF_t *qopqdp_complexF_create_unset(lua_State *L, lattice_t *lat);
@@ -275,6 +284,7 @@ typedef struct {
   QDP_Lattice *qlat;
   QDP_D_Complex *field;
   int nc;
+  int doGC;
 } qopqdp_complexD_t;
 qopqdp_complexD_t *qopqdp_complexD_create(lua_State *L, lattice_t *lat);
 qopqdp_complexD_t *qopqdp_complexD_create_unset(lua_State *L, lattice_t *lat);
@@ -289,6 +299,7 @@ qopqdp_complexD_t *qopqdp_complexD_opt(lua_State *L, int *idx, int req, qopqdp_c
 #define qopqdp_complex_t                 qopqdp_complexF_t
 #define qopqdp_complex_create            qopqdp_complexF_create
 #define qopqdp_complex_create_unset      qopqdp_complexF_create_unset
+#define qopqdp_complex_wrap              qopqdp_complexF_wrap
 #define qopqdp_complex_opt               qopqdp_complexF_opt
 #define qopqdp_complex_as_array_opt_len  qopqdp_complexF_as_array_opt_len
 #define qopqdp_complex_as_array_opt      qopqdp_complexF_as_array_opt
@@ -300,6 +311,7 @@ qopqdp_complexD_t *qopqdp_complexD_opt(lua_State *L, int *idx, int req, qopqdp_c
 #define qopqdp_complex_t                 qopqdp_complexD_t
 #define qopqdp_complex_create            qopqdp_complexD_create
 #define qopqdp_complex_create_unset      qopqdp_complexD_create_unset
+#define qopqdp_complex_wrap              qopqdp_complexD_wrap
 #define qopqdp_complex_opt               qopqdp_complexD_opt
 #define qopqdp_complex_as_array_opt_len  qopqdp_complexD_as_array_opt_len
 #define qopqdp_complex_as_array_opt      qopqdp_complexD_as_array_opt
@@ -315,6 +327,7 @@ typedef struct {
   QDP_Lattice *qlat;
   QDP_F_ColorVector *field;
   int nc;
+  int doGC;
 } qopqdp_cvectorF_t;
 qopqdp_cvectorF_t *qopqdp_cvectorF_create(lua_State *L, int nc, lattice_t *lat);
 qopqdp_cvectorF_t *qopqdp_cvectorF_create_unset(lua_State *L, int nc, lattice_t *lat);
@@ -324,6 +337,7 @@ typedef struct {
   QDP_Lattice *qlat;
   QDP_D_ColorVector *field;
   int nc;
+  int doGC;
 } qopqdp_cvectorD_t;
 qopqdp_cvectorD_t *qopqdp_cvectorD_create(lua_State *L, int nc, lattice_t *lat);
 qopqdp_cvectorD_t *qopqdp_cvectorD_create_unset(lua_State *L, int nc, lattice_t *lat);
@@ -338,6 +352,7 @@ qopqdp_cvectorD_t *qopqdp_cvectorD_opt(lua_State *L, int *idx, int req, qopqdp_c
 #define qopqdp_cvector_t                 qopqdp_cvectorF_t
 #define qopqdp_cvector_create            qopqdp_cvectorF_create
 #define qopqdp_cvector_create_unset      qopqdp_cvectorF_create_unset
+#define qopqdp_cvector_wrap              qopqdp_cvectorF_wrap
 #define qopqdp_cvector_opt               qopqdp_cvectorF_opt
 #define qopqdp_cvector_as_array_opt_len  qopqdp_cvectorF_as_array_opt_len
 #define qopqdp_cvector_as_array_opt      qopqdp_cvectorF_as_array_opt
@@ -349,6 +364,7 @@ qopqdp_cvectorD_t *qopqdp_cvectorD_opt(lua_State *L, int *idx, int req, qopqdp_c
 #define qopqdp_cvector_t                 qopqdp_cvectorD_t
 #define qopqdp_cvector_create            qopqdp_cvectorD_create
 #define qopqdp_cvector_create_unset      qopqdp_cvectorD_create_unset
+#define qopqdp_cvector_wrap              qopqdp_cvectorD_wrap
 #define qopqdp_cvector_opt               qopqdp_cvectorD_opt
 #define qopqdp_cvector_as_array_opt_len  qopqdp_cvectorD_as_array_opt_len
 #define qopqdp_cvector_as_array_opt      qopqdp_cvectorD_as_array_opt
@@ -364,6 +380,7 @@ typedef struct {
   QDP_Lattice *qlat;
   QDP_F_ColorMatrix *field;
   int nc;
+  int doGC;
 } qopqdp_cmatrixF_t;
 qopqdp_cmatrixF_t *qopqdp_cmatrixF_create(lua_State *L, int nc, lattice_t *lat);
 qopqdp_cmatrixF_t *qopqdp_cmatrixF_create_unset(lua_State *L, int nc, lattice_t *lat);
@@ -373,6 +390,7 @@ typedef struct {
   QDP_Lattice *qlat;
   QDP_D_ColorMatrix *field;
   int nc;
+  int doGC;
 } qopqdp_cmatrixD_t;
 qopqdp_cmatrixD_t *qopqdp_cmatrixD_create(lua_State *L, int nc, lattice_t *lat);
 qopqdp_cmatrixD_t *qopqdp_cmatrixD_create_unset(lua_State *L, int nc, lattice_t *lat);
@@ -387,6 +405,7 @@ qopqdp_cmatrixD_t *qopqdp_cmatrixD_opt(lua_State *L, int *idx, int req, qopqdp_c
 #define qopqdp_cmatrix_t                 qopqdp_cmatrixF_t
 #define qopqdp_cmatrix_create            qopqdp_cmatrixF_create
 #define qopqdp_cmatrix_create_unset      qopqdp_cmatrixF_create_unset
+#define qopqdp_cmatrix_wrap              qopqdp_cmatrixF_wrap
 #define qopqdp_cmatrix_opt               qopqdp_cmatrixF_opt
 #define qopqdp_cmatrix_as_array_opt_len  qopqdp_cmatrixF_as_array_opt_len
 #define qopqdp_cmatrix_as_array_opt      qopqdp_cmatrixF_as_array_opt
@@ -398,6 +417,7 @@ qopqdp_cmatrixD_t *qopqdp_cmatrixD_opt(lua_State *L, int *idx, int req, qopqdp_c
 #define qopqdp_cmatrix_t                 qopqdp_cmatrixD_t
 #define qopqdp_cmatrix_create            qopqdp_cmatrixD_create
 #define qopqdp_cmatrix_create_unset      qopqdp_cmatrixD_create_unset
+#define qopqdp_cmatrix_wrap              qopqdp_cmatrixD_wrap
 #define qopqdp_cmatrix_opt               qopqdp_cmatrixD_opt
 #define qopqdp_cmatrix_as_array_opt_len  qopqdp_cmatrixD_as_array_opt_len
 #define qopqdp_cmatrix_as_array_opt      qopqdp_cmatrixD_as_array_opt
@@ -413,6 +433,7 @@ typedef struct {
   QDP_Lattice *qlat;
   QDP_F_DiracFermion *field;
   int nc;
+  int doGC;
 } qopqdp_dfermionF_t;
 qopqdp_dfermionF_t *qopqdp_dfermionF_create(lua_State *L, int nc, lattice_t *lat);
 qopqdp_dfermionF_t *qopqdp_dfermionF_create_unset(lua_State *L, int nc, lattice_t *lat);
@@ -422,6 +443,7 @@ typedef struct {
   QDP_Lattice *qlat;
   QDP_D_DiracFermion *field;
   int nc;
+  int doGC;
 } qopqdp_dfermionD_t;
 qopqdp_dfermionD_t *qopqdp_dfermionD_create(lua_State *L, int nc, lattice_t *lat);
 qopqdp_dfermionD_t *qopqdp_dfermionD_create_unset(lua_State *L, int nc, lattice_t *lat);
@@ -434,6 +456,7 @@ qopqdp_dfermionD_t *qopqdp_dfermionD_opt(lua_State *L, int *idx, int req, qopqdp
 #define qopqdp_dfermion_t                 qopqdp_dfermionF_t
 #define qopqdp_dfermion_create            qopqdp_dfermionF_create
 #define qopqdp_dfermion_create_unset      qopqdp_dfermionF_create_unset
+#define qopqdp_dfermion_wrap              qopqdp_dfermionF_wrap
 #define qopqdp_dfermion_opt               qopqdp_dfermionF_opt
 #define qopqdp_dfermion_as_array_opt_len  qopqdp_dfermionF_as_array_opt_len
 #define qopqdp_dfermion_as_array_opt      qopqdp_dfermionF_as_array_opt
@@ -445,6 +468,7 @@ qopqdp_dfermionD_t *qopqdp_dfermionD_opt(lua_State *L, int *idx, int req, qopqdp
 #define qopqdp_dfermion_t                 qopqdp_dfermionD_t
 #define qopqdp_dfermion_create            qopqdp_dfermionD_create
 #define qopqdp_dfermion_create_unset      qopqdp_dfermionD_create_unset
+#define qopqdp_dfermion_wrap              qopqdp_dfermionD_wrap
 #define qopqdp_dfermion_opt               qopqdp_dfermionD_opt
 #define qopqdp_dfermion_as_array_opt_len  qopqdp_dfermionD_as_array_opt_len
 #define qopqdp_dfermion_as_array_opt      qopqdp_dfermionD_as_array_opt

@@ -36,6 +36,7 @@ typedef S3(qopqdp_,FTYPE,_t) ftype_t;
 #define ftype_zero S3(qopqdp_,FTYPE,_zero)
 #define ftype_create S3(qopqdp_,FTYPE,_create)
 #define ftype_create_unset S3(qopqdp_,FTYPE,_create_unset)
+#define ftype_wrap S3(qopqdp_,FTYPE,_wrap)
 #define ftype_set S3(qopqdp_,FTYPE,_set)
 #define ftype_clone S3(qopqdp_,FTYPE,_clone)
 #define ftype_read S3(qopqdp_,FTYPE,_read)
@@ -228,7 +229,7 @@ ftype_gc(lua_State *L)
   BEGIN_ARGS;
   GET_FTYPE(t);
   END_ARGS;
-  qdpdestroy(t->field);
+  if(t->doGC) qdpdestroy(t->field);
   return 0;
 }
 
@@ -1063,17 +1064,18 @@ static struct luaL_Reg ftype_reg[] = {
 // check/make: GL,U,H,AH,SL,SU,TGL,TH,TAH
 
 ftype_t *
-ftype_create_unset(lua_State *L, NCPROTT lattice_t *lat)
+ftype_wrap(lua_State *L, lattice_t *lat, qdptype *field, int doGC)
 {
   if(lat==NULL) lat = qopqdp_get_default_lattice(L);
   ftype_t *t = lua_newuserdata(L, sizeof(ftype_t));
   t->lat = lat;
   t->qlat = lat->qlat;
 #ifdef COLORED
-  if(NC<0) NC = QOPQDP_DEFAULTNC;
+  int NC = QDP_get_nc(field);
 #endif
   t->nc = NCV;
-  t->field = qdpcreate(lat->qlat);
+  t->field = field;
+  t->doGC = doGC;
   if(luaL_newmetatable(L, mtname)) {
     lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");
@@ -1081,6 +1083,17 @@ ftype_create_unset(lua_State *L, NCPROTT lattice_t *lat)
   }
   lua_setmetatable(L, -2);
   return t;
+}
+
+ftype_t *
+ftype_create_unset(lua_State *L, NCPROTT lattice_t *lat)
+{
+  if(lat==NULL) lat = qopqdp_get_default_lattice(L);
+#ifdef COLORED
+  if(NC<0) NC = QOPQDP_DEFAULTNC;
+#endif
+  qdptype *field = qdpcreate(lat->qlat);
+  return ftype_wrap(L, lat, field, 1);
 }
 
 ftype_t *

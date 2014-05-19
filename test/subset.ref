@@ -1,8 +1,9 @@
-loading: /home/osborn/lqcd/install/qhmc-git/hmc/Init.lua
-ndim = 4
-numsites = 256
-len = 4 4 4 4
-nsquares = 1 1 1 1
+#loading: /home/osborn/lqcd/install/qhmc-git/hmc/Init.lua
+#runtest: using temp file subset.lua.tmp
+#ndim = 4
+#numsites = 256
+#len = 4 4 4 4
+#nsquares = 1 1 1 1
 256
 128
 128

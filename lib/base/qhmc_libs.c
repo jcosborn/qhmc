@@ -48,6 +48,7 @@ addPath(lua_State* L, char *s)
 void
 qhmc_open_libs(lua_State* L)
 {
+  qhmc_open_qhmc(L);
   luaopen_lfs(L);
   luaopen_bc(L);
   open_qhmc_complex(L);
@@ -95,7 +96,7 @@ qhmc_open_libs(lua_State* L)
     { // print path to loaded packages
       int rc = luaL_dostring(L, "local ps; ps=function(m)\
  for k,f in ipairs(package.searchers) do if f~=ps then r,e=f(m);	\
- if type(r)==\"function\" then print(\"loading: \"..e);return r,e end	\
+ if type(r)==\"function\" then print(\"#loading: \"..e);return r,e end	\
  end end return nil end; table.insert(package.searchers,1,ps)");
       if(rc!=0) {
 	printf("error %s:%s:%i: luaL_dostring failed\n", __FILE__, __func__, __LINE__);

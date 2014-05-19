@@ -1,4 +1,3 @@
-package.path = (userpath or "") .. "./?.lua;./hmc/?.lua;" .. arg[0]:gsub("[^/]*.lua","?.lua;") .. package.path
 require 'common'
 require 'run'
 require 'mg'
@@ -18,7 +17,6 @@ local nf = nf or 2
 local clov = clov or 0
 local clov_s = clov_s or clov
 local clov_t = clov_t or clov
-_G.mass = mass
 
 aniso.xi0 = aniso.xi0 or 1
 aniso.nu = aniso.nu or 1
@@ -27,10 +25,15 @@ aniso.gmom = aniso.gmom or 1
 local rhmc = {}
 local hmcmasses = hmcmasses or {mass, mass2}
 local mass = mass or hmcmasses[1]
+_G.mass = mass
 local seed = seed or os.time()
+local prec = prec or 2
 local faresid = faresid or 1e-8
 local grresid = grresid or faresid
 local mdresid = mdresid or 1e-5
+local restart = restart or 2000
+local use_prev_soln = use_prev_soln or 0
+--local mixedRsq = mixedRsq or 0
 
 --local inlat = inlat or nil
 local inlat = inlat or nil
@@ -45,19 +48,19 @@ local nfsteps = nfsteps or { 80 }
 --local nfsteps = { 80, 80 }
 
 nfsteps = repelem(nfsteps, nf/2)
-local grcg = { prec=2, resid=grresid, restart=500 }
-local facg = { prec=2, resid=faresid, restart=500 }
-local mdcg = { prec=2, resid=mdresid, restart=500 }
-local ffprec = 2
+local grcg = { prec=prec, resid=grresid, restart=restart }
+local facg = { prec=prec, resid=faresid, restart=restart }
+local mdcg = { prec=prec, resid=mdresid, restart=restart }
+local ffprec = prec
 --local gintalg = {type="leapfrog"}
 --local gintalg = {type="omelyan"}
 --local gintalg = {type="omelyan", lambda=0.22}
-local gintalg = gintalg or {type="2MNV", lambda=0.1932}
+local gintalg = gintalg or {type="2MNV", lambda=lambdaG}
 --local gintalg = {type="omelyan", lambda=0.33}
 
 --local fintalg = {type="leapfrog"}
 --local fintalg = {type="omelyan", lambda=0.22}
-local fintalg = fintalg or {type="2MNV", lambda=0.1932}
+local fintalg = fintalg or {type="2MNV", lambda=lambdaF}
 
 local pbp = {}
 pbp[1] = { reps=1 }
@@ -129,6 +132,11 @@ local rhmc0 = copy(rhmc)
 local acts = setupacts(p)
 --myprint("rhmc0 = ", rhmc0, "\n")
 
+local mdcgresid = {}
+for i=1,#hmcmasses do
+  mdcgresid[i] = (type(mdresid)=="table") and mdresid[i] or mdresid
+end
+
 -- r: run parameters
 local r = {}
 r.tau = tau
@@ -148,7 +156,7 @@ for j=1,npseudo do
   rhmc1[j] = {GR={},FA={},MD={}}
   rhmc1[j].GR.resid = grcg.resid
   rhmc1[j].FA.resid = facg.resid
-  rhmc1[j].MD.resid = mdcg.resid
+  rhmc1[j].MD.resid = mdcgresid[1+math.floor(((j-1)*2+0.5)/nf)]
   rhmc1[j].GR.solveopts = {
     prec = grcg.prec,
     restart = grcg.restart

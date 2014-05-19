@@ -1,12 +1,11 @@
-loading: /home/osborn/lqcd/install/qhmc-git/hmc/Init.lua
-ndim = 4
-numsites = 256
-len = 4 4 4 4
-nsquares = 1 1 1 1
-BEGIN_TEST
+#loading: /home/osborn/lqcd/install/qhmc-git/hmc/Init.lua
+#runtest: using temp file norm2.lua.tmp
+#ndim = 4
+#numsites = 256
+#len = 4 4 4 4
+#nsquares = 1 1 1 1
 4465.82
 4465.82
 { 1180.1901459446, 1093.838208197, 1107.8999507685, 1083.8948243389 }
 { 1180.1901459446, 1093.838208197, 1107.8999507685, 1083.8948243389 }
 { 2171.0660245026, 2294.7571047464 }
-END_TEST

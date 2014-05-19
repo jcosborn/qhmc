@@ -1,4 +1,11 @@
 #include "qhmc_internal.h"
+#ifndef _POSIX_C_SOURCE
+#define _POSIX_C_SOURCE 199309L
+#endif
+#include <unistd.h>
+#include <fcntl.h>
+#include <time.h>
+#include <sys/time.h>
 
 const char *
 qhmc_opt_string(lua_State *L, int *idx, int required, char *def)
@@ -147,4 +154,78 @@ qhmc_tableGetString(lua_State *L, int idx, char *key)
   const char *s = luaL_checkstring(L, -1);
   lua_pop(L, 1);
   return s;
+}
+
+static int
+qhmc_isMaster(lua_State *L)
+{
+  qassert(lua_gettop(L)==0);
+  int ismaster = qhmc_master();
+  lua_pushboolean(L, ismaster);
+  return 1;
+}
+
+static int
+qhmc_dtime(lua_State *L)
+{
+  qassert(lua_gettop(L)==0);
+  double t = 0;
+#if _POSIX_TIMERS > 0
+  struct timespec ts;
+  clock_gettime(CLOCK_REALTIME, &ts);
+  t = (double) ts.tv_sec + 1e-9 * (double) ts.tv_nsec;
+#else
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  t = (double) tv.tv_sec + 1e-6 * (double) tv.tv_usec;
+#endif
+  lua_pushnumber(L, t);
+  return 1;
+}
+
+static int fdout, fderr;
+
+static int
+qhmc_remapout(lua_State *L)
+{
+  qassert(lua_gettop(L)==1);
+  lua_pushvalue(L, -1);
+  const char *s = luaL_checkstring(L, -1);
+  lua_pop(L, 1);
+  int fd = creat(s, 0666);
+  fflush(stdout);
+  fdout = dup(1);
+  dup2(fd, 1);
+  fflush(stderr);
+  fderr = dup(2);
+  dup2(fd, 2);
+  close(fd);
+  return 0;
+}
+
+static int
+qhmc_restoreout(lua_State *L)
+{
+  qassert(lua_gettop(L)==0);
+  fflush(stdout);
+  dup2(fdout, 1);
+  close(fdout);
+  fflush(stderr);
+  dup2(fderr, 2);
+  close(fderr);
+  return 0;
+}
+
+static struct luaL_Reg qhmc_reg[] = {
+  { "isMaster",       qhmc_isMaster },
+  { "dtime",          qhmc_dtime },
+  { "remapout",       qhmc_remapout },
+  { "restoreout",     qhmc_restoreout },
+  { NULL, NULL}
+};
+
+void
+qhmc_open_qhmc(lua_State *L)
+{
+  luaL_register(L, "qhmc", qhmc_reg);
 }
