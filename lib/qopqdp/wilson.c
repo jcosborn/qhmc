@@ -285,51 +285,47 @@ qopqdp_wilson_mg_setup(lua_State *L)
 static int
 qopqdp_wilson_D(lua_State *L)
 {
-  int narg = lua_gettop(L);
-  qassert(narg==4 || narg==6);
-  wilson_t *w = qopqdp_wilson_check(L, 1);
-  wquark_t *qd = qopqdp_wquark_check(L, 2);
-  wquark_t *qs = qopqdp_wquark_check(L, 3);
-  double mass = luaL_checknumber(L, 4);
-  QOP_evenodd_t eod=QOP_EVENODD, eos=QOP_EVENODD;
-  if(narg!=4) {
-    eod = qopqdp_check_evenodd(L, 5);
-    eos = qopqdp_check_evenodd(L, 6);
-  }
+  BEGIN_ARGS;
+  GET_WILSON(w);
+  GET_QOPQDP_DFERMION(qd);
+  GET_QOPQDP_DFERMION(qs);
+  GET_DOUBLE(mass);
+  OPT_EVENODD(eod, QOP_EVENODD);
+  OPT_EVENODD(eos, QOP_EVENODD);
+  END_ARGS;
   wilson_set(w, 2);
-  QOP_wilson_dslash_qdp(NULL, w->fl, kappa(w,mass), 1, qd->df, qs->df, eod, eos);
+  QOP_wilson_dslash_qdp(NULL, w->fl, kappa(w,mass), 1,
+			qd->field, qs->field, eod, eos);
   return 0;
 }
 
 static int
 qopqdp_wilson_Ddag(lua_State *L)
 {
-  int narg = lua_gettop(L);
-  qassert(narg==4 || narg==6);
-  wilson_t *w = qopqdp_wilson_check(L, 1);
-  wquark_t *qd = qopqdp_wquark_check(L, 2);
-  wquark_t *qs = qopqdp_wquark_check(L, 3);
-  double mass = luaL_checknumber(L, 4);
-  QOP_evenodd_t eod=QOP_EVENODD, eos=QOP_EVENODD;
-  if(narg!=4) {
-    eod = qopqdp_check_evenodd(L, 5);
-    eos = qopqdp_check_evenodd(L, 6);
-  }
+  BEGIN_ARGS;
+  GET_WILSON(w);
+  GET_QOPQDP_DFERMION(qd);
+  GET_QOPQDP_DFERMION(qs);
+  GET_DOUBLE(mass);
+  OPT_EVENODD(eod, QOP_EVENODD);
+  OPT_EVENODD(eos, QOP_EVENODD);
+  END_ARGS;
   wilson_set(w, 2);
-  QOP_wilson_dslash_qdp(NULL, w->fl, kappa(w,mass), -1, qd->df, qs->df, eod, eos);
+  QOP_wilson_dslash_qdp(NULL, w->fl, kappa(w,mass), -1,
+			qd->field, qs->field, eod, eos);
   return 0;
 }
 
 static int
 qopqdp_wilson_precD(lua_State *L)
 {
-#define NC QDP_get_nc(qd->df)
-  int narg = lua_gettop(L);
-  qassert(narg==4);
-  wilson_t *w = qopqdp_wilson_check(L, 1);
-  wquark_t *qd = qopqdp_wquark_check(L, 2);
-  wquark_t *qs = qopqdp_wquark_check(L, 3);
-  double mass = luaL_checknumber(L, 4);
+#define NC QDP_get_nc(qd->field)
+  BEGIN_ARGS;
+  GET_WILSON(w);
+  GET_QOPQDP_DFERMION(qd);
+  GET_QOPQDP_DFERMION(qs);
+  GET_DOUBLE(mass);
+  END_ARGS;
   wilson_set(w, 2);
   double k = kappa(w,mass);
 #if 0
@@ -341,11 +337,11 @@ qopqdp_wilson_precD(lua_State *L)
   QDP_Lattice *lat = qs->qlat;
   QDP_DiracFermion *t1 = QDP_create_D_L(lat);
   QDP_DiracFermion *t2 = QDP_create_D_L(lat);
-  QOP_wilson_diaginv_qdp(NULL, w->fl, k, t1, qs->df, QOP_EVEN);
+  QOP_wilson_diaginv_qdp(NULL, w->fl, k, t1, qs->field, QOP_EVEN);
   QOP_wilson_dslash_qdp(NULL, w->fl, k, 1, t2, t1, QOP_ODD, QOP_EVEN);
   QOP_wilson_diaginv_qdp(NULL, w->fl, k, t1, t2, QOP_ODD);
   QOP_wilson_dslash_qdp(NULL, w->fl, k, 1, t2, t1, QOP_EVEN, QOP_ODD);
-  QDP_D_eq_D_minus_D(qd->df, qs->df, t2, QDP_even);
+  QDP_D_eq_D_minus_D(qd->field, qs->field, t2, QDP_even);
   QDP_destroy_D(t1);
   QDP_destroy_D(t2);
 #endif
@@ -356,41 +352,40 @@ qopqdp_wilson_precD(lua_State *L)
 static int
 qopqdp_wilson_precDdag(lua_State *L)
 {
-  int narg = lua_gettop(L);
-  qassert(narg==4);
-  wilson_t *w = qopqdp_wilson_check(L, 1);
-  wquark_t *qd = qopqdp_wquark_check(L, 2);
-  wquark_t *qs = qopqdp_wquark_check(L, 3);
-  double mass = luaL_checknumber(L, 4);
+  BEGIN_ARGS;
+  GET_WILSON(w);
+  GET_QOPQDP_DFERMION(qd);
+  GET_QOPQDP_DFERMION(qs);
+  GET_DOUBLE(mass);
+  END_ARGS;
   wilson_set(w, 2);
   double k = kappa(w,mass);
-  QOP_wilson_dslash_qdp(NULL, w->fl, k, -1, qd->df, qs->df, QOP_ODD, QOP_EVEN);
-  QOP_wilson_dslash_qdp(NULL, w->fl, k, -1, qd->df, qd->df, QOP_EVEN, QOP_ODD);
+  QOP_wilson_dslash_qdp(NULL, w->fl, k, -1, qd->field, qs->field, QOP_ODD, QOP_EVEN);
+  QOP_wilson_dslash_qdp(NULL, w->fl, k, -1, qd->field, qd->field, QOP_EVEN, QOP_ODD);
   QLA_Real s = -4*k*k;
-  QDP_D_eq_r_times_D_plus_D(qd->df, &s, qd->df, qs->df, QDP_even);
+  QDP_D_eq_r_times_D_plus_D(qd->field, &s, qd->field, qs->field, QDP_even);
   return 0;
 }
 
 static int
 qopqdp_wilson_solve(lua_State *L)
 {
-#define NC QDP_get_nc(qs->df)
-  int narg = lua_gettop(L);
-  qassert(narg>=5 && narg<=7);
-  wilson_t *w = qopqdp_wilson_check(L, 1);
-  wquark_t *qd = qopqdp_wquark_check(L, 2);
-  wquark_t *qs = qopqdp_wquark_check(L, 3);
-  double mass = luaL_checknumber(L, 4);
-  double resid = luaL_checknumber(L, 5);
+#define NC QDP_get_nc(qs->field)
   QOP_evenodd_t eo=QOP_EVENODD;
   //int prec = 1;
   int max_iter = -1;
   int restart = 500;
   int max_restarts = 5;
-  int nextarg = 6;
   int precNE = 0;
   //int dag = 0;
-  if(narg>=nextarg && lua_isstring(L, nextarg)) {
+  BEGIN_ARGS;
+  GET_WILSON(w);
+  GET_QOPQDP_DFERMION(qd);
+  GET_QOPQDP_DFERMION(qs);
+  GET_DOUBLE(mass);
+  GET_DOUBLE(resid);
+
+  if(nargs>=nextarg && lua_isstring(L, nextarg)) {
     lua_pushvalue(L, nextarg);
     const char *s = luaL_checkstring(L, -1);
     lua_pop(L, 1);
@@ -408,7 +403,7 @@ qopqdp_wilson_solve(lua_State *L)
     nextarg++;
   }
   //printf("precNE = %i\n", precNE);
-  if(narg>=nextarg && !lua_isnil(L,nextarg)) {
+  if(nargs>=nextarg && !lua_isnil(L,nextarg)) {
     if(!lua_istable(L,nextarg)) {
       qlerror0(L,1,"expecting solver paramter table\n");
     }
@@ -418,8 +413,11 @@ qopqdp_wilson_solve(lua_State *L)
     seti(restart);
     seti(max_restarts);
 #undef seti
+    nextarg++;
   }
   if(max_iter<0) max_iter = restart*max_restarts;
+
+  END_ARGS;
 
   wilson_set(w, 2);
   QOP_invert_arg_t invarg = QOP_INVERT_ARG_DEFAULT;
@@ -429,26 +427,26 @@ qopqdp_wilson_solve(lua_State *L)
   invarg.evenodd = eo;
   QOP_resid_arg_t resarg = QOP_RESID_ARG_DEFAULT;
   resarg.rsqmin = resid*resid;
-  QDP_D_eq_zero(qd->df, QDP_all);
+  QDP_D_eq_zero(qd->field, QDP_all);
 #if 0
   {
-    //QLA_DiracFermion *v = QDP_expose_V(qs->df);
+    //QLA_DiracFermion *v = QDP_expose_V(qs->field);
     //for(int i=0; i<QDP_subset_len(QDP_all); i++) {
     int i;
     QDP_loop_sites(i, QDP_all, {
 	if(i==0) {
 	  printf("%4i", i);
 	  for(int j=0; j<QLA_Nc; j++) {
-	    QLA_DiracFermion *v = QDP_site_ptr_readonly_V(qs->df, i);
+	    QLA_DiracFermion *v = QDP_site_ptr_readonly_V(qs->field, i);
 	    printf(" %10g", QLA_real(QLA_elem_V(*v, j)));
 	    printf(" %10g", QLA_imag(QLA_elem_V(*v, j)));
 	  }
 	  printf("\n");
 	} else {
-	  QLA_V_eq_zero(QDP_site_ptr_readwrite_V(qs->df,i));
+	  QLA_V_eq_zero(QDP_site_ptr_readwrite_V(qs->field,i));
 	}
       });
-    //QDP_reset_V(qs->df);
+    //QDP_reset_V(qs->field);
   }
 #endif
   QOP_info_t info;
@@ -465,7 +463,7 @@ qopqdp_wilson_solve(lua_State *L)
       QDP_DiracFermion *td = QDP_create_D();
       // scale by 1/4kappa^2 and solve D
       QLA_Real s = 0.25/(k*k);
-      QDP_D_eq_r_times_D(ts, &s, qs->df, QDP_even);
+      QDP_D_eq_r_times_D(ts, &s, qs->field, QDP_even);
       QDP_D_eq_zero(ts, QDP_odd);
       QDP_D_eq_zero(td, QDP_all);
 #ifndef QOP_wilsonMgSolve
@@ -477,14 +475,14 @@ qopqdp_wilson_solve(lua_State *L)
       QDP_D_eq_zero(ts, QDP_odd);
       QDP_D_eq_zero(td, QDP_all);
       QOP_wilsonMgSolve(&info, w->mg, w->fl, &invarg, &resarg, k, td, ts);
-      QDP_D_eq_gamma_times_D(qd->df, td, 15, QDP_even);
+      QDP_D_eq_gamma_times_D(qd->field, td, 15, QDP_even);
       QDP_destroy_D(td);
       QDP_destroy_D(ts);
     } else {
-      QDP_D_eq_gamma_times_D(qs->df, qs->df, 15, QDP_even);
-      QOP_D_wilson_invert_ne_qdp(&info, w->fl, &invarg, &resarg, k, qd->df, qs->df);
-      QDP_D_eq_gamma_times_D(qs->df, qs->df, 15, QDP_even);
-      QDP_D_eq_gamma_times_D(qd->df, qd->df, 15, QDP_even);
+      QDP_D_eq_gamma_times_D(qs->field, qs->field, 15, QDP_even);
+      QOP_D_wilson_invert_ne_qdp(&info, w->fl, &invarg, &resarg, k, qd->field, qs->field);
+      QDP_D_eq_gamma_times_D(qs->field, qs->field, 15, QDP_even);
+      QDP_D_eq_gamma_times_D(qd->field, qd->field, 15, QDP_even);
     }
   } else {
     if(w->mg) {
@@ -500,29 +498,29 @@ qopqdp_wilson_solve(lua_State *L)
 	QDP_D_eq_zero(td, QDP_all);
 	if(invarg.evenodd==QOP_EVEN) {
 	  QDP_D_eq_zero(ts, QDP_odd);
-	  QDP_D_eq_D(ts, qs->df, QDP_even);
+	  QDP_D_eq_D(ts, qs->field, QDP_even);
 	} else {
 	  QDP_D_eq_zero(ts, QDP_even);
-	  QDP_D_eq_D(ts, qs->df, QDP_odd);
+	  QDP_D_eq_D(ts, qs->field, QDP_odd);
 	}
 	QOP_wilsonMgSolve(&info,w->mg,w->fl,&invarg,&resarg,k,td,ts);
 	if(invarg.evenodd==QOP_EVEN) {
-	  QDP_D_eq_D(qd->df, td, QDP_even);
+	  QDP_D_eq_D(qd->field, td, QDP_even);
 	} else {
-	  QDP_D_eq_D(qd->df, td, QDP_odd);
+	  QDP_D_eq_D(qd->field, td, QDP_odd);
 	}
 	QDP_destroy_D(td);
 	QDP_destroy_D(ts);
       } else {
-	QOP_wilsonMgSolve(&info,w->mg,w->fl,&invarg,&resarg,k,qd->df,qs->df);
+	QOP_wilsonMgSolve(&info,w->mg,w->fl,&invarg,&resarg,k,qd->field,qs->field);
       }
     } else {
-      //wilsonInvert(&info, fla, &invarg, rap, mass, nm, qqd, qs->df);
-      QOP_D_wilson_invert_qdp(&info, w->fl, &invarg, &resarg,k,qd->df,qs->df);
+      //wilsonInvert(&info, fla, &invarg, rap, mass, nm, qqd, qs->field);
+      QOP_D_wilson_invert_qdp(&info, w->fl, &invarg, &resarg,k,qd->field,qs->field);
     }
     if(precNE==2) {
       QLA_Real s = 0.5/k;
-      QDP_D_eq_r_times_D(qd->df, &s, qd->df, QDP_even);
+      QDP_D_eq_r_times_D(qd->field, &s, qd->field, QDP_even);
     }
   }
 #if 0
@@ -557,32 +555,29 @@ qopqdp_wilson_solve(lua_State *L)
 static int
 qopqdp_wilson_force(lua_State *L)
 {
-  int narg = lua_gettop(L);
-  qassert(narg>=6 && narg<=7);
-  wilson_t *w = qopqdp_wilson_check(L, 1);
-  force_t *f = qopqdp_force_check(L, 2);
-  int nql; get_table_len(L, 3, &nql);
-  wquark_t *ql[nql]; qopqdp_wquark_array_check(L, 3, nql, ql);
-  int nqr; get_table_len(L, 4, &nqr);
-  qassert(nql==nqr);
-  wquark_t *qr[nqr]; qopqdp_wquark_array_check(L, 4, nqr, qr);
-  int nm; get_table_len(L, 5, &nm);
-  qassert(nql==nm);
-  double ms[nm]; qhmc_get_double_array(L, 5, nm, ms);
-  int ne; get_table_len(L, 6, &ne);
-  qassert(nql==ne);
-  double eps[ne]; qhmc_get_double_array(L, 6, ne, eps);
   int prec = 2;
   int deriv = 0;
   int all = 0;
-  if(narg==7) { // options table
-    tableLoopKeys(L, 7) {
+  BEGIN_ARGS;
+  GET_WILSON(w);
+  GET_FORCE(f);
+  GET_AS_QOPQDP_DFERMION_ARRAY(nql, ql);
+  GET_AS_QOPQDP_DFERMION_ARRAY(nqr, qr);
+  GET_DOUBLE_ARRAY(nm, ms);
+  GET_DOUBLE_ARRAY(ne, eps);
+  if(nextarg<=nargs) { // options table
+    tableLoopKeys(L, nextarg) {
       tableLoopKeysIfKeySetInt(L, "prec", prec);
       else tableLoopKeysIfKeySetInt(L, "deriv", deriv);
       else tableLoopKeysIfKeySetInt(L, "all", all);
       tableLoopKeysEnd(L);
     }
+    nextarg++;
   }
+  END_ARGS;
+  qassert(nql==nqr);
+  qassert(nql==nm);
+  qassert(nql==ne);
 
   QOP_info_t info;
   prec = 2; // 1 not supported yet
@@ -594,7 +589,7 @@ qopqdp_wilson_force(lua_State *L)
     QDP_F_DiracFermion *qcv[nq];
     for(int i=0; i<nq; i++) {
       qcv[i] = QDP_F_create_D();
-      QDP_FD_D_eq_D(qcv[i], q[i]->df, QDP_all);
+      QDP_FD_D_eq_D(qcv[i], q[i]->field, QDP_all);
     }
     QDP_F_ColorMatrix *fforce[f->nd];
     for(int i=0; i<f->nd; i++) {
@@ -620,8 +615,8 @@ qopqdp_wilson_force(lua_State *L)
     for(int i=0; i<nql; i++) {
       qks[i] = kappa(w,ms[i]);
       qeps[i] = eps[i];
-      dfl[i] = ql[i]->df;
-      dfr[i] = qr[i]->df;
+      dfl[i] = ql[i]->field;
+      dfr[i] = qr[i]->field;
     }
     //for(int i=0; i<f->nd; i++) QDP_M_eq_zero(f->force[i], QDP_all);
     if(deriv) {
@@ -661,8 +656,20 @@ qopqdp_wilson_force(lua_State *L)
 static int
 qopqdp_wilson_quark(lua_State *L)
 {
-  qassert(lua_gettop(L)==1);
-  qopqdp_wquark_create(L, 0, NULL);
+  lattice_t *lat = NULL;
+  int nc;
+  BEGIN_ARGS;
+  GET_WILSON(w);
+  END_ARGS;
+  if(w->g) lat = w->g->lat;
+  else lat = qopqdp_get_default_lattice(L);
+  if(w->g) nc = w->g->nc;
+  else nc = lat->defaultNc;
+  if(QOP_Precision=='F') {
+    qopqdp_dfermionF_create(L, nc, lat);
+  } else {
+    qopqdp_dfermionD_create(L, nc, lat);
+  }
   return 1;
 }
 

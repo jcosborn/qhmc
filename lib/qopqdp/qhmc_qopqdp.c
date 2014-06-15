@@ -21,17 +21,26 @@ qhmc_fini_qopqdp(void)
 }
 
 QOP_evenodd_t
-qopqdp_check_evenodd(lua_State *L, int idx)
+qopqdp_opt_evenodd(lua_State *L, int *idx, int required, QOP_evenodd_t def)
 {
-  lua_pushvalue(L, idx);
-  const char *s = luaL_checkstring(L, -1);
+  const char *s = "(NULL)";
+  int valid = 0;
+  QOP_evenodd_t eo = def;
+  lua_pushvalue(L, *idx);
+  if(lua_type(L,-1)==LUA_TSTRING) {
+    s = luaL_checkstring(L, -1);
+    valid = 1;
+    switch(s[0]) {
+    case 'a': break;
+    case 'e': eo = QOP_EVEN; break;
+    case 'o': eo = QOP_ODD; break;
+    default: valid = 0;
+    }
+    if(valid) (*idx)++;
+  }
   lua_pop(L, 1);
-  QOP_evenodd_t eo=QOP_EVENODD;
-  switch(s[0]) {
-  case 'a': break;
-  case 'e': eo = QOP_EVEN; break;
-  case 'o': eo = QOP_ODD; break;
-  default: qerror(1, "unknown parity %s\n", s);
+  if(required && !valid) {
+    qlerror(L, 1, "unknown parity %s\n", s);
   }
   return eo;
 }

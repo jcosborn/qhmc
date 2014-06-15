@@ -21,7 +21,7 @@ function cgms2(x, src, op, shifts, resid, opts, subset)
     Ap:combine({Ap,p[imin]}, {1,shifts[imin]}, subset)
     its = its + 1
 
-    pAp = p[imin]:Re_dot(Ap, subset)
+    pAp = p[imin]:reDot(Ap, subset)
     if pAp<=0 then break end  -- loss of precision in calculating pAp
     b[imin] = rsq / pAp
     zn[imin] = 1

@@ -13,14 +13,21 @@
 #define QDPT Real
 
 #define NREAL 1
-#define GET_COLOR_SPIN (void)0
-#define QLAELEM(x) (x)
+#define GET_COLOR_SPIN(i) (void)0
+#define OPT_COLOR_SPIN(i) (void)0
+#define IS_SET_COLOR_SPIN(i) (0)
+#define OPT_COLOR_SPIN_ZERO(i) (void)0
+#define QLAELEM(x,i) (x)
+#define QLAELEMEQC(x,i,z) (x) = (z).r
+#define SPUR(d,f,s) QDP_R_eq_R(d,f,s)
+#define DET(d,f,s) QDP_R_eq_R(d,f,s)
 
 #define LOOP_FTYPE_ELEM
 #define END_LOOP_FTYPE_ELEM
 
 #define GET_QLA_UNIT(x) QLA_Real x = 1
 #define GET_QLA_CONST(x,z) QLA_Real x = (z)->r
+#define GET_QLA_CONST_ARRAY(x,z,n) qassert(n==1); QLA_Real x = (z)[0].r
 
 static void
 qlamakegroup(QLA_Real *x, int g)

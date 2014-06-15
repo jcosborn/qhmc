@@ -175,6 +175,7 @@ void qopqdp_opt_as_qsubset_array(lua_State *L, int *idx, int required, lattice_t
 
 typedef struct {
   QDP_Reader *qr;
+  lattice_t *lat;
   int open;
 } reader_t;
 reader_t *qopqdp_reader_create(lua_State *L, const char *fn, lattice_t *lat);
@@ -185,6 +186,7 @@ void qopqdp_get_prec_type_nc(QDP_Reader *qr, int *prec, int *type, int *nc);
 
 typedef struct {
   QDP_Writer *qw;
+  lattice_t *lat;
   int open;
 } writer_t;
 writer_t *qopqdp_writer_create(lua_State *L, const char *fn, const char *mds, lattice_t *lat);
@@ -332,6 +334,8 @@ typedef struct {
 qopqdp_cvectorF_t *qopqdp_cvectorF_create(lua_State *L, int nc, lattice_t *lat);
 qopqdp_cvectorF_t *qopqdp_cvectorF_create_unset(lua_State *L, int nc, lattice_t *lat);
 qopqdp_cvectorF_t *qopqdp_cvectorF_opt(lua_State *L, int *idx, int req, qopqdp_cvectorF_t *def);
+int qopqdp_cvectorF_as_array_opt_len(lua_State *L, int idx, int required, int def);
+void qopqdp_cvectorF_as_array_opt(lua_State *L, int *idx, int required, int n, qopqdp_cvectorF_t **t, int dn, qopqdp_cvectorF_t **def);
 typedef struct {
   lattice_t *lat;
   QDP_Lattice *qlat;
@@ -342,6 +346,8 @@ typedef struct {
 qopqdp_cvectorD_t *qopqdp_cvectorD_create(lua_State *L, int nc, lattice_t *lat);
 qopqdp_cvectorD_t *qopqdp_cvectorD_create_unset(lua_State *L, int nc, lattice_t *lat);
 qopqdp_cvectorD_t *qopqdp_cvectorD_opt(lua_State *L, int *idx, int req, qopqdp_cvectorD_t *def);
+int qopqdp_cvectorD_as_array_opt_len(lua_State *L, int idx, int required, int def);
+void qopqdp_cvectorD_as_array_opt(lua_State *L, int *idx, int required, int n, qopqdp_cvectorD_t **t, int dn, qopqdp_cvectorD_t **def);
 #define qopqdp_cvector_check(L,i) qopqdp_cvector_opt(L,(int[]){i},1,NULL)
 #define GET_QOPQDP_CVECTOR(t) qopqdp_cvector_t *t = qopqdp_cvector_opt(L,&nextarg,1,NULL)
 #define OPT_QOPQDP_CVECTOR(t,d) qopqdp_cvector_t *t = qopqdp_cvector_opt(L,&nextarg,0,d)
@@ -372,6 +378,62 @@ qopqdp_cvectorD_t *qopqdp_cvectorD_opt(lua_State *L, int *idx, int req, qopqdp_c
 #define qopqdp_cvectorO_create           qopqdp_cvectorF_create
 #define qopqdp_cvectorO_create_unset     qopqdp_cvectorF_create_unset
 #define qopqdp_cvectorO_opt              qopqdp_cvectorF_opt
+#endif
+
+
+typedef struct {
+  lattice_t *lat;
+  QDP_Lattice *qlat;
+  QDP_F_DiracFermion *field;
+  int nc;
+  int doGC;
+} qopqdp_dfermionF_t;
+qopqdp_dfermionF_t *qopqdp_dfermionF_create(lua_State *L, int nc, lattice_t *lat);
+qopqdp_dfermionF_t *qopqdp_dfermionF_create_unset(lua_State *L, int nc, lattice_t *lat);
+qopqdp_dfermionF_t *qopqdp_dfermionF_opt(lua_State *L, int *idx, int req, qopqdp_dfermionF_t *def);
+int qopqdp_dfermionF_as_array_opt_len(lua_State *L, int idx, int required, int def);
+typedef struct {
+  lattice_t *lat;
+  QDP_Lattice *qlat;
+  QDP_D_DiracFermion *field;
+  int nc;
+  int doGC;
+} qopqdp_dfermionD_t;
+qopqdp_dfermionD_t *qopqdp_dfermionD_create(lua_State *L, int nc, lattice_t *lat);
+qopqdp_dfermionD_t *qopqdp_dfermionD_create_unset(lua_State *L, int nc, lattice_t *lat);
+qopqdp_dfermionD_t *qopqdp_dfermionD_opt(lua_State *L, int *idx, int req, qopqdp_dfermionD_t *def);
+int qopqdp_dfermionD_as_array_opt_len(lua_State *L, int idx, int required, int def);
+void qopqdp_dfermionD_as_array_opt(lua_State *L, int *idx, int required, int n, qopqdp_dfermionD_t **t, int dn, qopqdp_dfermionD_t **def);
+#define qopqdp_dfermion_check(L,i) qopqdp_dfermion_opt(L,(int[]){i},1,NULL)
+#define GET_QOPQDP_DFERMION(t) qopqdp_dfermion_t *t = qopqdp_dfermion_opt(L,&nextarg,1,NULL)
+#define OPT_QOPQDP_DFERMION(t,d) qopqdp_dfermion_t *t = qopqdp_dfermion_opt(L,&nextarg,0,d)
+#define OPT_QOPQDP_DFERMIONO(t,d) qopqdp_dfermionO_t *t = qopqdp_dfermionO_opt(L,&nextarg,0,d)
+#define GET_AS_QOPQDP_DFERMION_ARRAY(n,t) int n=qopqdp_dfermion_as_array_opt_len(L,nextarg,1,0); qopqdp_dfermion_t *t[n]; qopqdp_dfermion_as_array_opt(L,&nextarg,1,n,t,0,NULL)
+#define OPT_AS_QOPQDP_DFERMION_ARRAY(n,t,dn,dt) int n=qopqdp_dfermion_as_array_opt_len(L,nextarg,0,dn); qopqdp_dfermion_t *t[n]; qopqdp_dfermion_as_array_opt(L,&nextarg,0,n,t,dn,dt)
+#if QOP_Precision == 'F'
+#define qopqdp_dfermion_t                 qopqdp_dfermionF_t
+#define qopqdp_dfermion_create            qopqdp_dfermionF_create
+#define qopqdp_dfermion_create_unset      qopqdp_dfermionF_create_unset
+#define qopqdp_dfermion_wrap              qopqdp_dfermionF_wrap
+#define qopqdp_dfermion_opt               qopqdp_dfermionF_opt
+#define qopqdp_dfermion_as_array_opt_len  qopqdp_dfermionF_as_array_opt_len
+#define qopqdp_dfermion_as_array_opt      qopqdp_dfermionF_as_array_opt
+#define qopqdp_dfermionO_t                qopqdp_dfermionD_t
+#define qopqdp_dfermionO_create           qopqdp_dfermionD_create
+#define qopqdp_dfermionO_create_unset     qopqdp_dfermionD_create_unset
+#define qopqdp_dfermionO_opt              qopqdp_dfermionD_opt
+#else
+#define qopqdp_dfermion_t                 qopqdp_dfermionD_t
+#define qopqdp_dfermion_create            qopqdp_dfermionD_create
+#define qopqdp_dfermion_create_unset      qopqdp_dfermionD_create_unset
+#define qopqdp_dfermion_wrap              qopqdp_dfermionD_wrap
+#define qopqdp_dfermion_opt               qopqdp_dfermionD_opt
+#define qopqdp_dfermion_as_array_opt_len  qopqdp_dfermionD_as_array_opt_len
+#define qopqdp_dfermion_as_array_opt      qopqdp_dfermionD_as_array_opt
+#define qopqdp_dfermionO_t                qopqdp_dfermionF_t
+#define qopqdp_dfermionO_create           qopqdp_dfermionF_create
+#define qopqdp_dfermionO_create_unset     qopqdp_dfermionF_create_unset
+#define qopqdp_dfermionO_opt              qopqdp_dfermionF_opt
 #endif
 
 
@@ -425,57 +487,6 @@ qopqdp_cmatrixD_t *qopqdp_cmatrixD_opt(lua_State *L, int *idx, int req, qopqdp_c
 #define qopqdp_cmatrixO_create           qopqdp_cmatrixF_create
 #define qopqdp_cmatrixO_create_unset     qopqdp_cmatrixF_create_unset
 #define qopqdp_cmatrixO_opt              qopqdp_cmatrixF_opt
-#endif
-
-
-typedef struct {
-  lattice_t *lat;
-  QDP_Lattice *qlat;
-  QDP_F_DiracFermion *field;
-  int nc;
-  int doGC;
-} qopqdp_dfermionF_t;
-qopqdp_dfermionF_t *qopqdp_dfermionF_create(lua_State *L, int nc, lattice_t *lat);
-qopqdp_dfermionF_t *qopqdp_dfermionF_create_unset(lua_State *L, int nc, lattice_t *lat);
-qopqdp_dfermionF_t *qopqdp_dfermionF_opt(lua_State *L, int *idx, int req, qopqdp_dfermionF_t *def);
-typedef struct {
-  lattice_t *lat;
-  QDP_Lattice *qlat;
-  QDP_D_DiracFermion *field;
-  int nc;
-  int doGC;
-} qopqdp_dfermionD_t;
-qopqdp_dfermionD_t *qopqdp_dfermionD_create(lua_State *L, int nc, lattice_t *lat);
-qopqdp_dfermionD_t *qopqdp_dfermionD_create_unset(lua_State *L, int nc, lattice_t *lat);
-qopqdp_dfermionD_t *qopqdp_dfermionD_opt(lua_State *L, int *idx, int req, qopqdp_dfermionD_t *def);
-#define qopqdp_dfermion_check(L,i) qopqdp_dfermion_opt(L,(int[]){i},1,NULL)
-#define GET_QOPQDP_DFERMION(t) qopqdp_dfermion_t *t = qopqdp_dfermion_opt(L,&nextarg,1,NULL)
-#define OPT_QOPQDP_DFERMION(t,d) qopqdp_dfermion_t *t = qopqdp_dfermion_opt(L,&nextarg,0,d)
-#define OPT_AS_QOPQDP_DFERMION_ARRAY(n,t,dn,dt) int n=qopqdp_dfermion_as_array_opt_len(L,nextarg,0,dn); qopqdp_dfermion_t *t[n]; qopqdp_dfermion_as_array_opt(L,&nextarg,0,n,t,dn,dt)
-#if QOP_Precision == 'F'
-#define qopqdp_dfermion_t                 qopqdp_dfermionF_t
-#define qopqdp_dfermion_create            qopqdp_dfermionF_create
-#define qopqdp_dfermion_create_unset      qopqdp_dfermionF_create_unset
-#define qopqdp_dfermion_wrap              qopqdp_dfermionF_wrap
-#define qopqdp_dfermion_opt               qopqdp_dfermionF_opt
-#define qopqdp_dfermion_as_array_opt_len  qopqdp_dfermionF_as_array_opt_len
-#define qopqdp_dfermion_as_array_opt      qopqdp_dfermionF_as_array_opt
-#define qopqdp_dfermionO_t                qopqdp_dfermionD_t
-#define qopqdp_dfermionO_create           qopqdp_dfermionD_create
-#define qopqdp_dfermionO_create_unset     qopqdp_dfermionD_create_unset
-#define qopqdp_dfermionO_opt              qopqdp_dfermionD_opt
-#else
-#define qopqdp_dfermion_t                 qopqdp_dfermionD_t
-#define qopqdp_dfermion_create            qopqdp_dfermionD_create
-#define qopqdp_dfermion_create_unset      qopqdp_dfermionD_create_unset
-#define qopqdp_dfermion_wrap              qopqdp_dfermionD_wrap
-#define qopqdp_dfermion_opt               qopqdp_dfermionD_opt
-#define qopqdp_dfermion_as_array_opt_len  qopqdp_dfermionD_as_array_opt_len
-#define qopqdp_dfermion_as_array_opt      qopqdp_dfermionD_as_array_opt
-#define qopqdp_dfermionO_t                qopqdp_dfermionF_t
-#define qopqdp_dfermionO_create           qopqdp_dfermionF_create
-#define qopqdp_dfermionO_create_unset     qopqdp_dfermionF_create_unset
-#define qopqdp_dfermionO_opt              qopqdp_dfermionF_opt
 #endif
 
 
@@ -571,6 +582,7 @@ void qopqdp_forceD_array_check(lua_State *L, int idx, int n, forceD_t *g[n]);
 #define qopqdp_force_check qopqdp_forceD_check
 #define qopqdp_force_array_check qopqdp_forceD_array_check
 #endif
+#define GET_FORCE(f) force_t *f = qopqdp_force_check(L,nextarg++)
 
 
 typedef struct {
@@ -637,6 +649,7 @@ typedef struct {
 } wilson_t;
 wilson_t *qopqdp_wilson_create(lua_State *L);
 wilson_t *qopqdp_wilson_check(lua_State *L, int idx);
+#define GET_WILSON(w) wilson_t *w = qopqdp_wilson_check(L,nextarg);nextarg++
 
 
 typedef struct {
@@ -680,7 +693,9 @@ void qopqdp_dwquark_array_check(lua_State *L, int idx, int n, dwquark_t *q[n]);
 
 QDP_Subset *qhmcqdp_get_timeslices(lattice_t *lat);
 QDP_Subset *qhmcqdp_get_eodir(lattice_t *lat, int dir);
-QOP_evenodd_t qopqdp_check_evenodd(lua_State *L, int idx);
+QOP_evenodd_t qopqdp_opt_evenodd(lua_State *L, int *idx, int required, QOP_evenodd_t def);
+#define qopqdp_check_evenodd(L,i) qopqdp_opt_evenodd(L,(int[]){i},1,QOP_EVENODD)
+#define OPT_EVENODD(t,d) QOP_evenodd_t t = qopqdp_opt_evenodd(L,&nextarg,0,d)
 
 void qhmc_qopqdp_getCopyHyper(QDP_Shift *map, QDP_Subset **subset,
 			      QDP_Lattice *rlat, int roff[], int rlen[], int sdir[],

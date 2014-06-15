@@ -349,13 +349,12 @@ private_squark_rephase(NCPROT QLA_ColorVector *s, int coords[])
 static int
 qopqdp_squark_rephase(lua_State *L)
 {
-  int narg = lua_gettop(L); // Get the number of arguments.
-  qassert(narg==3);
-  squark_t *qd = qopqdp_squark_check(L, 1); // Check for a staggered quark.
-  int phase_flag = luaL_checkint(L, 2); // Check for the phase flag.
-  int nd; get_table_len(L, 3, &nd); // Get the length of the relative coordinate.
-  int r0[nd];
-  qhmc_get_int_array(L, 3, nd, r0);
+  BEGIN_ARGS;
+  GET_SQUARK(qd);
+  GET_INT(phase_flag);
+  GET_INT_ARRAY(nd, r0);
+  END_ARGS;
+
   relative_loc_esw = r0;
 
   // The phase flag is defined bit-wise.

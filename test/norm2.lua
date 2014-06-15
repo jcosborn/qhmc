@@ -6,12 +6,20 @@ L:seed(98765321)
 
 TESTON()
 
---f = L:real()
-f = L:cmatrix()
-f:random()
-printf("%g\n", f:norm2())
+ltypes = { "real", "complex", "colorVector", "diracFermion", "colorMatrix" }
+
+for k,t in ipairs(ltypes) do
+  f = L[t](L)
+  f:random()
+  printf("%g\n", f:norm2())
+end
 
 r = f:lnorm2()
+n = r:sum()
+printf("%g\n", n)
+
+r:zero()
+f:lnorm2(r)
 n = r:sum()
 printf("%g\n", n)
 

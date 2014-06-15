@@ -13,7 +13,9 @@ TESTS = \
  momentum.lua \
  fieldIO.lua \
  milc-su3_rhmc_hisq.lua \
- wilsonHMC.lua
+ wilsonHMC.lua \
+ wilson2fHMC.lua \
+ hyp8fHMC.lua
 
 EXTRA_DIST = \
  runtest runtest.lua \
@@ -23,7 +25,9 @@ EXTRA_DIST = \
  point.lua point.ref \
  fieldIO.lua fieldIO.ref \
  milc-su3_rhmc_hisq.lua milc-su3_rhmc_hisq.in milc-su3_rhmc_hisq.rat milc-su3_rhmc_hisq.ref \
- wilsonHMC.lua wilsonHMC.ref
+ wilsonHMC.lua wilsonHMC.ref \
+ wilson2fHMC.lua wilson2fHMC.ref \
+ hyp8fHMC.lua hyp8fHMC.ref
 
 distclean-local:
 	-rm -f *.out

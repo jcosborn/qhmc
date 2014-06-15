@@ -4,6 +4,7 @@
 
 #define FTYPE cvector
 #define FTYPEC CVECTOR
+#define ISVECTOR
 #define ARITH
 #define PRECISE
 #define COLORED
@@ -14,8 +15,12 @@
 #define QDPT ColorVector
 
 #define NREAL (2*(NC))
-#define GET_COLOR_SPIN GET_INT(ic)
-#define QLAELEM(x) QLA_elem_V(x,ic)
+#define GET_COLOR_SPIN(i) GET_INT(S2(i,c))
+#define OPT_COLOR_SPIN(i) OPT_INT(S2(i,c),-1)
+#define IS_SET_COLOR_SPIN(i) (S2(i,c)>=0)
+#define OPT_COLOR_SPIN_ZERO(i) OPT_INT(S2(i,c),0)
+#define QLAELEM(x,i) QLA_elem_V(x,S2(i,c))
+#define QLAELEMEQC(x,i,z) QLA_c_eq_r_plus_ir(QLAELEM(x,i),(z).r,(z).i)
 
 #define LOOP_FTYPE_ELEM	for(int ic=0; ic<QLA_Nc; ic++) {
 
@@ -29,6 +34,52 @@
 
 #define GET_QLA_UNIT(x)	   GET_QLA_CONST2(x,1,0)
 #define GET_QLA_CONST(x,z) GET_QLA_CONST2(x,(z)->r,(z)->i)
+
+#define GET_QLA_CONST_ARRAY(x,z,n)					\
+  qassert(n==NC);							\
+  QLA_ColorVector x;							\
+  for(int ic=0; ic<QLA_Nc; ic++) {					\
+    qhmc_complex_t *_pz = &(z)[ic];					\
+    QLA_c_eq_r_plus_ir(QLA_elem_V(x,ic),_pz->r,_pz->i);			\
+  }
+
+static void
+SPUR(QDP_Complex *d, QDP_ColorVector *f, QDP_Subset sub)
+{
+#define NC QDP_get_nc(f)
+  int s;
+  QDP_loop_sites(s, sub, {
+      QLA_Complex *ds = QDP_site_ptr_readwrite_C(d,s);
+      QLA_ColorVector *fs = QDP_site_ptr_readonly_V(f,s);
+      QLA_Complex z;
+      QLA_c_eq_r(z, 0);
+      for(int ic=0; ic<QLA_Nc; ic++) {
+	QLA_c_peq_c(z, QLA_elem_V(*fs,ic));
+      }
+      QLA_c_eq_c(*ds, z);
+    });
+#undef NC
+}
+
+static void
+DET(QDP_Complex *d, QDP_ColorVector *f, QDP_Subset sub)
+{
+#define NC QDP_get_nc(f)
+  int s;
+  QDP_loop_sites(s, sub, {
+      QLA_Complex *ds = QDP_site_ptr_readwrite_C(d,s);
+      QLA_ColorVector *fs = QDP_site_ptr_readonly_V(f,s);
+      QLA_Complex z;
+      QLA_Complex z2;
+      QLA_c_eq_r(z, 1);
+      for(int ic=0; ic<QLA_Nc; ic++) {
+	QLA_c_eq_c_times_c(z2, z, QLA_elem_V(*fs,ic));
+	QLA_c_eq_c(z, z2);
+      }
+      QLA_c_eq_c(*ds, z);
+    });
+#undef NC
+}
 
 // treat vector as diagonal matrix
 static void

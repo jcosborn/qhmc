@@ -19,7 +19,7 @@
 #define printf0(...) do { if0 printf(__VA_ARGS__); } while(0)
 #define printerr(...) fprintf(stderr, __VA_ARGS__)
 #define printerr0(...) do { if0 printerr(__VA_ARGS__); } while(0)
-#define TRACE printf0("%s %s %i\n", __FILE__, __func__, __LINE__)
+#define TRACE do{if0{printf("%s %s %i\n", __FILE__, __func__, __LINE__);fflush(stdout);}} while(0)
 #define ABORT(c) exit(c)
 #define LABORT(L,c) luaL_error(L, "aborted with code %i\n", c)
 #define qerror(c,...) do { TRACE; printf(__VA_ARGS__); ABORT(c); } while(0)
@@ -57,15 +57,13 @@
 #define OPT_STRING(v,d) const char *v=qhmc_opt_string(L,&nextarg,0,d)
 #define GET_INT(v) int v=qhmc_opt_int(L,&nextarg,1,0)
 #define OPT_INT(v,d) int v=qhmc_opt_int(L,&nextarg,0,d)
+#define GET_INT_ARRAY(n,v) int n; get_table_len(L,nextarg,&n); int v[n]; qhmc_get_int_array(L,nextarg,n,v); nextarg++
 #define GET_DOUBLE(v) double v=qhmc_opt_double(L,&nextarg,1,0)
 #define OPT_DOUBLE(v,d) double v=qhmc_opt_double(L,&nextarg,0,d)
+#define GET_DOUBLE_ARRAY(n,v) int n; get_table_len(L,nextarg,&n); double v[n]; qhmc_get_double_array(L,nextarg,n,v); nextarg++
 #define OPT_FUNCTION_INDEX(f,d) int f=(d);if(lua_isfunction(L,nextarg))f=nextarg++
 #define GET_TABLE_LEN_INDEX(l,i) int l,i=nextarg; get_table_len(L,i,&l); nextarg++
-#define OPT_TABLE_LEN_INDEX(l,i) int l,i=0; { if(is_table(L,nextarg)) { i=nextarg; get_table_len(L,i,&l); nextarg++; } }
-#define GET_COMPLEX(v) qhmc_complex_t *v=qhmc_complex_check(L,nextarg); nextarg++
-#define OPT_COMPLEX(v,d) qhmc_complex_t *v=qhmc_opt_complex(L,&nextarg,0,d)
-#define GET_AS_COMPLEX(v) qhmc_complex_t v; qhmc_complex_get_as(L,nextarg,&v); nextarg++
-#define OPT_AS_COMPLEX_PTR(v,d) qhmc_complex_t _t ## v, *v = qhmc_opt_as_complex_ptr(L,&nextarg,0,&_t ## v,d)
+#define OPT_TABLE_LEN_INDEX(l,i) int l,i=0; { if(lua_istable(L,nextarg)) { i=nextarg; get_table_len(L,i,&l); nextarg++; } }
 #define END_ARGS qassert(nextarg==nargs+1)
 
 const char *qhmc_opt_string(lua_State *L, int *idx, int required, char *def);

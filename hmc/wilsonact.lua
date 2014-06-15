@@ -187,7 +187,8 @@ function actmt.refresh(a, g)
   a:set(g, 2)
   for i,r in ipairs(a.rhmc) do
     local t = r.GR
-    t.qt2:random("even") -- t.qt2 holds the random Gaussian vector
+    --t.qt2:random("even") -- t.qt2 holds the random Gaussian vector
+    t.qt2:random(math.sqrt(0.5), "even") -- t.qt2 holds random Gaussian vector
     a.w:precD(t.qt, t.qt2, t.mass) -- t.qt holds the pseudofermion vector
     if t.mass2 then
       a:solve(t.pt, t.qt, t.mass2, t.resid, "prec", t.solveopts, t.cgnum)
@@ -292,7 +293,7 @@ function actmt.pbp(a, g, mass, resid, opts)
   local y = getqt(a, 2)
   x:randomU1()
   a:solve(y, x, mass, resid, "all", opts, 0)
-  return x:Re_dot(y)/(4*qopqdp.Nc*a.ga.vol)
+  return x:reDot(y)/(4*qopqdp.Nc*a.ga.vol)
 end
 
 function actmt.makeprop(a, g, mass, resid, opts)

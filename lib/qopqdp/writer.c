@@ -31,6 +31,7 @@ qopqdp_writer_close(lua_State *L)
   return 0;
 }
 
+#if 0
 // 1: writer
 // 2: field or table of fields of same type
 // 3: metadata string
@@ -102,37 +103,35 @@ qopqdp_writer_write(lua_State *L)
   printf0(" wrote in %g seconds\n", dt);
   return 0;
 }
+#endif
 
 // 1: writer
-// 2: table of Nc*Ns wquark fields
+// 2: table of Nc*Ns dfermion fields
 // 3: metadata string
 // 4: (need to add) optional options table
 static int
 qopqdp_writer_prop(lua_State *L)
 {
-  int nargs = lua_gettop(L);
-  qassert(nargs==3);
-  writer_t *w = qopqdp_writer_check(L, 1);
-  int nfields = 1;
-  qassert(lua_type(L,2)==LUA_TTABLE);
-  get_table_len(L, 2, &nfields);
-  const char *mds = luaL_checkstring(L, 3);
-  char prec = 'F';
+  BEGIN_ARGS;
+  GET_WRITER(w);
+  GET_AS_QOPQDP_DFERMION_ARRAY(nfields, wq);
+  GET_STRING(mds);
+  OPT_STRING(prec, "F");
+  END_ARGS;
+  QDP_Lattice *qlat = w->lat->qlat;
   //QDP_set_write_group_size(8);
   //printf0("saving lattice file %s\n", fn);
   double dt = -QDP_time();
   QDP_String *md = QDP_string_create();
   QDP_string_set(md, (char *)mds);
-#define NC QDP_get_nc(wq[0]->df)
-  if(prec==QDP_Precision) {
-    wquark_t *wq[nfields];
-    qopqdp_wquark_array_check(L, 2, nfields, wq);
-    qassert(nfields==(QDP_Nc*QLA_Ns));
-    QDP_DiracPropagator *dp = QDP_create_P();
+#define NC QDP_get_nc(wq[0]->field)
+  if(prec[0]==QDP_Precision) {
+    qassert(nfields==(QLA_Nc*QLA_Ns));
+    QDP_DiracPropagator *dp = QDP_create_P_L(qlat);
     for(int i=0; i<nfields; i++) {
       int color = i/QLA_Ns;
       int spin = i%QLA_Ns;
-      QDP_P_eq_diracvec_D(dp, wq[i]->df, color, spin, QDP_all);
+      QDP_P_eq_diracvec_D(dp, wq[i]->field, color, spin, QDP_all_L(qlat));
     }
     QDP_write_P(w->qw, md, dp);
     QDP_destroy_P(dp);
@@ -144,16 +143,14 @@ qopqdp_writer_prop(lua_State *L)
 #define QDPO(x) QDP_F_ ## x
 #define QDPOP(x) QDP_FD_ ## x
 #endif
-    wquark_t *wq[nfields];
-    qopqdp_wquark_array_check(L, 2, nfields, wq);
-    qassert(nfields==(QDP_Nc*QLA_Ns));
-    QDPO(DiracPropagator) *dp = QDPO(create_P)();
-    QDPO(DiracFermion) *df = QDPO(create_D)();
+    qassert(nfields==(QLA_Nc*QLA_Ns));
+    QDPO(DiracPropagator) *dp = QDPO(create_P_L)(qlat);
+    QDPO(DiracFermion) *df = QDPO(create_D_L)(qlat);
     for(int i=0; i<nfields; i++) {
       int color = i/QLA_Ns;
       int spin = i%QLA_Ns;
-      QDPOP(D_eq_D)(df, wq[i]->df, QDP_all);
-      QDPO(P_eq_diracvec_D)(dp, df, color, spin, QDP_all);
+      QDPOP(D_eq_D)(df, wq[i]->field, QDP_all_L(qlat));
+      QDPO(P_eq_diracvec_D)(dp, df, color, spin, QDP_all_L(qlat));
     }
     QDPO(write_P)(w->qw, md, dp);
     QDPO(destroy_D)(df);
@@ -172,7 +169,7 @@ qopqdp_writer_prop(lua_State *L)
 static struct luaL_Reg writer_reg[] = {
   { "__gc",    qopqdp_writer_close },
   { "close",   qopqdp_writer_close },
-  { "write",   qopqdp_writer_write },
+  //{ "write",   qopqdp_writer_write },
   { "prop",    qopqdp_writer_prop },
   { NULL, NULL}
 };
@@ -186,6 +183,7 @@ qopqdp_writer_create(lua_State *L, const char *fn, const char *mds,
   QDP_String *md = QDP_string_create();
   QDP_string_set(md, (char *)mds);
   w->qw = QDP_open_write_L(lat->qlat, md, (char*)fn, QDP_SINGLEFILE);
+  w->lat = lat;
   w->open = 1;
   QDP_string_destroy(md);
   if(luaL_newmetatable(L, mtname)) {

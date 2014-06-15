@@ -1,4 +1,3 @@
-package.path = (userpath or "") .. "./?.lua;./hmc/?.lua;" .. arg[0]:gsub("[^/]*.lua","?.lua;") .. package.path
 require 'common'
 require 'run'
 require 'ratfunsqrt'
@@ -46,9 +45,9 @@ local nfsteps = nfsteps or { 80 }
 --local nfsteps = { 80, 80 }
 
 nfsteps = repelem(nfsteps, nf/2)
-local grcg = { prec=2, resid=1e-8, restart=500 }
-local facg = { prec=2, resid=1e-8, restart=500 }
-local mdcg = { prec=2, resid=1e-8, restart=500 }
+local grcg = { prec=2, resid=faresid, restart=500 }
+local facg = { prec=2, resid=faresid, restart=500 }
+local mdcg = { prec=2, resid=mdresid, restart=500 }
 local ffprec = 2
 --local gintalg = {type="leapfrog"}
 --local gintalg = {type="omelyan"}
@@ -177,25 +176,40 @@ copyto(rhmc, rhmc1)
 r.pbp = pbp
 --myprint("runparams = ", r, "\n")
 
+local traj = traj or 0
+local nlats = nlats or 1
+
+if (not inlat) and latpat and traj > 0 then
+  inlat = string.format(latpat, traj)
+end
+
 if inlat then
+  printf("loading lattice %s\n", inlat)
   acts:load(inlat)
-  local ps,pt = acts.fields.G:plaq()
-  printf("plaq ss: %g  st: %g  tot: %g\n", ps, pt, 0.5*(ps+pt))
 else
+  printf("setting unit lattice\n")
   acts:unit()
---  acts:random()
 end
 
-if warmup>0 then
-  r.ntraj = warmup
-  r.md = true
+local ps,pt = acts.fields.G:plaq()
+printf("plaq ss: %g  st: %g  tot: %g\n", ps, pt, 0.5*(ps+pt))
+
+for nl=1,nlats do
+  if warmup and traj<warmup then
+    r.md = true
+  else
+    r.md = false
+  end
+
+  r.ntraj = ntraj
   acts:run(r)
-  r.md = false
-end
 
-r.ntraj = ntraj - warmup -- warmup trajectories are counted towards the total.
-acts:run(r)
-
-if outlat then
-  acts:save(outlat)
+  traj = traj + ntraj
+  if latpat then
+    outlat = string.format(latpat, traj)
+  end
+  if outlat then
+    printf("saving lattice %s\n", outlat)
+    acts:save(outlat)
+  end
 end

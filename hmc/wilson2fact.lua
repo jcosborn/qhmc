@@ -34,9 +34,9 @@ function vecmt.norm2(v)
   for i=2,#v do r = r + v[i]:norm2() end
   return r
 end
-function vecmt.Re_dot(v, a)
-  local r = v[1]:Re_dot(a[1])
-  for i=2,#v do r = r + v[i]:Re_dot(a[i]) end
+function vecmt.reDot(v, a)
+  local r = v[1]:reDot(a[1])
+  for i=2,#v do r = r + v[i]:reDot(a[i]) end
   return r
 end
 function vecmt.dot(v, a)
@@ -291,7 +291,8 @@ function actmt.refresh(a, g)
   a:set(g, 2)
   for i,r in ipairs(a.rhmc) do
     local gr = r.GR
-    gr.qt:random("all")
+    --gr.qt:random("all")
+    gr.qt:random(math.sqrt(0.5), "all")
     a:solve(gr.pt, gr.qt, gr.mass, gr.resid, "NEshift", gr.shifts, gr.solveopts, gr.cgnum)
     a.pseudo[i]:combine(gr.pt2, gr.coeffs)
   end
@@ -452,7 +453,7 @@ function actmt.pbp(a, g, mass, resid, opts)
   local y = getqt(a, 2)
   x:randomU1()
   a:solve(y, x, mass, resid, "all", opts, 0)
-  return x:Re_dot(y)/(4*qopqdp.Nc*a.ga.vol)
+  return x:reDot(y)/(4*qopqdp.Nc*a.ga.vol)
 end
 
 function actmt.makeprop(a, g, mass, resid, opts)

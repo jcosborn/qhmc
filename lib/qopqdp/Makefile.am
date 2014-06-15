@@ -16,14 +16,14 @@ SRC = \
  wilson.c wquark.c \
  dw.c dwquark.c
 FSRC = \
- lrealF.c lcomplexF.c lcvectorF.c lcmatrixF.c \
+ lrealF.c lcomplexF.c lcvectorF.c ldfermionF.c lcmatrixF.c \
  gaugeF.c forceF.c gaugefixF.c
 DSRC = \
- lrealD.c lcomplexD.c lcvectorD.c lcmatrixD.c \
+ lrealD.c lcomplexD.c lcvectorD.c ldfermionD.c lcmatrixD.c \
  gaugeD.c forceD.c gaugefixD.c
 
 EXTRA_DIST = \
- field0.c lreal.c lcomplex.c lcvector.c lcmatrix.c \
+ field0.c lreal.c lcomplex.c lcvector.c ldfermion.c lcmatrix.c \
  gauge.c force.c gaugefix.c
 
 ___libqhmc_qopqdp_a_SOURCES = \

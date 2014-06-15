@@ -192,7 +192,39 @@ qopqdp_complex(lua_State *L)
 }
 
 static int
-qopqdp_cmatrix(lua_State *L)
+qopqdp_colorVector(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_LATTICE(lat);
+  OPT_STRING(precision, lat->defaultPrecision);
+  OPT_INT(nc, lat->defaultNc);
+  END_ARGS;
+  if(*precision=='F') {
+    qopqdp_cvectorF_create(L, nc, lat);
+  } else {
+    qopqdp_cvectorD_create(L, nc, lat);
+  }
+  return 1;
+}
+
+static int
+qopqdp_diracFermion(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_LATTICE(lat);
+  OPT_STRING(precision, lat->defaultPrecision);
+  OPT_INT(nc, lat->defaultNc);
+  END_ARGS;
+  if(*precision=='F') {
+    qopqdp_dfermionF_create(L, nc, lat);
+  } else {
+    qopqdp_dfermionD_create(L, nc, lat);
+  }
+  return 1;
+}
+
+static int
+qopqdp_colorMatrix(lua_State *L)
 {
   BEGIN_ARGS;
   GET_LATTICE(lat);
@@ -218,7 +250,9 @@ static struct luaL_Reg lattice_reg[] = {
   { "rstate",         qopqdp_rstate },
   { "real",           qopqdp_real },
   { "complex",        qopqdp_complex },
-  { "cmatrix",        qopqdp_cmatrix },
+  { "colorVector",    qopqdp_colorVector },
+  { "diracFermion",   qopqdp_diracFermion },
+  { "colorMatrix",    qopqdp_colorMatrix },
   { NULL, NULL}
 };
 

@@ -83,6 +83,7 @@ typedef S2(QDP_3_,QDPT) qdptype3;
 #define Cx11x(t,a,b,c,d) (a,(t*)b,(t*)c,d)
 #define Cx1xx(t,a,b,c,d) (a,(t*)b,c,d)
 #define C11xx(t,a,b,c,d) ((t*)a,(t*)b,c,d)
+#define C111x(t,a,b,c,d) ((t*)a,(t*)b,(t*)c,d)
 #define C22xx(t,a,b,c,d) ((t**)a,(t**)b,c,d)
 #define Cx11xx(t,a,b,c,d,e) (a,(t*)b,(t*)c,d,e)
 #define SP3x(a,b,c,m,...) S3(a,b,c)(__VA_ARGS__)
@@ -110,6 +111,7 @@ typedef S2(QDP_D_,QDPT) qdptypeD;
 #define qdpptrreadonly(f,s) S2(QDP_site_ptr_readonly_,A)(f,s)
 #define qdpptrreadwrite(f,s) S2(QDP_site_ptr_readwrite_,A)(f,s)
 #define qdpgaussian(f,r,s) SP3x(QDP_,A,_eq_gaussian_S,C1x,f,r,s)
+#define qdptimes(f1,f2,f3,s) SP6(QDP_,A,_eq_,A,_times_,A,C111x,f1,f2,f3,s)
 #define qdprtimes(f1,r,f2,s) SP4(QDP_,A,_eq_r_times_,A,C1x1x,f1,r,f2,s)
 #define qdppeqrtimes(f1,r,f2,s) SP4(QDP_,A,_peq_r_times_,A,C1x1x,f1,r,f2,s)
 #define qdpctimes(f1,c,f2,s) SP4(QDP_,A,_eq_c_times_,A,C1x1x,f1,c,f2,s)
@@ -201,14 +203,15 @@ ftype_as_array_opt(lua_State *L, int *idx, int required,
 {
   int type = lua_type(L, *idx);
   if(type==LUA_TTABLE) {
+    ftype_t *tt;
     tableGetIndex(L, *idx, 1);
     if(required) {
-      t = luaL_checkudata(L, -1, mtname);
+      tt = luaL_checkudata(L, -1, mtname);
     } else {
-      t = luaL_testudata(L, -1, mtname);
+      tt = luaL_testudata(L, -1, mtname);
     }
     lua_pop(L, 1);
-    if(t==NULL) {
+    if(tt==NULL) {
       for(int i=0; i<n; i++) t[i] = def[i];
     } else {
       for(int i=0; i<n; i++) {
@@ -219,7 +222,11 @@ ftype_as_array_opt(lua_State *L, int *idx, int required,
       (*idx)++;
     }
   } else {
-    t[0] = ftype_opt(L, idx, required, def[0]);
+    ftype_t *r = ftype_opt(L, idx, required, NULL);
+    if(r!=NULL) t[0] = r;
+    else {
+      for(int i=0; i<dn; i++) t[i] = def[i];
+    }
   }
 }
 
@@ -231,6 +238,21 @@ ftype_gc(lua_State *L)
   END_ARGS;
   if(t->doGC) qdpdestroy(t->field);
   return 0;
+}
+
+static int
+ftype_nc(lua_State *L)
+{
+#ifdef COLORED
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  END_ARGS;
+  int nc = t->nc;
+#else
+  int nc = 0;
+#endif
+  lua_pushinteger(L, nc);
+  return 1;
 }
 
 // 1: (optional) field or table of fields of same type (ignored)
@@ -364,14 +386,28 @@ ftype_set(lua_State *L)
   OPT_FTYPE(t2, NULL);
 #ifdef PRECISE
   OPT_FTYPEO(t2o, NULL);
-  OPT_AS_COMPLEX_PTR(z, NULL);
+  OPT_AS_COMPLEX_ARRAY(nz,z,0,NULL);
+  OPT_COLOR_SPIN(i);
 #endif
   OPT_QSUBSET(sub, t1->lat, QDP_all_L(t1->qlat));
   END_ARGS;
 #ifdef PRECISE
-  if(z) { // set from constant
-    GET_QLA_CONST(c, z);
-    qdpTeqt(t1->field, &c, sub);
+  if(abs(nz)>0) { // set from constant (array)
+    if(abs(nz)==1) {
+      if(IS_SET_COLOR_SPIN(i)) {
+	int s;
+	QDP_loop_sites(s, sub, {
+	  qlatype *ts = qdpptrreadwrite(t1->field,s);
+	  QLAELEMEQC(*ts,i,z[0]);
+	  });
+      } else {
+	GET_QLA_CONST(c, z);
+	qdpTeqt(t1->field, &c, sub);
+      }
+    } else {
+      GET_QLA_CONST_ARRAY(c, z, nz);
+      qdpTeqt(t1->field, &c, sub);
+    }
   } else {
 #endif
     lattice_t *lat2 = NULL;
@@ -495,6 +531,7 @@ ftype_seed(lua_State *L)
 #endif
 
 #ifdef ARITH
+
 static int
 ftype_zero(lua_State *L)
 {
@@ -533,7 +570,7 @@ ftype_point(lua_State *L)
   BEGIN_ARGS;
   GET_FTYPE(t);
   GET_TABLE_LEN_INDEX(nd,ip);
-  GET_COLOR_SPIN;
+  GET_COLOR_SPIN(i);
   OPT_AS_COMPLEX_PTR(z,NULL);
   END_ARGS;
   int rv = 0;
@@ -546,7 +583,7 @@ ftype_point(lua_State *L)
 #ifdef ISREAL
       *q = z->r;
 #else
-      QLA_c_eq_r_plus_ir(QLAELEM(*q), z->r, z->i);
+      QLA_c_eq_r_plus_ir(QLAELEM(*q,i), z->r, z->i);
 #endif
     }
   } else {
@@ -563,7 +600,7 @@ ftype_point(lua_State *L)
 #ifdef ISREAL
       q = *p;
 #else
-      q = QLAELEM(*p);
+      q = QLAELEM(*p,i);
 #endif
     }
 #ifdef ISREAL
@@ -623,7 +660,84 @@ ftype_site(lua_State *L)
   return rv;
 }
 
-// normalized to sigma = 1
+#if defined(ARITH) && !defined(ISREAL) && !defined(COLORED2)
+// 1: field
+// 2: space-time momentum
+// 3: color momentum
+// 4: spin momentum
+// 5: scale
+// 6: original field value scale [ f = exp(i*p*x)(a+b*f) ]
+// 5: space-time offset
+// 6: color offset
+// 7: spin offset
+// 8: subset
+static int
+ftype_momentum(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  GET_TABLE_LEN_INDEX(nd, pi);
+  GET_COLOR_SPIN(p);
+  OPT_AS_COMPLEX_DEF_REAL(aa,1);
+  OPT_AS_COMPLEX_DEF_REAL(bb,0);
+  OPT_TABLE_LEN_INDEX(nd2, oi);
+  OPT_COLOR_SPIN_ZERO(o);
+  OPT_SUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  END_ARGS;
+  //qassert(nd==nd2);
+  qassert(nd==t->lat->nd);
+  QLA_Complex a, b;
+  QLA_c_eq_r_plus_ir(a, aa.r, aa.i);
+  QLA_c_eq_r_plus_ir(b, bb.r, bb.i);
+  int p[nd], o[nd];
+  qhmc_get_int_array(L, pi, nd, p);
+  if(oi>0) qhmc_get_int_array(L, oi, nd, o);
+  else for(int i=0; i<nd; i++) o[i] = 0;
+  int mynode = QDP_this_node;
+  double m[nd];
+  for(int i=0; i<nd; i++) {
+    m[i] = (6.2831853071795864769*p[i])/QDP_coord_size(i);
+  }
+#ifdef COLORED
+  double mc = (6.2831853071795864769*pc)/QLA_Nc;
+#define PXC + mc*(ic-oc)
+#else
+#define PXC
+#endif
+#ifdef SPIN
+  double ms = (6.2831853071795864769*ps)/QLA_Ns;
+#define PXS + ms*(is-os)
+#else
+#define PXS
+#endif
+  int s;
+  QDP_loop_sites(s, sub, {
+      qlatype *ts = qdpptrreadwrite(t->field,s);
+      int x[nd];
+      QDP_get_coords(x, mynode, s);
+      QLA_Real px0 = 0;
+      for(int i=0; i<nd; i++) {
+	px0 += m[i]*(x[i]-o[i]);
+      }
+      LOOP_FTYPE_ELEM {
+	QLA_Real px = px0 PXC PXS;
+	QLA_Complex z1;
+	QLA_Complex z2;
+	QLA_c_eq_c_times_c_plus_c(z2, b, QLAELEM(*ts,i), a);
+	QLA_C_eq_cexpi_R(&z1, &px);
+	QLA_c_eq_c_times_c(QLAELEM(*ts,i), z1, z2);
+      } END_LOOP_FTYPE_ELEM;
+    });
+  return 0;
+#undef NC
+}
+#endif
+
+// default normalized to sigma = 1
+// 1: field
+// 2: (optional) sigma
+// 3: (optional) subset
 static int
 ftype_random(lua_State *L)
 {
@@ -663,13 +777,13 @@ ftype_randomU1(lua_State *L)
   QDP_loop_sites(i, sub, {
       qlatype *x = qdpptrreadwrite(t->field, i);
       LOOP_FTYPE_ELEM {
-	QLA_Complex z = QLAELEM(*x);
+	QLA_Complex z = QLAELEM(*x,i);
 	QLA_Real n = QLA_norm2_c(z);
 	if(n==0) {
-	  QLA_c_eq_r(QLAELEM(*x), 1);
+	  QLA_c_eq_r(QLAELEM(*x,i), 1);
 	} else {
 	  n = 1/sqrt(n);
-	  QLA_c_eq_r_times_c(QLAELEM(*x), n, z);
+	  QLA_c_eq_r_times_c(QLAELEM(*x,i), n, z);
 	}
       } END_LOOP_FTYPE_ELEM;
     });
@@ -719,13 +833,13 @@ ftype_lnormalize(lua_State *L)
   QDP_loop_sites(i, sub, {
       qlatype *x = qdpptrreadwrite(t->field, i);
       LOOP_FTYPE_ELEM {
-	QLA_Complex z = QLAELEM(*x);
+	QLA_Complex z = QLAELEM(*x,i);
 	QLA_Real n = QLA_norm2_c(z);
 	if(n==0) {
-	  QLA_c_eq_r(QLAELEM(*x), s);
+	  QLA_c_eq_r(QLAELEM(*x,i), s);
 	} else {
 	  n = s/sqrt(n);
-	  QLA_c_eq_r_times_c(QLAELEM(*x), n, z);
+	  QLA_c_eq_r_times_c(QLAELEM(*x,i), n, z);
 	}
       } END_LOOP_FTYPE_ELEM;
     });
@@ -811,6 +925,25 @@ ftype_combine(lua_State *L)
 #undef NC
 }
 
+#if defined(ARITH) && !defined(ISVECTOR)
+static int
+ftype_mul(lua_State *L)
+{
+#define NC QDP_get_nc(td->field)
+  BEGIN_ARGS;
+  GET_FTYPE(td);
+  //GET_AS_FTYPE_ARRAY(ns,ts);
+  GET_FTYPE(ts1);
+  GET_FTYPE(ts2);
+  OPT_QSUBSET(sub, td->lat, QDP_all_L(td->qlat));
+  END_ARGS;
+  //qlassert(L, ns==2);
+  qdptimes(td->field, ts1->field, ts2->field, sub);
+  return 0;
+#undef NC
+}
+#endif
+
 static int
 ftype_sum(lua_State *L)
 {
@@ -833,6 +966,60 @@ ftype_sum(lua_State *L)
     }
   }
   return 1;
+#undef NC
+}
+
+static int
+ftype_trace(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  int rv = 0;
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+#ifdef ISREAL
+  OPT_QOPQDP_REAL(d, NULL);
+  if(d==NULL) {
+    d = qopqdp_real_create_unset(L, t->lat);
+    rv = 1;
+  }
+#else
+  OPT_QOPQDP_COMPLEX(d, NULL);
+  if(d==NULL) {
+    d = qopqdp_complex_create_unset(L, t->lat);
+    rv = 1;
+  }
+#endif
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  END_ARGS;
+  SPUR(d->field, t->field, sub);
+  return rv;
+#undef NC
+}
+
+static int
+ftype_det(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  int rv = 0;
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+#ifdef ISREAL
+  OPT_QOPQDP_REAL(d, NULL);
+  if(d==NULL) {
+    d = qopqdp_real_create_unset(L, t->lat);
+    rv = 1;
+  }
+#else
+  OPT_QOPQDP_COMPLEX(d, NULL);
+  if(d==NULL) {
+    d = qopqdp_complex_create_unset(L, t->lat);
+    rv = 1;
+  }
+#endif
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  END_ARGS;
+  DET(d->field, t->field, sub);
+  return rv;
 #undef NC
 }
 
@@ -929,9 +1116,9 @@ ftype_dot(lua_State *L)
   return 1;
 #undef NC
 }
-#endif
+#endif // ifndef ISREAL
 
-#endif
+#endif // ARITH
 
 #ifdef SPIN
 // 1: dfermion
@@ -951,8 +1138,47 @@ ftype_gamma(lua_State *L)
   QDP_D_eq_gamma_times_D(t1->field, t2->field, g, sub);
   return 0;
 }
-#endif
 
+// 1: ftype
+// 2: colorVector array
+// 3: subset (optional)
+static int
+ftype_combineSpin(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  GET_AS_QOPQDP_CVECTOR_ARRAY(n, cv);
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  END_ARGS;
+  qlassert(L, n==QLA_Ns);
+  for(int is=0; is<QLA_Ns; is++) {
+    QDP_D_eq_colorvec_V(t->field, cv[is]->field, is, sub);
+  }
+  return 0;
+#undef NC
+}
+
+// 1: ftype
+// 2: colorVector array
+// 3: subset (optional)
+static int
+ftype_splitSpin(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  GET_AS_QOPQDP_CVECTOR_ARRAY(n, cv);
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  END_ARGS;
+  qlassert(L, n==QLA_Ns);
+  for(int is=0; is<QLA_Ns; is++) {
+    QDP_V_eq_colorvec_D(cv[is]->field, t->field, is, sub);
+  }
+  return 0;
+#undef NC
+}
+#endif // SPIN
 
 #ifdef COLORED
 // 1: ftype
@@ -970,6 +1196,7 @@ ftype_smearGauss(lua_State *L)
   GET_INT(skipdir);
   GET_DOUBLE(r);
   OPT_INT(n,1);
+  //OPT_DOUBLE(aniso,1);
   END_ARGS;
   int nd = t->lat->nd, ns = 0;
   qdptype *x, *xt[nd], *xs[nd], *xf[nd], *xb1[nd], *xb2[nd];
@@ -1013,49 +1240,218 @@ ftype_smearGauss(lua_State *L)
   return 0;
 #undef NC
 }
+#endif // COLORED
+
+#ifdef COLORED2
+// 1: ftype
+// 2: colorVector array
+// 3: subset (optional)
+static int
+ftype_combineColor(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  GET_AS_QOPQDP_CVECTOR_ARRAY(n, cv);
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  END_ARGS;
+  qlassert(L, n==QLA_Nc);
+  for(int ic=0; ic<QLA_Nc; ic++) {
+    QDP_M_eq_colorvec_V(t->field, cv[ic]->field, ic, sub);
+  }
+  return 0;
+#undef NC
+}
+
+// 1: ftype
+// 2: colorVector array
+// 3: subset (optional)
+static int
+ftype_splitColor(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  GET_AS_QOPQDP_CVECTOR_ARRAY(n, cv);
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  END_ARGS;
+  qlassert(L, n==QLA_Nc);
+  for(int ic=0; ic<QLA_Nc; ic++) {
+    QDP_V_eq_colorvec_M(cv[ic]->field, t->field, ic, sub);
+  }
+  return 0;
+#undef NC
+}
+
+// 1: ftype
+// 2: colorMatrix array
+// 3: subset (optional)
+static int
+ftype_cross(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  GET_AS_FTYPE_ARRAY(n, a);
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  END_ARGS;
+  qlassert(L, n==QLA_Nc-1);
+  switch(QLA_Nc) {
+  case 2: {
+    int s;
+    QDP_loop_sites(s, sub, {
+	qlatype *ts = qdpptrreadwrite(t->field,s);
+	qlatype *a0 = qdpptrreadonly(a[0]->field,s);
+	QLA_c_eq_c(QLA_elem_M(*ts,1,1),QLA_elem_M(*a0,0,0));
+	QLA_c_eqm_c(QLA_elem_M(*ts,1,0),QLA_elem_M(*a0,0,1));
+	QLA_c_eqm_c(QLA_elem_M(*ts,0,1),QLA_elem_M(*a0,1,0));
+	QLA_c_eq_c(QLA_elem_M(*ts,0,0),QLA_elem_M(*a0,1,1));
+      });
+  }; break;
+  case 3: {
+    int s;
+    QDP_loop_sites(s, sub, {
+	qlatype *ts = qdpptrreadwrite(t->field,s);
+	qlatype *a0 = qdpptrreadonly(a[0]->field,s);
+	qlatype *a1 = qdpptrreadonly(a[1]->field,s);
+	for(int ic=0; ic<3; ic++) {
+	  int i0 = (ic+1)%3;
+	  int i1 = (ic+2)%3;
+	  for(int jc=0; jc<3; jc++) {
+	    int j0 = (jc+1)%3;
+	    int j1 = (jc+2)%3;
+	    QLA_c_eq_c_times_c(QLA_elem_M(*ts,ic,jc),QLA_elem_M(*a0,i0,j0),QLA_elem_M(*a1,i1,j1));
+	    QLA_c_meq_c_times_c(QLA_elem_M(*ts,ic,jc),QLA_elem_M(*a0,i0,j1),QLA_elem_M(*a1,i1,j0));
+	    QLA_c_meq_c_times_c(QLA_elem_M(*ts,ic,jc),QLA_elem_M(*a0,i1,j0),QLA_elem_M(*a1,i0,j1));
+	    QLA_c_peq_c_times_c(QLA_elem_M(*ts,ic,jc),QLA_elem_M(*a0,i1,j1),QLA_elem_M(*a1,i0,j0));
+	  }
+	}
+      });
+  }; break;
+  default:
+    qlerror(L, 1, "cross for Nc = %i not supported yet\n", QLA_Nc);
+  }
+  return 0;
+#undef NC
+}
+
+// 1: ftype
+// 2: colorMatrix array
+// 3: subset (optional)
+static int
+ftype_transcross(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  GET_AS_FTYPE_ARRAY(n, a);
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  END_ARGS;
+  qlassert(L, n==QLA_Nc-1);
+  switch(QLA_Nc) {
+  case 2: {
+    int s;
+    QDP_loop_sites(s, sub, {
+	qlatype *ts = qdpptrreadwrite(t->field,s);
+	qlatype *a0 = qdpptrreadonly(a[0]->field,s);
+	QLA_c_eq_c(QLA_elem_M(*ts,1,1),QLA_elem_M(*a0,0,0));
+	QLA_c_eqm_c(QLA_elem_M(*ts,0,1),QLA_elem_M(*a0,0,1));
+	QLA_c_eqm_c(QLA_elem_M(*ts,1,0),QLA_elem_M(*a0,1,0));
+	QLA_c_eq_c(QLA_elem_M(*ts,0,0),QLA_elem_M(*a0,1,1));
+      });
+  }; break;
+  case 3: {
+    int s;
+    QDP_loop_sites(s, sub, {
+	qlatype *ts = qdpptrreadwrite(t->field,s);
+	qlatype *a0 = qdpptrreadonly(a[0]->field,s);
+	qlatype *a1 = qdpptrreadonly(a[1]->field,s);
+	for(int ic=0; ic<3; ic++) {
+	  int i0 = (ic+1)%3;
+	  int i1 = (ic+2)%3;
+	  for(int jc=0; jc<3; jc++) {
+	    int j0 = (jc+1)%3;
+	    int j1 = (jc+2)%3;
+	    QLA_c_eq_c_times_c(QLA_elem_M(*ts,jc,ic),QLA_elem_M(*a0,i0,j0),QLA_elem_M(*a1,i1,j1));
+	    QLA_c_meq_c_times_c(QLA_elem_M(*ts,jc,ic),QLA_elem_M(*a0,i0,j1),QLA_elem_M(*a1,i1,j0));
+	    QLA_c_meq_c_times_c(QLA_elem_M(*ts,jc,ic),QLA_elem_M(*a0,i1,j0),QLA_elem_M(*a1,i0,j1));
+	    QLA_c_peq_c_times_c(QLA_elem_M(*ts,jc,ic),QLA_elem_M(*a0,i1,j1),QLA_elem_M(*a1,i0,j0));
+	  }
+	}
+      });
+  }; break;
+  default:
+    qlerror(L, 1, "cross for Nc = %i not supported yet\n", QLA_Nc);
+  }
+  return 0;
+#undef NC
+}
 #endif
 
 static struct luaL_Reg ftype_reg[] = {
-  { "__gc",        ftype_gc },
-  { "read",        ftype_read },
-  { "write",       ftype_write },
-  { "clone",       ftype_clone },
-  { "set",         ftype_set },
+  { "__gc",          ftype_gc },
+  { "nc",            ftype_nc },
+  { "read",          ftype_read },
+  { "write",         ftype_write },
+  { "clone",         ftype_clone },
+  { "set",           ftype_set },
 #ifdef ISRSTATE
-  { "seed",        ftype_seed },
+  { "seed",          ftype_seed },
 #endif
 #ifdef ARITH
-  { "zero",        ftype_zero },
-  { "unit",        ftype_unit },
-  { "point",       ftype_point },
-  { "site",        ftype_site },
-  { "random",      ftype_random },
-  { "randomU1",    ftype_randomU1 },
-  { "normalize",   ftype_normalize },
-  { "lnormalize",  ftype_lnormalize },
-  { "checkGroup",  ftype_checkGroup },
-  { "makeGroup",   ftype_makeGroup },
-  { "combine",     ftype_combine },
-  { "sum",         ftype_sum },
-  { "norm2",       ftype_norm2 },
-  { "lnorm2",      ftype_lnorm2 },
-  //{ "infnorm",    qopqdp_force_infnorm },
-  { "reDot",       ftype_redot },
-#ifdef ISREAL
-  { "dot",         ftype_redot },
-#else
-  { "dot",         ftype_dot },
+  { "zero",          ftype_zero },
+  { "unit",          ftype_unit },
+  { "point",         ftype_point },
+  { "site",          ftype_site },
+#if !defined(ISREAL) && !defined(COLORED2)
+  { "momentum",      ftype_momentum },
 #endif
-#ifdef ISDFERMION
-  { "gamma",       ftype_gamma },
+  { "random",        ftype_random },
+  { "randomU1",      ftype_randomU1 },
+  { "normalize",     ftype_normalize },
+  { "lnormalize",    ftype_lnormalize },
+  { "checkGroup",    ftype_checkGroup },
+  { "makeGroup",     ftype_makeGroup },
+  { "combine",       ftype_combine },
+#if defined(ARITH) && !defined(ISVECTOR)
+  { "mul",           ftype_mul },
+#endif
+  { "sum",           ftype_sum },
+  { "trace",         ftype_trace },
+  { "det",           ftype_det },
+  { "norm2",         ftype_norm2 },
+  { "lnorm2",        ftype_lnorm2 },
+  //{ "infnorm",    qopqdp_force_infnorm },
+  { "reDot",         ftype_redot },
+#ifdef ISREAL
+  { "dot",           ftype_redot },
+#else
+  { "dot",           ftype_dot },
+#endif
+#ifdef SPIN
+  { "gamma",         ftype_gamma },
+  { "combineSpin",   ftype_combineSpin },
+  { "splitSpin",     ftype_splitSpin },
 #endif
 #endif // ARITH
 #ifdef COLORED
-  { "smearGauss",  ftype_smearGauss },
+  { "smearGauss",    ftype_smearGauss },
+#endif
+#ifdef COLORED2
+  { "combineColor",  ftype_combineColor },
+  { "splitColor",    ftype_splitColor },
+  { "cross",         ftype_cross },
+  { "transcross",    ftype_transcross },
 #endif
   { NULL, NULL}
 };
-// det, tr
+// df:splitSpin({cv,...})
+// df:combineSpin({cv,...})
+
+// momentum -> f = exp(ipx)(a+b*f)
+// eqRxF
+
+// tr
 // shift
 // transport
 // multiply (R*T,C*T,M*M,M1*M)
