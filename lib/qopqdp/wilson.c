@@ -249,13 +249,13 @@ qopqdp_wilson_mg_set(lua_State *L)
 	    printf0("  %g", val[i]);
 	    lua_pop(L, 1);
 	  }
+	  printf0("\n");
 	  QOP_wilsonMgSetArray(w->mg, l, (char*)key, val, n);
 	} else {
 	  double val = luaL_checknumber(L, -1);
-	  printf0("  %g", val);
+	  printf0("  %g\n", val);
 	  QOP_wilsonMgSet(w->mg, l, (char*)key, val);
 	}
-	printf0("\n");
 	/* removes 'value'; keeps 'key' for next iteration */
 	lua_pop(L, 1);
       }

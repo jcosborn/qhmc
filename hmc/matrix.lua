@@ -149,6 +149,65 @@ function matrix_mt.dot(m1,m2,...)
   end
   return s
 end
+function matrix_mt.elementProduct(m1,m2,...)
+  if m1.nr ~= m2.nr or m1.nc ~= m2.nc then
+    print("error incompatible dimensions")
+    return nil
+  end
+  local s = 0
+  for i=1,m1.nr do
+    for j=1,m1.nc do
+      s = s + m1(i,j):elementProduct(m2(i,j),...)
+    end
+  end
+  return s
+end
+function matrix_mt.map(m1,f,...)
+  local r = matrix(m1.nr, m1.nc)
+  for i=1,m1.nr do
+    for j=1,m1.nc do
+      r(i,j, f(m1(i,j),...) )
+    end
+  end
+  return r
+end
+function matrix_mt.map2(m1,m2,f,...)
+  if m1.nr ~= m2.nr or m1.nc ~= m2.nc then
+    print("error incompatible dimensions")
+    return nil
+  end
+  local r = matrix(m1.nr, m1.nc)
+  for i=1,m1.nr do
+    for j=1,m1.nc do
+      r(i,j, f(m1(i,j),m2(i,j),...) )
+    end
+  end
+  return r
+end
+function matrix_mt.mapMethod(m1,f,...)
+  local r = matrix(m1.nr, m1.nc)
+  for i=1,m1.nr do
+    for j=1,m1.nc do
+      local e = m1(i,j)
+      r(i,j, e[f](e,...) )
+    end
+  end
+  return r
+end
+function matrix_mt.mapMethod2(m1,m2,f,...)
+  if m1.nr ~= m2.nr or m1.nc ~= m2.nc then
+    print("error incompatible dimensions")
+    return nil
+  end
+  local r = matrix(m1.nr, m1.nc)
+  for i=1,m1.nr do
+    for j=1,m1.nc do
+      local e = m1(i,j)
+      r(i,j, e[f](e,m2(i,j),...) )
+    end
+  end
+  return r
+end
 function matrix_mt.clone(m)
   local r = matrix(m.nr,m.nc)
   for i=1,m.n do r.e[i] = m.e[i] end

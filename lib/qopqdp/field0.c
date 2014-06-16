@@ -108,6 +108,11 @@ typedef S2(QDP_D_,QDPT) qdptypeD;
 #define qdpvpeq(f1,f2,s,n) SP4(QDP_,A,_vpeq_,A,C22xx,f1,f2,s,n)
 #define qdpeqs(f1,f2,sh,sd,s) S4(QDP_,A,_eq_s,A)(f1,f2,sh,sd,s)
 #define qdpveqs(f1,f2,sh,sd,s,n) S4(QDP_,A,_veq_s,A)(f1,f2,sh,sd,s,n)
+#ifdef ISVECTOR
+#define qdpadj(f1,f2,s) SP4(QDP_,A,_eq_conj_,A,C11x,f1,f2,s)
+#else
+#define qdpadj(f1,f2,s) SP5(QDP_,A,_eq_,A,a,C11x,f1,f2,s)
+#endif
 #define qdpptrreadonly(f,s) S2(QDP_site_ptr_readonly_,A)(f,s)
 #define qdpptrreadwrite(f,s) S2(QDP_site_ptr_readwrite_,A)(f,s)
 #define qdpgaussian(f,r,s) SP3x(QDP_,A,_eq_gaussian_S,C1x,f,r,s)
@@ -1116,6 +1121,37 @@ ftype_dot(lua_State *L)
   return 1;
 #undef NC
 }
+
+static int
+ftype_contract(lua_State *L)
+{
+#define NC QDP_get_nc(t1->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t1);
+  GET_FTYPE(t2);
+  OPT_AS_QSUBSET_ARRAY(ns, subs, t1->lat, -1, QDP_all_and_empty_L(t1->qlat));
+  END_ARGS;
+  if(ns==-1) {
+    QLA_Complex c;
+    qdpadj(t1->field, t1->field, subs[0]);
+    qdpdot(&c, t1->field, t2->field, subs[0]);
+    qdpadj(t1->field, t1->field, subs[0]);
+    qhmc_complex_create(L, QLA_real(c), QLA_imag(c));
+  } else {
+    QLA_Complex c[ns];
+    qdpadj(t1->field, t1->field, QDP_all_L(t1->qlat));
+    qdpdotmulti(c, t1->field, t2->field, subs, ns);
+    qdpadj(t1->field, t1->field, QDP_all_L(t1->qlat));
+    qhmc_complex_t cc[ns];
+    for(int i=0; i<ns; i++) {
+      cc[i].r = QLA_real(c[i]);
+      cc[i].i = QLA_imag(c[i]);
+    }
+    qhmc_push_complex_array(L, ns, cc);
+  }
+  return 1;
+#undef NC
+}
 #endif // ifndef ISREAL
 
 #endif // ARITH
@@ -1372,16 +1408,50 @@ ftype_transcross(lua_State *L)
 	  for(int jc=0; jc<3; jc++) {
 	    int j0 = (jc+1)%3;
 	    int j1 = (jc+2)%3;
-	    QLA_c_eq_c_times_c(QLA_elem_M(*ts,jc,ic),QLA_elem_M(*a0,i0,j0),QLA_elem_M(*a1,i1,j1));
-	    QLA_c_meq_c_times_c(QLA_elem_M(*ts,jc,ic),QLA_elem_M(*a0,i0,j1),QLA_elem_M(*a1,i1,j0));
-	    QLA_c_meq_c_times_c(QLA_elem_M(*ts,jc,ic),QLA_elem_M(*a0,i1,j0),QLA_elem_M(*a1,i0,j1));
-	    QLA_c_peq_c_times_c(QLA_elem_M(*ts,jc,ic),QLA_elem_M(*a0,i1,j1),QLA_elem_M(*a1,i0,j0));
+	    QLA_Complex z;
+	    QLA_c_eq_c_times_c(z,QLA_elem_M(*a0,i0,j0),QLA_elem_M(*a1,i1,j1));
+	    QLA_c_meq_c_times_c(z,QLA_elem_M(*a0,i0,j1),QLA_elem_M(*a1,i1,j0));
+	    QLA_c_meq_c_times_c(z,QLA_elem_M(*a0,i1,j0),QLA_elem_M(*a1,i0,j1));
+	    QLA_c_peq_c_times_c(z,QLA_elem_M(*a0,i1,j1),QLA_elem_M(*a1,i0,j0));
+	    QLA_c_eq_c(QLA_elem_M(*ts,jc,ic), z);
+	  }
+	}
+      });
+  }; break;
+  case 4: {
+    int s;
+    QDP_loop_sites(s, sub, {
+	qlatype *ts = qdpptrreadwrite(t->field,s);
+	qlatype *a0 = qdpptrreadonly(a[0]->field,s);
+	qlatype *a1 = qdpptrreadonly(a[1]->field,s);
+	qlatype *a2 = qdpptrreadonly(a[2]->field,s);
+	for(int ic=0; ic<4; ic++) {
+	  for(int jc=0; jc<4; jc++) {
+	    QLA_Complex z;
+	    QLA_c_eq_r(z, 0);
+	    for(int ic0=1; ic0<4; ic0++) {
+	      int i0 = (ic+ic0)%4;
+	      int i1 = (ic+1+(ic0)%3)%4;
+	      int i2 = (ic+1+(ic0+1)%3)%4;
+	      for(int jc0=1; jc0<4; jc0++) {
+		int j0 = (jc+jc0)%4;
+		int j1 = (jc+1+(jc0)%3)%4;
+		int j2 = (jc+1+(jc0+1)%3)%4;
+		QLA_Complex w;
+		QLA_c_eq_c_times_c(w,QLA_elem_M(*a1,i1,j1),QLA_elem_M(*a2,i2,j2));
+		QLA_c_meq_c_times_c(w,QLA_elem_M(*a1,i1,j2),QLA_elem_M(*a2,i2,j1));
+		QLA_c_meq_c_times_c(w,QLA_elem_M(*a1,i2,j1),QLA_elem_M(*a2,i1,j2));
+		QLA_c_peq_c_times_c(w,QLA_elem_M(*a1,i2,j2),QLA_elem_M(*a2,i1,j1));
+		QLA_c_peq_c_times_c(z,QLA_elem_M(*a0,i0,j0),w);
+	      }
+	    }
+	    QLA_c_eq_c(QLA_elem_M(*ts,jc,ic), z);
 	  }
 	}
       });
   }; break;
   default:
-    qlerror(L, 1, "cross for Nc = %i not supported yet\n", QLA_Nc);
+    qlerror(L, 1, "transcross for Nc = %i not supported yet\n", QLA_Nc);
   }
   return 0;
 #undef NC
@@ -1425,8 +1495,10 @@ static struct luaL_Reg ftype_reg[] = {
   { "reDot",         ftype_redot },
 #ifdef ISREAL
   { "dot",           ftype_redot },
+  { "contract",      ftype_redot },
 #else
   { "dot",           ftype_dot },
+  { "contract",      ftype_contract },
 #endif
 #ifdef SPIN
   { "gamma",         ftype_gamma },

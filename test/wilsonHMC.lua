@@ -25,6 +25,5 @@ require 'wilson'
 TESTPAT("^plaq")
 TESTPAT("^S")
 TESTPAT("deltaS")
-TESTPAT("unitarity")
 TESTPAT("^1")
 TESTPAT("MEAS")

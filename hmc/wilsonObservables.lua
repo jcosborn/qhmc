@@ -157,6 +157,13 @@ function scalemt.dot(x,y,...)
   --printf("dotr: %s %s\n", z, r[1])
   return z * matrix(#r,1,r)
 end
+function scalemt.contract(x,y,...)
+  local z = x.z * y.z
+  local r = x[1]:contract(y[1],...)
+  --printf("dot: %s\n", z)
+  --printf("dotr: %s %s\n", z, r[1])
+  return z * matrix(#r,1,r)
+end
 
 local function phase2z(p)
   local ps = {complex(0,1), -1, complex(0,-1), 1}
@@ -229,6 +236,7 @@ function contract24(p1,p2)
 	local e2 = p2(i2,j)
 	local z = e1.z * e2.z
 	r:transcross({e1[1],e2[1]})
+	--r:cross({e1[1],e2[1]})
 	s:combine({s,r},{1,z})
       end
       p0(i1,i2, scale(1,s))
@@ -264,10 +272,13 @@ function wilsonBaryons3(dest)
   local p4 = p3 * gamma(5)
   add_cross(p4)
   local p5 = p4 * p
+  p5 = p5:mapMethod("trace")
+  p5 = p5:mapMethod("sum", "timeslices")
   for g = 0,15 do
     local p6 = p5 * gamma(g)
-    local c = p6:rtrace()
-    local t = c:sum("timeslices")
+    --local c = p6:rtrace()
+    --local t = c:sum("timeslices")
+    local t = p6:trace()
     baryons[g] = {}
     for i=1,t.nr do baryons[g][i] = t(i,1) end
   end

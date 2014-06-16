@@ -6,6 +6,7 @@
 ##loading: /home/osborn/lqcd/install/qhmc-git/hmc/gaugeact.lua
 ##loading: /home/osborn/lqcd/install/qhmc-git/hmc/asqtadact.lua
 ##loading: /home/osborn/lqcd/install/qhmc-git/hmc/smear.lua
+##loading: /home/osborn/lqcd/install/qhmc-git/hmc/staggeredObservables.lua
 ##loading: /home/osborn/lqcd/install/qhmc-git/hmc/hisqact.lua
 ##loading: /home/osborn/lqcd/install/qhmc-git/hmc/wilsonact.lua
 ##loading: /home/osborn/lqcd/install/qhmc-git/hmc/wilson2fact.lua
@@ -384,36 +385,36 @@ Sgq:            -0.000000  Sgp:          -113.785561  Sfq:          7913.291855
 Sgq:          7694.620709  Sgp:         -7835.114685  Sfq:          7939.883713
 Sold:          7799.506293  Snew:          7799.389737
 ACCEPT deltaS = -0.116557  p = 1.12362  r = 0.498384
-unitarity deviation avg: 1.83737e-11  max: 1.01421e-10
-new unitarity deviation avg: 1.15163e-16  max: 2.99813e-16
-#traj 1 secs: 2.71603
-#GF     secs:    0.415  15% calls:   30 mflops:  4764 rms: 0.0300 max: 0.0932
-#GU     secs:    0.151   6% calls:   41
-#LL     secs:    0.354  13% calls:   12 mflops:  5564
-#FF[01] secs:    1.074  40% calls:   10 mflops:  4084 rms: 0.0039 max: 0.0100
+#unitarity deviation avg: 1.83737e-11  max: 1.01421e-10
+#new unitarity deviation avg: 1.15163e-16  max: 2.99813e-16
+#traj 1 secs: 4.57719
+#GF     secs:    0.808  18% calls:   30 mflops:  2450 rms: 0.0300 max: 0.0932
+#GU     secs:    0.106   2% calls:   41
+#LL     secs:    0.593  13% calls:   12 mflops:  3319
+#FF[01] secs:    1.924  42% calls:   10 mflops:  2281 rms: 0.0039 max: 0.0100
 #FF[02] secs:    0.000   0% calls:    0 mflops:     0 rms: 0.0000 max: 0.0000
 #FF[03] secs:    0.000   0% calls:    0 mflops:     0 rms: 0.0000 max: 0.0000
 #FF[04] secs:    0.000   0% calls:    0 mflops:     0 rms: 0.0000 max: 0.0000
-#FFtot  secs:    1.074  40% calls:   10 mflops:  4084
-#CG[01] secs:    0.034   1% calls:    1 mflops:  5903 avgits:    58 max:    58
-#CG[02] secs:    0.026   1% calls:    1 mflops:  5603 avgits:    56 max:    56
-#CG[03] secs:    0.026   1% calls:    1 mflops:  5695 avgits:    57 max:    57
-#CG[04] secs:    0.026   1% calls:    1 mflops:  5553 avgits:    55 max:    55
-#CG[05] secs:    0.071   3% calls:    2 mflops:  6521 avgits:    72 max:    87
-#CG[06] secs:    0.055   2% calls:    2 mflops:  6038 avgits:    65 max:    77
-#CG[07] secs:    0.055   2% calls:    2 mflops:  6031 avgits:    66 max:    77
-#CG[08] secs:    0.056   2% calls:    2 mflops:  6094 avgits:    67 max:    79
-#CG[09] secs:    0.072   3% calls:   10 mflops:  5106 avgits:    22 max:    25
-#CG[10] secs:    0.062   2% calls:   10 mflops:  5703 avgits:    21 max:    24
-#CG[11] secs:    0.061   2% calls:   10 mflops:  5657 avgits:    21 max:    24
-#CG[12] secs:    0.062   2% calls:   10 mflops:  5668 avgits:    21 max:    25
-#CGtot  secs:    0.605  22% calls:   52 mflops:  5816 avgits:    31 max:    87
-#other  secs:    0.116   4%
+#FFtot  secs:    1.924  42% calls:   10 mflops:  2281
+#CG[01] secs:    0.064   1% calls:    1 mflops:  3087 avgits:    58 max:    58
+#CG[02] secs:    0.049   1% calls:    1 mflops:  2941 avgits:    56 max:    56
+#CG[03] secs:    0.049   1% calls:    1 mflops:  2977 avgits:    57 max:    57
+#CG[04] secs:    0.050   1% calls:    1 mflops:  2929 avgits:    55 max:    55
+#CG[05] secs:    0.104   2% calls:    2 mflops:  4464 avgits:    72 max:    87
+#CG[06] secs:    0.079   2% calls:    2 mflops:  4203 avgits:    65 max:    77
+#CG[07] secs:    0.079   2% calls:    2 mflops:  4208 avgits:    66 max:    77
+#CG[08] secs:    0.080   2% calls:    2 mflops:  4258 avgits:    67 max:    79
+#CG[09] secs:    0.135   3% calls:   10 mflops:  2747 avgits:    22 max:    25
+#CG[10] secs:    0.117   3% calls:   10 mflops:  3006 avgits:    21 max:    24
+#CG[11] secs:    0.117   3% calls:   10 mflops:  2935 avgits:    21 max:    24
+#CG[12] secs:    0.117   3% calls:   10 mflops:  2988 avgits:    21 max:    25
+#CGtot  secs:    1.040  23% calls:   52 mflops:  3384 avgits:    31 max:    87
+#other  secs:    0.107   2%
 1,2,3,4  0.00393007   0.00998243  
 MEASplaq ss: 0.847076  st: 0.84822   tot: 0.847648
 MEASploop: spatial: 0.760221 0.00120629 temporal: 0.7618 0.00259778
 MEASpbp mass 0.0018 : 0.00288152
 MEASpbp mass 0.018 : 0.0292359
-#measurement time: 0.0447471 seconds
-#trajectory time: 2.76089 seconds
-#total time: 2.76091 seconds
+#measurement time: 0.0443299 seconds
+#trajectory time: 4.62166 seconds
+#total time: 4.62167 seconds
