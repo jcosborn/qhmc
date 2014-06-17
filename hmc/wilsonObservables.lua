@@ -57,6 +57,93 @@ local function gamma(g)
 end
 --print(gamma(15))
 
+function pointProp(L, w, pt, smearsrc, smeardest, mass, resid, opts)
+  local src = w:quark()
+  local dest = {}
+  local dest2 = {}
+  local Nc = qopqdp.Nc
+  local Ns = 4
+  local cvCS = {}
+  local cvSC = {}
+  for spin = 1,Ns do
+    cvSC[spin] = {}
+    dest2[spin] = {}
+    for color = 1,Nc do
+      if spin==1 then cvCS[color] = {} end
+      cvCS[color][spin] = L:colorVector()
+      cvSC[spin][color] = cvCS[color][spin]
+    end
+  end
+  for spin = 0,Ns-1 do
+    for color = 0,Nc-1 do
+      local k = Ns*color + spin + 1
+      src:zero()
+      -- point({coord},color,spin,re,im)
+      src:point(pt,color,spin,1)
+      if smearsrc then
+	printf("src norm2: %g\n", src:norm2())
+	--src:smearGauss(g, 4, rsmear, nsmear)
+	smearsrc(src)
+      end
+      printf("src norm2: %g\n", src:norm2())
+      dest[k] = w:quark()
+
+      t0 = qopqdp.dtime()
+      w:solve(dest[k], src, mass, resid, "all", opts)
+      dt = qopqdp.dtime() - t0
+      mf = 1e-6 * w:flops() / dt
+      printf("its: %g  secs: %g  Mflops: %g\n", w:its(), dt, mf)
+      if smeardest then
+	printf("dest norm2: %.16g\n", dest[k]:norm2())
+	--dest[k]:smearGauss(g, 4, rsmear, nsmear);
+	smeardest(dest[k])
+      end
+      printf("dest norm2: %.16g\n", dest[k]:norm2())
+      --wr:write(dest[#dest], "<field metadata/>")
+    end
+    for color = 0,Nc-1 do
+      local k = Ns*color + spin + 1
+      dest[k]:splitSpin(cvCS[color+1])
+    end
+    for spin2 = 0,Ns-1 do
+      local cm = L:colorMatrix()
+      dest2[spin2+1][spin+1] = cm
+      cm:combineColor(cvSC[spin2+1])
+    end
+  end
+  return dest2
+end
+
+function randomPoint(L)
+  local x = {}
+  for i=1,#L do
+    local li = L(i)
+    x[i] = math.floor(li * qopqdp.random())
+    assert(x[i]>=0 and x[i]<li)
+  end
+  return x
+end
+
+function randMomSource(L, chiral)
+  local src = L:diracFermion()
+  local Nc = src:nc()
+  local Ns = 4
+  local mom = randomPoint(L)
+  local cmom = Nc * qopqdp.random()
+  assert(cmom>=0 and cmom<Nc)
+  local smom = Ns * qopqdp.random()
+  assert(smom>=0 and smom<Ns)
+  src:momentum(mom, cmom, smom)
+  local ch = 0
+  if chiral then
+    ch = (qopqdp.random()<0.5) and 1 or -1
+    local t = src:clone()
+    t:gamma(15, src)
+    src:combine({src,t},{0.5,0.5*ch})
+  end
+  return src, mom, cmom, smom, ch
+end
+
 function mydot(v, g, color, spin, qt)
   local spin2,phase = table.unpack(gammaelem[g][spin])
   local k = (color-1)*Ns + spin

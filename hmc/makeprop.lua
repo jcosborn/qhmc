@@ -14,10 +14,16 @@ nsmear = 0
 prec = 1
 restart = 500
 resid = 1e-12
+opts = { prec=prec, restart=restart }
 
 L = qopqdp.lattice(latsize)
 qopqdp.profile(profile or 0)
 qopqdp.verbosity(0)
+Nc = qopqdp.Nc
+Ns = 4
+
+seed = seed or os.time()
+qopqdp.seed(seed)
 
 --wr = qopqdp.writer("test.out", "<metadata/>")
 
@@ -33,8 +39,6 @@ end
 g = qopqdp.gauge()
 if fn then g:load(fn)
 else
-  seed = seed or os.time()
-  qopqdp.seed(seed)
   --g:unit()
   g:random()
 end
@@ -72,116 +76,100 @@ end
 
 --mgSetup()
 
-opts = { prec=prec, restart=restart }
-src = w:quark()
-dest = {}
-dest2 = {}
-local Nc = qopqdp.Nc
-local Ns = 4
-
-local cvCS = {}
-local cvSC = {}
-for spin = 1,Ns do
-  cvSC[spin] = {}
-  dest2[spin] = {}
-  for color = 1,Nc do
-    if spin==1 then cvCS[color] = {} end
-    cvCS[color][spin] = L:colorVector()
-    cvSC[spin][color] = cvCS[color][spin]
-  end
+function smear(f)
+  f:smearGauss(g, 4, rsmear, nsmear)
 end
+smearsrc = smear
+smeardest = smear
 
-for spin = 0,Ns-1 do
-  for color = 0,Nc-1 do
-    local k = Ns*color + spin + 1
-    src:zero()
-    -- point({coord},color,spin,re,im)
-    src:point({0,0,0,0},color,spin,1)
-    printf("src norm2: %g\n", src:norm2())
-    src:smearGauss(g, 4, rsmear, nsmear);
-    printf("src norm2: %g\n", src:norm2())
-    dest[k] = w:quark()
+function spectrum()
+  local pt = {0,0,0,0}
+  local pt = randomPoint(L)
+  printf("src point: %i %i %i %i\n", pt[1], pt[2], pt[3], pt[4])
+  dest2 = pointProp(L, w, pt, smearsrc, smeardest, mass, resid, opts)
 
-    t0 = qopqdp.dtime()
-    w:solve(dest[k], src, mass, resid, "all", opts)
-    dt = qopqdp.dtime() - t0
-    mf = 1e-6 * w:flops() / dt
-    printf("its: %g  secs: %g  Mflops: %g\n", w:its(), dt, mf)
-    dest[k]:smearGauss(g, 4, rsmear, nsmear);
-    printf("dest norm2: %.16g\n", dest[k]:norm2())
-    --wr:write(dest[#dest], "<field metadata/>")
-  end
-  for color = 0,Nc-1 do
-    local k = Ns*color + spin + 1
-    dest[k]:splitSpin(cvCS[color+1])
-  end
-  for spin2 = 0,Ns-1 do
-    local cm = L:colorMatrix()
-    dest2[spin2+1][spin+1] = cm
-    cm:combineColor(cvSC[spin2+1])
-  end
-end
-
---[[
-vk2 = w:quark()
-for spin = 0,Ns-1 do
-  for spin2 = 0,Ns-1 do
-    local s,s2 = 0,0
-    for color = 0,Nc-1 do
-      local k = Ns*color + spin + 1
-      local k2 = Ns*color + spin2 + 1
-      vk2:gamma(15, dest[k2])
-      s = s + dest[k]:dot(vk2,"timeslice0");
-    end
-    for spin3 = 0,Ns-1 do
-      local z = 1
-      if spin3>=2 then z = -1 end
-      s2 = s2 + z*dest2[spin+1][spin3+1]:dot(dest2[spin2+1][spin3+1],"timeslice0")
-    end
-    printf("%i\t%i\t%s\t%s\n", spin, spin2, s, s2)
-  end
-end
---]]
-
---wr:write(dest, "<field metadata/>")
---wr:prop(dest, "<field metadata/>")
---for i=1,#dest do
+  --wr:write(dest, "<field metadata/>")
+  --wr:prop(dest, "<field metadata/>")
+  --for i=1,#dest do
   --printf("%i norm2: %g\n", i, dest[i]:norm2())
   --dest[i]:zero()
---end
+  --end
 
---rd,md = qopqdp.reader("test.out")
---printf("%s\n", md)
---md = rd:read(dest)
---printf("%s\n", md)
---for i=1,#dest do
+  --rd,md = qopqdp.reader("test.out")
+  --printf("%s\n", md)
+  --md = rd:read(dest)
+  --printf("%s\n", md)
+  --for i=1,#dest do
   --printf("%i norm2: %g\n", i, dest[i]:norm2())
---end
+  --end
 
---mesons = wilsonMesons(dest)
---mesons = wilsonMesons2(dest2)
-mesons = wilsonMesons3(dest2)
+  --mesons = wilsonMesons(dest)
+  --mesons = wilsonMesons2(dest2)
+  mesons = wilsonMesons3(dest2)
 
---[[
-for g = 0,#mesons do
-  myprint("meson["..tostring(g).."] = ",mesons[g],"\n")
-end
---]]
+  --[[
+    for g = 0,#mesons do
+    myprint("meson["..tostring(g).."] = ",mesons[g],"\n")
+    end
+  --]]
 
-printf("-= mesons =-\n")
-for t=1,latsize[4] do
-  for g = 0,#mesons do
-    printf("%i\t%i\t%i\t%i\t%g\n", 0, t-1, g, g, mesons[g][t])
+  printf("-= mesons =-\n")
+  for t=0,latsize[4]-1 do
+    local t1 = (pt[4]+t)%latsize[4] + 1
+    for g = 0,#mesons do
+      printf("%i\t%i\t%i\t%g\n", t, g, g, mesons[g][t1])
+    end
+  end
+
+  baryons = wilsonBaryons3(dest2)
+
+  printf("-= baryons =-\n")
+  for t=0,latsize[4]-1 do
+    local t1 = (pt[4]+t)%latsize[4] + 1
+    printf("%i", t)
+    for g = 0,#baryons do
+      printf("\t%g\t%g", baryons[g][t1].r, baryons[g][t1].i)
+    end
+    printf("\n")
   end
 end
 
-baryons = wilsonBaryons3(dest2)
+function scalar()
+  -- random momentum source
+  --local src, mom, cmom, smom = randMomSource(L)
+  --printf("src momentum: %i %i %i %i : %i %i\n", mom[1], mom[2], mom[3], mom[4], cmom, smom)
+  --src:point(mom, cmom, smom, 1)
+  local src = L:diracFermion()
+  src:randomU1()
 
-printf("-= baryons =-\n")
-for t=1,latsize[4] do
-  printf("%i", t-1)
-  for g = 0,#baryons do
-    printf("\t%g\t%g", baryons[g][t].r, baryons[g][t].i)
+  local tsrc = L:diracFermion()
+  local dest = L:diracFermion()
+  local iv3 = 1/math.sqrt(L(1)*L(2)*L(3))
+  local c = {}
+  for t=1,L(4) do -- source timeslice
+    local sub = "timeslice"..(t-1)
+    tsrc:zero()
+    tsrc:set(src, sub)
+    w:solve(dest, tsrc, mass, resid, "all", opts)
+    c[t] = src:dot(dest, "timeslices")
+    for i=1,L(4) do c[t][i] = iv3 * c[t][i] end
   end
-  printf("\n")
+
+  printf("current:\n")
+  for t0=1,L(4) do -- source timeslice
+    printf("%i\t%.10g\t%.10g\n", t0-1, c[t0][t0].r, c[t0][t0].i)
+  end
+
+  printf("correlator:\n")
+  for t0=1,L(4) do -- source timeslice
+    for tl=0,L(4)-1 do -- distance
+      local t1 = (t0+tl-1)%L(4) + 1
+      local conn = c[t0][t1] * c[t1][t0]
+      printf("%i\t%i\t%.10g\t%.10g\n", t0-1, tl, conn.r, conn.i)
+    end
+  end
 end
+
+spectrum()
+printf("-= scalar =-\n")
+scalar()

@@ -48,6 +48,29 @@ qopqdp_lattice_gc(lua_State *L)
 }
 
 static int
+qopqdp_lattice_len(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_LATTICE(l);
+  nextarg++; // ignore second argument
+  END_ARGS;
+  lua_pushinteger(L, l->nd);
+  return 1;
+}
+
+static int
+qopqdp_lattice_call(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_LATTICE(l);
+  GET_INT(dim);
+  END_ARGS;
+  int s = QDP_coord_size_L(l->qlat, dim-1);
+  lua_pushinteger(L, s);
+  return 1;
+}
+
+static int
 qopqdp_lattice_seed(lua_State *L)
 {
   BEGIN_ARGS;
@@ -241,6 +264,8 @@ qopqdp_colorMatrix(lua_State *L)
 
 static struct luaL_Reg lattice_reg[] = {
   { "__gc",           qopqdp_lattice_gc },
+  { "__len",          qopqdp_lattice_len },
+  { "__call",         qopqdp_lattice_call },
   { "seed",           qopqdp_lattice_seed },
   { "subset",         qopqdp_lattice_subset },
   { "reader",         qopqdp_lattice_reader },
