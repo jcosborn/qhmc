@@ -16,11 +16,13 @@ restart = 500
 resid = 1e-12
 opts = { prec=prec, restart=restart }
 
+--qopqdp.defaultNc(4); fn = nil
+Nc = qopqdp.defaultNc()
+Ns = 4
+
 L = qopqdp.lattice(latsize)
 qopqdp.profile(profile or 0)
 qopqdp.verbosity(0)
-Nc = qopqdp.Nc
-Ns = 4
 
 seed = seed or os.time()
 qopqdp.seed(seed)
@@ -123,14 +125,16 @@ function spectrum()
 
   baryons = wilsonBaryons3(dest2)
 
-  printf("-= baryons =-\n")
-  for t=0,latsize[4]-1 do
-    local t1 = (pt[4]+t)%latsize[4] + 1
-    printf("%i", t)
-    for g = 0,#baryons do
-      printf("\t%g\t%g", baryons[g][t1].r, baryons[g][t1].i)
+  if baryons then
+    printf("-= baryons =-\n")
+    for t=0,latsize[4]-1 do
+      local t1 = (pt[4]+t)%latsize[4] + 1
+      printf("%i", t)
+      for g = 0,#baryons do
+	printf("\t%g\t%g", baryons[g][t1].r, baryons[g][t1].i)
+      end
+      printf("\n")
     end
-    printf("\n")
   end
 end
 

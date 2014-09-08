@@ -1,5 +1,6 @@
-#loading: /home/osborn/lqcd/install/qhmc-git/hmc/Init.lua
-#runtest: using temp file wilson2fHMC.lua.tmp
+#runtest: using temp file wilson2fHMC.raw
+##loading: /home/osborn/lqcd/install/qhmc-git/hmc/Init.lua
+##runtest: using temp file wilson2fHMC.tmp
 ##loading: /home/osborn/lqcd/install/qhmc-git/hmc/wilson2f.lua
 ##loading: /home/osborn/lqcd/install/qhmc-git/hmc/common.lua
 ##loading: /home/osborn/lqcd/install/qhmc-git/hmc/run.lua
@@ -36,47 +37,47 @@ Sgq:             0.000000  Sgp:            -8.069289  Sfq:         12275.218829
 Sgq:           859.940714  Sgp:          -874.976604  Sfq:         12282.218470
 Sold:         12267.149539  Snew:         12267.182581
 ACCEPT deltaS = 0.0330416  p = 0.967498  r = 0
-#unitarity deviation avg: 8.15358e-16  max: 2.68e-15
-#new unitarity deviation avg: 9.9789e-17  max: 2.62842e-16
-#traj 1 secs: 1.8983
-#GF     secs:    0.076   4% calls:   41 mflops:  2473 rms: 0.0055 max: 0.0217
-#GU     secs:    0.040   2% calls:   40
-#LL     secs:    0.003   0% calls:    5 mflops:     0
-#FF[01] secs:    0.044   2% calls:    5 mflops:   981 rms: 0.0347 max: 0.1102
-#FFtot  secs:    0.044   2% calls:    5 mflops:   981
-#CG[01] secs:    0.254  13% calls:    1 mflops:     0 avgits:    58 max:    58
-#CG[02] secs:    0.620  33% calls:    2 mflops:     0 avgits:    92 max:   126
-#CG[03] secs:    0.812  43% calls:    5 mflops:     0 avgits:    75 max:    89
-#CGtot  secs:    1.686  89% calls:    8 mflops:     0 avgits:    77 max:   126
-#other  secs:    0.048   3%
+#unitarity deviation avg: 7.99375e-16  max: 2.38407e-15
+#new unitarity deviation avg: 9.85896e-17  max: 2.38266e-16
+#traj 1 secs: 1.59704
+#GF     secs:    0.044   3% calls:   41 mflops:  4264 rms: 0.0055 max: 0.0217
+#GU     secs:    0.026   2% calls:   40
+#LL     secs:    0.002   0% calls:    5 mflops:     0
+#FF[01] secs:    0.030   2% calls:    5 mflops:  1469 rms: 0.0347 max: 0.1102
+#FFtot  secs:    0.030   2% calls:    5 mflops:  1469
+#CG[01] secs:    0.238  15% calls:    1 mflops:     0 avgits:    58 max:    58
+#CG[02] secs:    0.555  35% calls:    2 mflops:     0 avgits:    92 max:   126
+#CG[03] secs:    0.658  41% calls:    5 mflops:     0 avgits:    75 max:    89
+#CGtot  secs:    1.451  91% calls:    8 mflops:     0 avgits:    77 max:   126
+#other  secs:    0.044   3%
 1  0.034695     0.110223    
 MEASplaq ss: 0.951121  st: 0.950658  tot: 0.95089 
 MEASploop: spatial: 0.950667 -0.000224953 temporal: 0.898435 0.000862262
 MEASpbp mass 0.1 : 0.473755
-#measurement time: 0.036114 seconds
-#trajectory time: 1.93452 seconds
-#total time: 1.93454 seconds
+#measurement time: 0.038353 seconds
+#trajectory time: 1.63546 seconds
+#total time: 1.63546 seconds
 Sgq:           859.940714  Sgp:            15.309319  Sfq:         12178.172028
 Sgq:          1569.252385  Sgp:          -697.642912  Sfq:         12181.838933
 Sold:         13053.422061  Snew:         13053.448406
 ACCEPT deltaS = 0.0263442  p = 0.974  r = 0.387032
-#unitarity deviation avg: 8.36084e-16  max: 2.37845e-15
-#new unitarity deviation avg: 1.05859e-16  max: 2.77579e-16
-#traj 1 secs: 2.43453
-#GF     secs:    0.076   3% calls:   41 mflops:  2497 rms: 0.0104 max: 0.0251
-#GU     secs:    0.040   2% calls:   40
-#LL     secs:    0.002   0% calls:    4 mflops:     0
-#FF[01] secs:    0.045   2% calls:    5 mflops:   976 rms: 0.0341 max: 0.0953
-#FFtot  secs:    0.045   2% calls:    5 mflops:   976
-#CG[01] secs:    0.456  19% calls:    1 mflops:     0 avgits:   138 max:   138
-#CG[02] secs:    0.753  31% calls:    2 mflops:     0 avgits:   126 max:   127
-#CG[03] secs:    1.014  42% calls:    5 mflops:     0 avgits:    96 max:   101
-#CGtot  secs:    2.223  91% calls:    8 mflops:     0 avgits:   109 max:   138
-#other  secs:    0.048   2%
+#unitarity deviation avg: 8.03943e-16  max: 2.40386e-15
+#new unitarity deviation avg: 1.01778e-16  max: 2.33259e-16
+#traj 1 secs: 2.06743
+#GF     secs:    0.044   2% calls:   41 mflops:  4252 rms: 0.0104 max: 0.0251
+#GU     secs:    0.026   1% calls:   40
+#LL     secs:    0.001   0% calls:    4 mflops:     0
+#FF[01] secs:    0.030   1% calls:    5 mflops:  1474 rms: 0.0341 max: 0.0953
+#FFtot  secs:    0.030   1% calls:    5 mflops:  1474
+#CG[01] secs:    0.415  20% calls:    1 mflops:     0 avgits:   138 max:   138
+#CG[02] secs:    0.672  32% calls:    2 mflops:     0 avgits:   126 max:   127
+#CG[03] secs:    0.835  40% calls:    5 mflops:     0 avgits:    96 max:   101
+#CGtot  secs:    1.922  93% calls:    8 mflops:     0 avgits:   109 max:   138
+#other  secs:    0.044   2%
 1  0.0341191    0.095326    
 MEASplaq ss: 0.911035  st: 0.909728  tot: 0.910382
 MEASploop: spatial: 0.905875 -0.000465764 temporal: 0.813693 -0.000609673
 MEASpbp mass 0.1 : 0.474885
-#measurement time: 0.037292 seconds
-#trajectory time: 2.47193 seconds
-#total time: 2.47196 seconds
+#measurement time: 0.0393751 seconds
+#trajectory time: 2.10686 seconds
+#total time: 2.10687 seconds

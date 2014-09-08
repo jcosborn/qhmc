@@ -210,8 +210,8 @@ dwquark_t *
 qopqdp_dwquark_create(lua_State *L, int ls, int nc, lattice_t *lat)
 {
 #define NC nc
-  if(nc==0) nc = QOPQDP_DEFAULTNC;
   if(lat==NULL) lat = qopqdp_get_default_lattice(L);
+  if(nc==0) nc = lat->defaultNc;
   dwquark_t *q = lua_newuserdata(L, sizeof(dwquark_t));
   q->ls = ls;
   q->df = malloc(ls*sizeof(*q->df));

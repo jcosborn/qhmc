@@ -500,8 +500,10 @@ static struct luaL_Reg dw_reg[] = {
 };
 
 dw_t *
-qopqdp_dw_create(lua_State *L)
+qopqdp_dw_create(lua_State *L, int nc, lattice_t *lat)
 {
+  //if(lat==NULL) lat = qopqdp_get_default_lattice(L);
+  //if(nc==0) nc = lat->defaultNc;
   int ls = luaL_checkinteger(L, 1);
   dw_t *w = lua_newuserdata(L, sizeof(dw_t));
   w->ls = ls;

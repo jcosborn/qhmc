@@ -1,4 +1,4 @@
-AC_INIT(qhmc, 0.1.2, [osborn at alcf.anl.gov])
+AC_INIT(qhmc, 0.1.3, [osborn at alcf.anl.gov])
 AC_CONFIG_AUX_DIR(config)
 AM_INIT_AUTOMAKE
 
@@ -77,7 +77,7 @@ if test -n "$COLORS"; then
     defaultnc="$COLORS"
   fi
 fi
-if test "X$NC" = "Xall" -a "$colors" = 3; then
+if test "X$NC" = "XN" -o "X$NC" = "Xall"; then
   AC_DEFINE(HAVE_MG, [], [include multigrid])
 fi
 AC_DEFINE_UNQUOTED(QOPQDP_COLORS, [$colors], [default QOPQDP color library])

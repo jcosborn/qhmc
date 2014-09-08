@@ -246,6 +246,16 @@ ftype_gc(lua_State *L)
 }
 
 static int
+ftype_lattice(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  END_ARGS;
+  qopqdp_lattice_wrap(L,t->qlat,t->lat->defaultPrecision,t->lat->defaultNc,0);
+  return 1;
+}
+
+static int
 ftype_nc(lua_State *L)
 {
 #ifdef COLORED
@@ -1460,6 +1470,7 @@ ftype_transcross(lua_State *L)
 
 static struct luaL_Reg ftype_reg[] = {
   { "__gc",          ftype_gc },
+  { "lattice",       ftype_lattice },
   { "nc",            ftype_nc },
   { "read",          ftype_read },
   { "write",         ftype_write },
@@ -1558,7 +1569,12 @@ ftype_create_unset(lua_State *L, NCPROTT lattice_t *lat)
 {
   if(lat==NULL) lat = qopqdp_get_default_lattice(L);
 #ifdef COLORED
-  if(NC<0) NC = QOPQDP_DEFAULTNC;
+  if(NC<0) NC = lat->defaultNc;
+#if QDP_Colors != 'N'
+  if(NC!=QDP_Colors) {
+    qlerror(L, 1, "requested Nc %i but built for %i\n", NC, QDP_Colors);
+  }
+#endif
 #endif
   qdptype *field = qdpcreate(lat->qlat);
   return ftype_wrap(L, lat, field, 1);

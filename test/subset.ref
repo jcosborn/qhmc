@@ -1,5 +1,6 @@
-#loading: /home/osborn/lqcd/install/qhmc-git/hmc/Init.lua
-#runtest: using temp file subset.lua.tmp
+#runtest: using temp file subset.raw
+##loading: /home/osborn/lqcd/install/qhmc-git/hmc/Init.lua
+##runtest: using temp file subset.tmp
 #ndim = 4
 #numsites = 256
 #len = 4 4 4 4

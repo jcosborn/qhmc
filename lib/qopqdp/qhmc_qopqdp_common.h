@@ -129,7 +129,8 @@ typedef struct {
   char *defaultPrecision;
   int defaultNc;
 } lattice_t;
-lattice_t *qopqdp_create_lattice(lua_State *L, int nd, int size[]);
+lattice_t *qopqdp_lattice_wrap(lua_State *L, QDP_Lattice *qlat, char *defPrec, int defNc, int doGC);
+lattice_t *qopqdp_create_lattice(lua_State *L, int nd, int size[], char *defPrec, int defNc);
 lattice_t *qopqdp_opt_lattice(lua_State *L, int *idx, int required, lattice_t *def);
 lattice_t *qopqdp_get_default_lattice(lua_State *L);
 #define qopqdp_check_lattice(L,i) qopqdp_opt_lattice(L,(int[]){i},1,NULL)
@@ -444,6 +445,7 @@ typedef struct {
   int nc;
   int doGC;
 } qopqdp_cmatrixF_t;
+qopqdp_cmatrixF_t *qopqdp_cmatrixF_wrap(lua_State *L, lattice_t *lat, QDP_F_ColorMatrix *field, int doGC);
 qopqdp_cmatrixF_t *qopqdp_cmatrixF_create(lua_State *L, int nc, lattice_t *lat);
 qopqdp_cmatrixF_t *qopqdp_cmatrixF_create_unset(lua_State *L, int nc, lattice_t *lat);
 qopqdp_cmatrixF_t *qopqdp_cmatrixF_opt(lua_State *L, int *idx, int req, qopqdp_cmatrixF_t *def);
@@ -454,6 +456,7 @@ typedef struct {
   int nc;
   int doGC;
 } qopqdp_cmatrixD_t;
+qopqdp_cmatrixD_t *qopqdp_cmatrixD_wrap(lua_State *L, lattice_t *lat, QDP_D_ColorMatrix *field, int doGC);
 qopqdp_cmatrixD_t *qopqdp_cmatrixD_create(lua_State *L, int nc, lattice_t *lat);
 qopqdp_cmatrixD_t *qopqdp_cmatrixD_create_unset(lua_State *L, int nc, lattice_t *lat);
 qopqdp_cmatrixD_t *qopqdp_cmatrixD_opt(lua_State *L, int *idx, int req, qopqdp_cmatrixD_t *def);
@@ -509,6 +512,7 @@ typedef struct {
   QDP_F_ColorMatrix *links[];
 } gaugeF_t;
 gaugeF_t *qopqdp_gaugeF_create(lua_State *L, int nc, lattice_t *lat);
+gaugeF_t *qopqdp_gaugeF_opt(lua_State *L, int *idx,int required,gaugeF_t *def);
 gaugeF_t *qopqdp_gaugeF_check(lua_State *L, int idx);
 void qopqdp_gaugeF_array_check(lua_State *L, int idx, int n, gaugeF_t *g[n]);
 int qopqdp_gaugeF_coulomb(lua_State *L);
@@ -520,6 +524,7 @@ typedef struct {
   QDP_D_ColorMatrix *links[];
 } gaugeD_t;
 gaugeD_t *qopqdp_gaugeD_create(lua_State *L, int nc, lattice_t *lat);
+gaugeD_t *qopqdp_gaugeD_opt(lua_State *L, int *idx,int required,gaugeD_t *def);
 gaugeD_t *qopqdp_gaugeD_check(lua_State *L, int idx);
 void qopqdp_gaugeD_array_check(lua_State *L, int idx, int n, gaugeD_t *g[n]);
 int qopqdp_gaugeD_coulomb(lua_State *L);
@@ -529,6 +534,7 @@ void qopqdp_D_makeSU(NCPROT QLA_D_ColorMatrix(*m), int idx, void *args);
 #define gaugeO_t gaugeD_t
 #define qopqdp_gauge_create qopqdp_gaugeF_create
 #define qopqdp_gaugeO_create qopqdp_gaugeD_create
+#define qopqdp_gauge_opt qopqdp_gaugeF_opt
 #define qopqdp_gauge_check qopqdp_gaugeF_check
 #define qopqdp_gauge_array_check qopqdp_gaugeF_array_check
 #define qopqdp_gaugeO_array_check qopqdp_gaugeD_array_check
@@ -539,6 +545,7 @@ void qopqdp_D_makeSU(NCPROT QLA_D_ColorMatrix(*m), int idx, void *args);
 #define gaugeO_t gaugeF_t
 #define qopqdp_gauge_create qopqdp_gaugeD_create
 #define qopqdp_gaugeO_create qopqdp_gaugeF_create
+#define qopqdp_gauge_opt qopqdp_gaugeD_opt
 #define qopqdp_gauge_check qopqdp_gaugeD_check
 #define qopqdp_gauge_array_check qopqdp_gaugeD_array_check
 #define qopqdp_gaugeO_array_check qopqdp_gaugeF_array_check
@@ -546,6 +553,7 @@ void qopqdp_D_makeSU(NCPROT QLA_D_ColorMatrix(*m), int idx, void *args);
 #define qopqdp_makeSU qopqdp_D_makeSU
 #endif
 #define GET_GAUGE(g) gauge_t *g = qopqdp_gauge_check(L,nextarg++)
+#define OPT_GAUGE(g,d) gauge_t *g = qopqdp_gauge_opt(L,&nextarg,0,d)
 #define GET_GAUGE_COEFFS(c) QOP_gauge_coeffs_t c; get_gauge_coeffs(L,&c,nextarg++)
 
 
@@ -589,24 +597,29 @@ typedef struct {
   double time;
   double flops;
   int its;
-  int nd;
   int *r0;
+  int nc;
+  lattice_t *lat;
   QOP_bc_t bc;
   QOP_staggered_sign_t ssign;
   QOP_asqtad_coeffs_t coeffs;
   QOP_FermionLinksAsqtad *fl;
   QOP_F_FermionLinksAsqtad *ffl;
   gauge_t *g;
+  gauge_t *gLong;
   QDP_Complex **fatphase, **longphase;
 } asqtad_t;
-asqtad_t *qopqdp_asqtad_create(lua_State *L);
+asqtad_t *qopqdp_asqtad_create(lua_State *L, int nc, lattice_t *lat);
 asqtad_t *qopqdp_asqtad_check(lua_State *L, int idx);
+#define GET_ASQTAD(a) asqtad_t *a = qopqdp_asqtad_check(L,nextarg++)
 
 
 typedef struct {
   double time;
   double flops;
   int its;
+  int nc;
+  lattice_t *lat;
   QOP_hisq_coeffs_t coeffs;
   QOP_FermionLinksHisq *fl;
   QOP_F_FermionLinksHisq *ffl;
@@ -615,8 +628,9 @@ typedef struct {
   double f7lf;
   QDP_Complex **fatphase, **longphase;
 } hisq_t;
-hisq_t *qopqdp_hisq_create(lua_State *L);
+hisq_t *qopqdp_hisq_create(lua_State *L, int nc, lattice_t *lat);
 hisq_t *qopqdp_hisq_check(lua_State *L, int idx);
+#define GET_HISQ(a) hisq_t *a = qopqdp_hisq_check(L,nextarg++)
 
 
 typedef struct {
@@ -647,7 +661,7 @@ typedef struct {
   QOP_WilsonMg *mg;
   gauge_t *g;
 } wilson_t;
-wilson_t *qopqdp_wilson_create(lua_State *L);
+wilson_t *qopqdp_wilson_create(lua_State *L, int nc, lattice_t *lat);
 wilson_t *qopqdp_wilson_check(lua_State *L, int idx);
 #define GET_WILSON(w) wilson_t *w = qopqdp_wilson_check(L,nextarg);nextarg++
 
@@ -675,7 +689,7 @@ typedef struct {
   QOP_F_FermionLinksDW *ffl;
   gauge_t *g;
 } dw_t;
-dw_t *qopqdp_dw_create(lua_State *L);
+dw_t *qopqdp_dw_create(lua_State *L, int nc, lattice_t *lat);
 dw_t *qopqdp_dw_check(lua_State *L, int idx);
 
 

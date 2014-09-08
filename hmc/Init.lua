@@ -4,7 +4,7 @@ function printfAll(...)
   io.write(string.format(...))
 end
 
-if qopqdp.master then
+if qopqdp and qopqdp.master then
   function printf(...)
     if(qopqdp.master()) then
       printfAll(...)

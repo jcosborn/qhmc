@@ -1,5 +1,9 @@
 local testfn = arg[1]
-local tmpfn = testfn:gsub(".*/","") .. ".tmp"
+local rawfn = arg[2]
+local tmpfn = rawfn
+if not rawfn then
+ tmpfn = testfn:gsub(".*/",""):gsub("%.lua$","") .. ".tmp"
+end
 printf("#runtest: using temp file %s\n", tmpfn)
 function TESTOUT(...)
   printf("!")
@@ -11,20 +15,53 @@ end
 function TESTOFF()
   printf("!TESTOFF\n")
 end
+local numpat = "[%+%-]?%d+%.?%d*[eE]?[%+%-]?%d*"
+local zerotol = 0
+local function zerotolfunc(x)
+  local n = tonumber(x)
+  if n and math.abs(n) < zerotol then x = 0 end
+  return x
+end
+function TESTZEROTOL(t)
+  zerotol = t
+end
 local pats = {}
-function TESTPAT(s)
-  pats[#pats+1] = s
+local gsubs = {}
+function TESTPAT(s, ...)
+  local n = #pats + 1
+  pats[n] = s
+  if select('#', ...) > 0 then
+    gsubs[n] = {...}
+  end
+end
+function TESTPATFMT(s, f)
+  local n = 1
+  local function fmt()
+    local r = f[n] or f
+    if f[n+1] then n=n+1 end
+    return r
+  end
+  TESTPAT(s, numpat,
+	  function(x) return string.format(fmt(),x) end)
 end
 local patrange = {}
 function TESTRANGE(b,e)
   patrange[#patrange+1] = {b,e}
 end
 
-qhmc.remapout(tmpfn)
-
-dofile(testfn)
-
-qhmc.restoreout()
+if rawfn then
+  local t = ""
+  for l in io.lines(testfn) do
+    if l:match("^TEST[A-NP-Z]") then t = t..l end
+  end
+  load(t)()
+else
+  --os.remove(tmpfn)
+  qhmc.remapout(tmpfn)
+  for l in io.lines(tmpfn:gsub(".tmp$",".out")) do printf("%s",l) end
+  dofile(testfn)
+  qhmc.restoreout()
+end
 
 local istest = 0
 for l in io.lines(tmpfn) do
@@ -38,9 +75,15 @@ for l in io.lines(tmpfn) do
     end
     local dotest = (istest>0)
     for i=1,#pats do
-      if l:match(pats[i]) then dotest = true end
+      if l:match(pats[i]) then
+	dotest = true
+	if gsubs[i] then
+	  l = l:gsub(unpack(gsubs[i]))
+	end
+      end
     end
     if dotest then
+      l = l:gsub(numpat, zerotolfunc)
       printf("%s\n", l)
     else
       printf("#%s\n", l)
@@ -51,4 +94,4 @@ for l in io.lines(tmpfn) do
   end
 end
 
-os.remove(tmpfn)
+--os.remove(tmpfn)

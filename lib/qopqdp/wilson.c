@@ -223,7 +223,6 @@ qopqdp_wilson_mg_set(lua_State *L)
   qassert(nargs==2);
   wilson_t *w = qopqdp_wilson_check(L, 1);
   if(!w->mg) {
-    //if(w->nc==3)
     w->mg = QOP_wilsonMgNew();
   }
 
@@ -273,6 +272,7 @@ qopqdp_wilson_mg_setup(lua_State *L)
   qassert(nargs==1);
   wilson_t *w = qopqdp_wilson_check(L, 1);
   wilson_set(w, 1);
+  QOP_wilsonMgSet(w->mg, -1, "nc", w->g->nc);
 #ifdef QOP_wilsonMgSetLinks
   QOP_F_wilsonMgSetLinks(w->mg, w->ffl);
 #else
@@ -731,8 +731,10 @@ static struct luaL_Reg wilson_reg[] = {
 };
 
 wilson_t *
-qopqdp_wilson_create(lua_State *L)
+qopqdp_wilson_create(lua_State *L, int nc, lattice_t *lat)
 {
+  //if(lat==NULL) lat = qopqdp_get_default_lattice(L);
+  //if(nc==0) nc = lat->defaultNc;
   wilson_t *w = lua_newuserdata(L, sizeof(wilson_t));
   w->fl = NULL;
   w->ffl = NULL;

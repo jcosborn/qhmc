@@ -1,7 +1,16 @@
 #include <string.h>
 #include "qhmc_qopqdp_common.h"
+#ifdef HAVE_NC1
+#include <qdp_d1.h>
+#include <qop_d1.h>
+#endif
+#ifdef HAVE_NC2
+#include <qdp_d2.h>
+#include <qop_d2.h>
+#endif
 #ifdef HAVE_NC3
 #include <qdp_d3.h>
+#include <qop_d3.h>
 #endif
 
 static char *mtname = "qopqdp.hisq";
@@ -254,6 +263,7 @@ C_eq_1_div_C(QDP_Complex *r, QDP_Complex *a)
 static int
 qopqdp_hisq_solve(lua_State *L)
 {
+#define NC QDP_get_nc(qs->cv)
   int narg = lua_gettop(L);
   qassert(narg>=5 && narg<=7);
   hisq_t *h = qopqdp_hisq_check(L, 1);
@@ -270,6 +280,7 @@ qopqdp_hisq_solve(lua_State *L)
   int restart = 500;
   int max_restarts = 5;
   int use_prev_soln = 0;
+  double mixed_rsq = 0;
   int nextarg = 6;
   if(narg>=nextarg && lua_isstring(L, nextarg)) {
     eo = qopqdp_check_evenodd(L, nextarg);
@@ -280,12 +291,15 @@ qopqdp_hisq_solve(lua_State *L)
       qlerror0(L,1,"expecting solver paramter table\n");
     }
 #define seti(s) lua_getfield(L,nextarg,#s);if(!lua_isnil(L,-1))s=luaL_checkint(L,-1);lua_pop(L,1)
+#define setd(s) lua_getfield(L,nextarg,#s);if(!lua_isnil(L,-1))s=luaL_checknumber(L,-1);lua_pop(L,1)
     //seti(prec);
     seti(max_iter);
     seti(restart);
     seti(max_restarts);
     seti(use_prev_soln);
+    setd(mixed_rsq);
 #undef seti
+#undef setd
   }
   if(max_iter<0) max_iter = restart*max_restarts;
 
@@ -333,8 +347,36 @@ qopqdp_hisq_solve(lua_State *L)
     //QDP_reset_V(qs->cv);
   }
 #endif
+
   QOP_info_t info;
-  asqtadInvert(&info, fla, &invarg, rap, mass, nm, qqd, qs->cv);
+#ifdef QOP_asqtad_solve_multi_qdp
+  if(eo!=QOP_EVENODD) {
+    invarg.mixed_rsq = mixed_rsq;
+    QDP_ColorVector *srcs[nm];
+    for(int i=0; i<nm; i++) srcs[i] = qs->cv;
+    //QOP_verbose(QOP_VERB_MED);
+    switch(QOP_Nc) {
+#ifdef HAVE_NC1
+    case 1: QOP_1_asqtad_solve_multi_qdp(&info, (QOP_1_FermionLinksAsqtad*)fla,&invarg,rap,mass,(QDP_1_ColorVector**)qqd,(QDP_1_ColorVector**)srcs,nm);
+      break;
+#endif
+#ifdef HAVE_NC2
+    case 2: QOP_2_asqtad_solve_multi_qdp(&info, (QOP_2_FermionLinksAsqtad*)fla,&invarg,rap,mass,(QDP_2_ColorVector**)qqd,(QDP_2_ColorVector**)srcs,nm);
+      break;
+#endif
+#ifdef HAVE_NC3
+      case 3: QOP_3_asqtad_solve_multi_qdp(&info, (QOP_3_FermionLinksAsqtad*)fla,&invarg,rap,mass,(QDP_3_ColorVector**)qqd,(QDP_3_ColorVector**)srcs,nm);
+      break;
+#endif
+    default:
+      QOP_asqtad_solve_multi_qdp(&info,fla,&invarg,rap,mass,qqd,srcs,nm);
+    }
+  } else
+#endif
+    {
+      asqtadInvert(&info, fla, &invarg, rap, mass, nm, qqd, qs->cv);
+    }
+
 #if 0
   {
     int i;
@@ -378,6 +420,7 @@ qopqdp_hisq_solve(lua_State *L)
   h->flops = info.final_flop;
   h->its = resarg[0].final_iter;
   return 0;
+#undef NC
 }
 
 static int
@@ -448,8 +491,10 @@ qopqdp_hisq_force(lua_State *L)
 static int
 qopqdp_hisq_squark(lua_State *L)
 {
-  qassert(lua_gettop(L)==1);
-  qopqdp_squark_create(L, 0, NULL);
+  BEGIN_ARGS;
+  GET_HISQ(h);
+  END_ARGS;
+  qopqdp_squark_create(L, h->nc, h->lat);
   return 1;
 }
 
@@ -548,9 +593,13 @@ static struct luaL_Reg hisq_reg[] = {
 };
 
 hisq_t *
-qopqdp_hisq_create(lua_State *L)
+qopqdp_hisq_create(lua_State *L, int nc, lattice_t *lat)
 {
+  if(lat==NULL) lat = qopqdp_get_default_lattice(L);
+  if(nc==0) nc = lat->defaultNc;
   hisq_t *h = lua_newuserdata(L, sizeof(hisq_t));
+  h->nc = nc;
+  h->lat = lat;
   h->fl = NULL;
   h->ffl = NULL;
   h->g = NULL;

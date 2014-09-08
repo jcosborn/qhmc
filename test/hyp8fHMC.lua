@@ -30,10 +30,15 @@ doS4obs = true
 
 require 'bsm'
 
+TESTZEROTOL(1e-16)
 TESTPAT("^plaq")
-TESTPAT("^S")
-TESTPAT("deltaS")
+TESTPATFMT("^S","%.4f")
+TESTPATFMT("deltaS","%.5f")
 TESTPAT("^1,")
 TESTPAT("MEAS")
+TESTPATFMT("MEASpbp ","%.5g")
+TESTPATFMT("^%d%s","%.5g")
+TESTPATFMT("MEASplaq_","%.9g")
+TESTPATFMT("MEASpbp_","%.5g")
 
 TESTRANGE("^Local Pions","^MEASplaq_ss")

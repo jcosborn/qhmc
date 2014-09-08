@@ -53,6 +53,9 @@ function vecmt.combine(v, a, c)
     v[i]:combine(ai, c)
   end
 end
+function vecmt:nc()
+  return self[1]:nc()
+end
 
 local actmt = {}
 actmt.__index = actmt
@@ -453,14 +456,14 @@ function actmt.pbp(a, g, mass, resid, opts)
   local y = getqt(a, 2)
   x:randomU1()
   a:solve(y, x, mass, resid, "all", opts, 0)
-  return x:reDot(y)/(4*qopqdp.Nc*a.ga.vol)
+  return x:reDot(y)/(4*x:nc()*a.ga.vol)
 end
 
 function actmt.makeprop(a, g, mass, resid, opts)
-  local Nc = qopqdp.Nc
-  local Ns = 4
   local nqt = 0
   local src = getqt(a, nqt); nqt=nqt+1
+  local Nc = src:nc()
+  local Ns = 4
   local dest = {}
   for color = 0,Nc-1 do
     for spin = 0,Ns-1 do
@@ -482,7 +485,7 @@ function actmt.makeprop(a, g, mass, resid, opts)
 end
 
 function actmt.pions(prop)
-  local Nc = qopqdp.Nc
+  local Nc = prop[1]:nc()
   local Ns = 4
   local pions = {}
   local t = {}

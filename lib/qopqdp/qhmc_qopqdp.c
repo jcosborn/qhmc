@@ -7,6 +7,12 @@
 QLA_RandomState qopqdp_nrs;
 QDP_RandomState *qopqdp_srs = NULL;
 
+#ifdef QOPQDP_DEFAULTNC
+static int defaultNc = QOPQDP_DEFAULTNC;
+#else
+static int defaultNc = 3;
+#endif
+
 void
 qhmc_init_qopqdp(int *argc, char ***argv)
 {
@@ -207,10 +213,32 @@ qopqdp_master(lua_State *L)
 }
 
 static int
+qopqdp_rank(lua_State *L)
+{
+  qassert(lua_gettop(L)==0);
+  lua_pushinteger(L, QDP_this_node);
+  return 1;
+}
+
+static int
 qopqdp_dtime(lua_State *L)
 {
   qassert(lua_gettop(L)==0);
   lua_pushnumber(L, QMP_time());
+  return 1;
+}
+
+static int
+qopqdp_defaultNc(lua_State *L)
+{
+  BEGIN_ARGS;
+  OPT_INT(nc, 0);
+  END_ARGS;
+  if(nc>0) {
+    defaultNc = nc;
+    return 0;
+  }
+  lua_pushinteger(L, defaultNc);
   return 1;
 }
 
@@ -258,7 +286,7 @@ qopqdp_lattice(lua_State *L)
     get_table_len(L, -1, &nd);
     int size[nd];
     qhmc_get_int_array(L, -1, nd, size);
-    lattice_t *lat = qopqdp_create_lattice(L, nd, size);
+    lattice_t *lat = qopqdp_create_lattice(L, nd, size, "D", defaultNc);
     lua_pushvalue(L, -1);
     lat->ref = luaL_ref(L, LUA_REGISTRYINDEX); // prevent gc
     if(QDP_get_default_lattice()==NULL) { // no default lattice
@@ -435,32 +463,44 @@ qopqdp_force(lua_State *L)
 static int
 qopqdp_asqtad(lua_State *L)
 {
-  qassert(lua_gettop(L)==0);
-  qopqdp_asqtad_create(L);
+  BEGIN_ARGS;
+  OPT_INT(nc, 0);
+  OPT_LATTICE(lat, NULL);
+  END_ARGS;
+  qopqdp_asqtad_create(L, nc, lat);
   return 1;
 }
 
 static int
 qopqdp_hisq(lua_State *L)
 {
-  qassert(lua_gettop(L)==0);
-  qopqdp_hisq_create(L);
+  BEGIN_ARGS;
+  OPT_INT(nc, 0);
+  OPT_LATTICE(lat, NULL);
+  END_ARGS;
+  qopqdp_hisq_create(L, nc, lat);
   return 1;
 }
 
 static int
 qopqdp_wilson(lua_State *L)
 {
-  qassert(lua_gettop(L)==0);
-  qopqdp_wilson_create(L);
+  BEGIN_ARGS;
+  OPT_INT(nc, 0);
+  OPT_LATTICE(lat, NULL);
+  END_ARGS;
+  qopqdp_wilson_create(L, nc, lat);
   return 1;
 }
 
 static int
 qopqdp_dw(lua_State *L)
 {
-  qassert(lua_gettop(L)==0);
-  qopqdp_dw_create(L);
+  BEGIN_ARGS;
+  OPT_INT(nc, 0);
+  OPT_LATTICE(lat, NULL);
+  END_ARGS;
+  qopqdp_dw_create(L, nc, lat);
   return 1;
 }
 
@@ -500,6 +540,7 @@ qopqdp_remapout(lua_State *L)
   lua_pushvalue(L, -1);
   const char *s = luaL_checkstring(L, -1);
   lua_pop(L, 1);
+  // FIXME: make safe for multiple ranks
   int fd = creat(s, 0666);
   fflush(stdout);
   dup2(fd, 1);
@@ -511,7 +552,9 @@ qopqdp_remapout(lua_State *L)
 
 static struct luaL_Reg qopqdp_reg[] = {
   { "master",         qopqdp_master },
+  { "rank",           qopqdp_rank },
   { "dtime",          qopqdp_dtime },
+  { "defaultNc",      qopqdp_defaultNc },
   { "lattice",        qopqdp_lattice },
   { "defaultLattice", qopqdp_defaultLattice },
   { "profile",        qopqdp_profile },
@@ -544,10 +587,6 @@ qhmc_open_qopqdp(lua_State *L)
   lua_pushinteger(L, numjobs);
   lua_setglobal(L, "numjobs");
   lua_getglobal(L, "qopqdp");
-#ifdef QOPQDP_DEFAULTNC
-  lua_pushinteger(L, QOPQDP_DEFAULTNC);
-  lua_setfield(L, -2, "Nc");
-#endif
   lua_pop(L, 1);
   QDP_set_read_group_size(64);
   QDP_set_write_group_size(64);

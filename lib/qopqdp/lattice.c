@@ -63,10 +63,17 @@ qopqdp_lattice_call(lua_State *L)
 {
   BEGIN_ARGS;
   GET_LATTICE(l);
-  GET_INT(dim);
+  OPT_INT(dim, 0);
   END_ARGS;
-  int s = QDP_coord_size_L(l->qlat, dim-1);
-  lua_pushinteger(L, s);
+  if(dim>0) {
+    int s = QDP_coord_size_L(l->qlat, dim-1);
+    lua_pushinteger(L, s);
+  } else {
+    int nd = QDP_ndim_L(l->qlat);
+    int x[nd];
+    QDP_latsize_L(l->qlat, x);
+    qhmc_push_int_array(L, nd, x);
+  }
   return 1;
 }
 
@@ -262,6 +269,82 @@ qopqdp_colorMatrix(lua_State *L)
   return 1;
 }
 
+static int
+qopqdp_gauge(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_LATTICE(lat);
+  OPT_STRING(precision, lat->defaultPrecision);
+  OPT_INT(nc, lat->defaultNc);
+  END_ARGS;
+  if(*precision=='F') {
+    qopqdp_gaugeF_create(L, nc, lat);
+  } else {
+    qopqdp_gaugeD_create(L, nc, lat);
+  }
+  return 1;
+}
+
+static int
+qopqdp_force(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_LATTICE(lat);
+  OPT_STRING(precision, lat->defaultPrecision);
+  OPT_INT(nc, lat->defaultNc);
+  END_ARGS;
+  if(*precision=='F') {
+    qopqdp_forceF_create(L, nc, lat);
+  } else {
+    qopqdp_forceD_create(L, nc, lat);
+  }
+  return 1;
+}
+
+static int
+qopqdp_asqtad(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_LATTICE(lat);
+  OPT_INT(nc, lat->defaultNc);
+  END_ARGS;
+  qopqdp_asqtad_create(L, nc, lat);
+  return 1;
+}
+
+static int
+qopqdp_hisq(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_LATTICE(lat);
+  OPT_INT(nc, lat->defaultNc);
+  END_ARGS;
+  qopqdp_hisq_create(L, nc, lat);
+  return 1;
+}
+
+static int
+qopqdp_wilson(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_LATTICE(lat);
+  OPT_INT(nc, lat->defaultNc);
+  END_ARGS;
+  qopqdp_wilson_create(L, nc, lat);
+  return 1;
+}
+
+static int
+qopqdp_dw(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_LATTICE(lat);
+  OPT_INT(nc, lat->defaultNc);
+  END_ARGS;
+  qopqdp_dw_create(L, nc, lat);
+  return 1;
+}
+
 static struct luaL_Reg lattice_reg[] = {
   { "__gc",           qopqdp_lattice_gc },
   { "__len",          qopqdp_lattice_len },
@@ -278,14 +361,22 @@ static struct luaL_Reg lattice_reg[] = {
   { "colorVector",    qopqdp_colorVector },
   { "diracFermion",   qopqdp_diracFermion },
   { "colorMatrix",    qopqdp_colorMatrix },
+  { "gauge",          qopqdp_gauge },
+  { "force",          qopqdp_force },
+  { "asqtad",         qopqdp_asqtad },
+  { "hisq",           qopqdp_hisq },
+  { "wilson",         qopqdp_wilson },
+  { "dw",             qopqdp_dw },
   { NULL, NULL}
 };
 
 lattice_t *
-qopqdp_create_lattice(lua_State *L, int nd, int size[])
+qopqdp_lattice_wrap(lua_State *L, QDP_Lattice *qlat,
+		    char *defPrec, int defNc, int doGC)
 {
+  int nd = QDP_ndim_L(qlat);
   lattice_t *lat = lua_newuserdata(L, sizeof(lattice_t));
-  lat->qlat = QDP_create_lattice(NULL, NULL, nd, size);
+  lat->qlat = qlat;
   lat->timeslices = NULL;
   lat->staggered = NULL;
   lat->eodir = malloc((nd+1)*sizeof(QDP_Subset *));
@@ -293,8 +384,8 @@ qopqdp_create_lattice(lua_State *L, int nd, int size[])
   lat->rs = NULL;
   lat->nd = nd;
   lat->ref = -1;
-  lat->defaultPrecision = "D";
-  lat->defaultNc = QOPQDP_DEFAULTNC;
+  lat->defaultPrecision = defPrec;
+  lat->defaultNc = defNc;
   if(luaL_newmetatable(L, mtname)) {
     lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");
@@ -302,4 +393,12 @@ qopqdp_create_lattice(lua_State *L, int nd, int size[])
   }
   lua_setmetatable(L, -2);
   return lat;
+}
+
+lattice_t *
+qopqdp_create_lattice(lua_State *L, int nd, int size[],
+		      char *defPrec, int defNc)
+{
+  QDP_Lattice *qlat = QDP_create_lattice(NULL, NULL, nd, size);
+  return qopqdp_lattice_wrap(L, qlat, defPrec, defNc, 1);
 }

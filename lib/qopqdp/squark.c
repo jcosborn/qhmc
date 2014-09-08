@@ -576,8 +576,8 @@ squark_t *
 qopqdp_squark_create_unset(lua_State *L, int nc, lattice_t *lat)
 {
 #define NC nc
-  if(nc==0) nc = QOPQDP_DEFAULTNC;
   if(lat==NULL) lat = qopqdp_get_default_lattice(L);
+  if(nc==0) nc = lat->defaultNc;
   squark_t *q = lua_newuserdata(L, sizeof(squark_t));
   q->cv = QDP_create_V_L(lat->qlat);
   q->lat = lat;

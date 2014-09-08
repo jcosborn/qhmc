@@ -6,6 +6,21 @@
 static char *gmtname = "qopqdp.gauge" STR(QOP_PrecisionLetter);
 
 gauge_t *
+qopqdp_gauge_opt(lua_State *L, int *idx, int required, gauge_t *def)
+{
+  gauge_t *g;
+  if(required) {
+    g = luaL_checkudata(L, *idx, gmtname);
+    (*idx)++;
+  } else {
+    g = luaL_testudata(L, *idx, gmtname);
+    if(g==NULL) g = def;
+    else (*idx)++;
+  }
+  return g;
+}
+
+gauge_t *
 qopqdp_gauge_check(lua_State *L, int idx)
 {
   luaL_checkudata(L, idx, gmtname);
@@ -45,6 +60,34 @@ qopqdp_gauge_gc(lua_State *L)
 }
 
 static int
+qopqdp_gauge_len(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_GAUGE(g);
+  nextarg++; // ignore second argument
+  END_ARGS;
+  lua_pushinteger(L, g->nd);
+  return 1;
+}
+
+static int
+qopqdp_gauge_call(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_GAUGE(g);
+  GET_INT(dim);
+  OPT_QOPQDP_CMATRIX(m, NULL);
+  END_ARGS;
+  if(m==NULL) { // return colormatrix for direction
+    qopqdp_cmatrix_wrap(L, g->lat, g->links[dim-1], 0);
+    return 1;
+  }
+  // set direction
+  QDP_M_eq_M(g->links[dim-1], m->field, QDP_all_L(g->qlat));
+  return 0;
+}
+
+static int
 qopqdp_gauge_unit(lua_State *L)
 {
   qassert(lua_gettop(L)==1);
@@ -69,14 +112,18 @@ gauge_random(NCPROT QLA_ColorMatrix(*m), int i, void *args)
   QLA_M_eq_gaussian_S(&m1, s);
   QLA_M_eq_Ma_times_M(&m2, &m1, &m1);
   QLA_M_eq_invsqrt_M(&m3, &m2);
-  QLA_M_eq_M_times_M(&m2, &m1, &m3);
-  QLA_C_eq_det_M(&c, &m2);
-  QLA_DF_c_eq_c(d1, c);
-  d2 = QLA_clog(&d1);
-  QLA_c_eq_r_times_c(d1, -1./QLA_Nc, d2);
-  d2 = QLA_cexp(&d1);
-  QLA_FD_c_eq_c(c, d2);
-  QLA_M_eq_C_times_M(m, &c, &m2);
+  if(QLA_Nc>1) {
+    QLA_M_eq_M_times_M(&m2, &m1, &m3);
+    QLA_C_eq_det_M(&c, &m2);
+    QLA_DF_c_eq_c(d1, c);
+    d2 = QLA_D_clog(&d1);
+    QLA_c_eq_r_times_c(d1, -1./QLA_Nc, d2);
+    d2 = QLA_D_cexp(&d1);
+    QLA_FD_c_eq_c(c, d2);
+    QLA_M_eq_C_times_M(m, &c, &m2);
+  } else {
+    QLA_M_eq_M_times_M(m, &m1, &m3);
+  }
 }
 
 #if 0
@@ -831,6 +878,8 @@ qopqdp_gauge_s4_gauge_observables(lua_State *L)
 
 static struct luaL_Reg gauge_reg[] = {
   { "__gc",     qopqdp_gauge_gc },
+  { "__len",    qopqdp_gauge_len },
+  { "__call",   qopqdp_gauge_call },
   { "unit",     qopqdp_gauge_unit },
   { "random",   qopqdp_gauge_random },
   { "load",     qopqdp_gauge_load },
@@ -854,8 +903,8 @@ gauge_t *
 qopqdp_gauge_create(lua_State *L, int nc, lattice_t *lat)
 {
 #define NC nc
-  if(nc==0) nc = QOPQDP_DEFAULTNC;
   if(lat==NULL) lat = qopqdp_get_default_lattice(L);
+  if(nc==0) nc = lat->defaultNc;
   int nd = QDP_ndim_L(lat->qlat);
   gauge_t *g = lua_newuserdata(L,sizeof(gauge_t)+nd*sizeof(QDP_ColorMatrix*));
   g->nd = nd;

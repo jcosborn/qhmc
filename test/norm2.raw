@@ -1,10 +1,10 @@
-#runtest: using temp file norm2.raw
-##loading: /home/osborn/lqcd/install/qhmc-git/hmc/Init.lua
-##runtest: using temp file norm2.tmp
-#ndim = 4
-#numsites = 256
-#len = 4 4 4 4
-#nsquares = 1 1 1 1
+#loading: /home/osborn/lqcd/install/qhmc-git/hmc/Init.lua
+#runtest: using temp file norm2.tmp
+ndim = 4
+numsites = 256
+len = 4 4 4 4
+nsquares = 1 1 1 1
+!TESTON
 227.799
 484.868
 1552.28
@@ -15,3 +15,4 @@
 { 1211.3158854509, 1155.7299870686, 1161.8152239148, 1184.5389067894 }
 { 1211.3158854509, 1155.7299870686, 1161.8152239148, 1184.5389067894 }
 { 2362.0225773204, 2351.3774259033 }
+!TESTOFF

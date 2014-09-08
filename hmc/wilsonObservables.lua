@@ -61,7 +61,7 @@ function pointProp(L, w, pt, smearsrc, smeardest, mass, resid, opts)
   local src = w:quark()
   local dest = {}
   local dest2 = {}
-  local Nc = qopqdp.Nc
+  local Nc = src:nc()
   local Ns = 4
   local cvCS = {}
   local cvSC = {}
@@ -352,6 +352,8 @@ function add_cross(p)
 end
 
 function wilsonBaryons3(dest)
+  local Nc = dest[1][1]:nc()
+  if Nc ~= 3 then return nil end
   local baryons = {}
   local p = prop(dest)
   local p2 = p * gamma(5)

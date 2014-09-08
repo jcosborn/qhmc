@@ -14,7 +14,7 @@ _G.infile = infile
 require 'milc'
 
 TESTPAT("^plaq")
-TESTPAT("^S")
+TESTPATFMT("^S","%.5f")
 TESTPAT("deltaS")
 TESTPAT("^1")
 TESTPAT("MEAS")

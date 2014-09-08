@@ -22,7 +22,7 @@ printf("seed = %i\n", seed)
 
 function plaq(g)
   local ss,st = g:action({plaq=1})
-  local s = vol*qopqdp.Nc
+  local s = vol*qopqdp.defaultNc
   return ss/s, st/s
 end
 

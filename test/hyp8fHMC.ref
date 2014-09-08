@@ -1,5 +1,6 @@
-#loading: /home/osborn/lqcd/install/qhmc-git/hmc/Init.lua
-#runtest: using temp file hyp8fHMC.lua.tmp
+#runtest: using temp file hyp8fHMC.raw
+##loading: /home/osborn/lqcd/install/qhmc-git/hmc/Init.lua
+##runtest: using temp file hyp8fHMC.tmp
 ##loading: /home/osborn/lqcd/install/qhmc-git/hmc/bsm.lua
 ##loading: /home/osborn/lqcd/install/qhmc-git/hmc/common.lua
 ##loading: /home/osborn/lqcd/install/qhmc-git/hmc/run.lua
@@ -13,10 +14,10 @@
 ##loading: /home/osborn/lqcd/install/qhmc-git/hmc/cgms2.lua
 ##loading: /home/osborn/lqcd/install/qhmc-git/hmc/fields.lua
 ##loading: /home/osborn/lqcd/install/qhmc-git/hmc/hmc.lua
-Setting pseudo: i=mass j=species -> 1	1	0.1	0.2
-Setting pseudo: i=mass j=species -> 1	2	0.1	0.2
-Setting pseudo: i=mass j=species -> 2	1	0.2
-Setting pseudo: i=mass j=species -> 2	2	0.2
+Setting pseudo: i=mass j=species -> 1.0000	1.0000	0.1000	0.2000
+Setting pseudo: i=mass j=species -> 1.0000	2.0000	0.1000	0.2000
+Setting pseudo: i=mass j=species -> 2.0000	1.0000	0.2000
+Setting pseudo: i=mass j=species -> 2.0000	2.0000	0.2000
 #Number of pseudo: 4
 #smear = {
 #  1 = {
@@ -47,12 +48,12 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #  seven_staple = 0
 #  three_staple = 0
 #}
-#1 1 : nil
-#1 2 : nil
-#2 1 : nil
-#2 2 : nil
-#3 1 : nil
-#4 1 : nil
+1 1 : nil
+1 2 : nil
+2 1 : nil
+2 2 : nil
+3 1 : nil
+4 1 : nil
 #rhmc1 = {
 #  1 = {
 #    FA = {
@@ -180,7 +181,7 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #    FA = {
 #      cgnum = 3
 #      masses = { 0.1 }
-#      pt = { userdata: 0x2c852e8 }
+#      pt = { userdata: 0x1e13398 }
 #      resid = 1e-08
 #      solveopts = {
 #        mixed_rsq = 0
@@ -189,8 +190,8 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #      }
 #      1 = {
 #        coeffs = { 1 }
-#        pt0 = { userdata: 0x2c1cfc8 }
-#        qt = userdata: 0x2c1e158
+#        pt0 = { userdata: 0x1e1fb98 }
+#        qt = userdata: 0x1e05bb8
 #        1 = { 1 }
 #      }
 #      2 = {
@@ -198,15 +199,15 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #        allfacodd = 1
 #        allmass = 0.1
 #        coeffs = { 1.7320508075689 }
-#        pt0 = { userdata: 0x2c852e8 }
-#        qt = userdata: 0x2c8b448
-#        qt2 = userdata: 0x2bbe878
+#        pt0 = { userdata: 0x1e13398 }
+#        qt = userdata: 0x1e0e948
+#        qt2 = userdata: 0x1ded248
 #        1 = { 0.34641016151378, 0.04 }
 #      }
 #    }
 #    GR = {
 #      coeffs = { 5 }
-#      pt0 = { userdata: 0x2c8b448 }
+#      pt0 = { userdata: 0x1e0e948 }
 #      1 = {
 #        allfaceven = -0.2
 #        allfacodd = 1
@@ -214,9 +215,9 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #        allmass2 = -0.2
 #        cgnum = 1
 #        masses = { 0.2 }
-#        pt = { userdata: 0x2c8b448 }
-#        qt = userdata: 0x2bbe878
-#        qt2 = userdata: 0x2c1e158
+#        pt = { userdata: 0x1e0e948 }
+#        qt = userdata: 0x1ded248
+#        qt2 = userdata: 0x1e05bb8
 #        resid = 1e-08
 #        solveopts = {
 #          mixed_rsq = 0
@@ -248,7 +249,7 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #          }
 #          gf = {
 #            a = <loop>
-#            f = userdata: 0x2bd4438
+#            f = userdata: 0x1dc8f48
 #          }
 #          latsize = { 4, 4, 4, 8 }
 #          params = {
@@ -258,11 +259,11 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #          vol = 512
 #          xi0 = 1
 #        }
-#        f = userdata: 0x2c1e418
+#        f = userdata: 0x1de8458
 #      }
 #      ffprec = 2
 #      masses = { 0.1 }
-#      pt = { userdata: 0x2c1e158 }
+#      pt = { userdata: 0x1e05bb8 }
 #      resid = 1e-06
 #      solveopts = {
 #        mixed_rsq = 0
@@ -277,7 +278,7 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #    FA = {
 #      cgnum = 4
 #      masses = { 0.1 }
-#      pt = { userdata: 0x2caa0a8 }
+#      pt = { userdata: 0x1e00e98 }
 #      resid = 1e-08
 #      solveopts = {
 #        mixed_rsq = 0
@@ -286,8 +287,8 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #      }
 #      1 = {
 #        coeffs = { 1 }
-#        pt0 = { userdata: 0x2c1d458 }
-#        qt = userdata: 0x2b5f7f8
+#        pt0 = { userdata: 0x1e0f7c8 }
+#        qt = userdata: 0x1e05108
 #        1 = { 1 }
 #      }
 #      2 = {
@@ -295,15 +296,15 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #        allfacodd = 1
 #        allmass = 0.1
 #        coeffs = { 1.7320508075689 }
-#        pt0 = { userdata: 0x2caa0a8 }
-#        qt = userdata: 0x2c979f8
-#        qt2 = userdata: 0x2c9db98
+#        pt0 = { userdata: 0x1e00e98 }
+#        qt = userdata: 0x1e00e48
+#        qt2 = userdata: 0x1e00ee8
 #        1 = { 0.34641016151378, 0.04 }
 #      }
 #    }
 #    GR = {
 #      coeffs = { 5 }
-#      pt0 = { userdata: 0x2c9db98 }
+#      pt0 = { userdata: 0x1e00ee8 }
 #      1 = {
 #        allfaceven = -0.2
 #        allfacodd = 1
@@ -311,9 +312,9 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #        allmass2 = -0.2
 #        cgnum = 2
 #        masses = { 0.2 }
-#        pt = { userdata: 0x2c9db98 }
-#        qt = userdata: 0x2b5f7f8
-#        qt2 = userdata: 0x2c852e8
+#        pt = { userdata: 0x1e00ee8 }
+#        qt = userdata: 0x1e05108
+#        qt2 = userdata: 0x1e13398
 #        resid = 1e-08
 #        solveopts = {
 #          mixed_rsq = 0
@@ -345,7 +346,7 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #          }
 #          gf = {
 #            a = <loop>
-#            f = userdata: 0x2bd4438
+#            f = userdata: 0x1dc8f48
 #          }
 #          latsize = { 4, 4, 4, 8 }
 #          params = {
@@ -355,11 +356,11 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #          vol = 512
 #          xi0 = 1
 #        }
-#        f = userdata: 0x2c1e418
+#        f = userdata: 0x1de8458
 #      }
 #      ffprec = 2
 #      masses = { 0.1 }
-#      pt = { userdata: 0x2bbe878 }
+#      pt = { userdata: 0x1ded248 }
 #      resid = 1e-06
 #      solveopts = {
 #        mixed_rsq = 0
@@ -374,7 +375,7 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #    FA = {
 #      cgnum = 5
 #      masses = { 0.2 }
-#      pt = { userdata: 0x2cbd578 }
+#      pt = { userdata: 0x1df38a8 }
 #      resid = 1e-08
 #      solveopts = {
 #        mixed_rsq = 0
@@ -386,21 +387,21 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #        allfacodd = 1
 #        allmass = 0.2
 #        coeffs = { 2.5 }
-#        pt0 = { userdata: 0x2cbd578 }
-#        qt = userdata: 0x2c9db08
-#        qt2 = userdata: 0x2cb03b8
+#        pt0 = { userdata: 0x1df38a8 }
+#        qt = userdata: 0x1e0edc8
+#        qt2 = userdata: 0x1dfd648
 #        1 = { 1, 0.16 }
 #      }
 #    }
 #    GR = {
 #      coeffs = { -2 }
-#      pt0 = { userdata: 0x2caa0a8 }
+#      pt0 = { userdata: 0x1e00e98 }
 #      1 = {
 #        allfaceven = 0.4
 #        allfacodd = -1
 #        allmass = -0.2
-#        qt = userdata: 0x2caa0a8
-#        qt2 = userdata: 0x2c979f8
+#        qt = userdata: 0x1e00e98
+#        qt2 = userdata: 0x1e00e48
 #        resid = 1e-08
 #        solveopts = {
 #          mixed_rsq = 0
@@ -432,7 +433,7 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #          }
 #          gf = {
 #            a = <loop>
-#            f = userdata: 0x2bd4438
+#            f = userdata: 0x1dc8f48
 #          }
 #          latsize = { 4, 4, 4, 8 }
 #          params = {
@@ -442,11 +443,11 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #          vol = 512
 #          xi0 = 1
 #        }
-#        f = userdata: 0x2c1e418
+#        f = userdata: 0x1de8458
 #      }
 #      ffprec = 2
 #      masses = { 0.2 }
-#      pt = { userdata: 0x2c8b448 }
+#      pt = { userdata: 0x1e0e948 }
 #      resid = 1e-07
 #      solveopts = {
 #        mixed_rsq = 0
@@ -461,7 +462,7 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #    FA = {
 #      cgnum = 6
 #      masses = { 0.2 }
-#      pt = { userdata: 0x2cc9848 }
+#      pt = { userdata: 0x1df43d8 }
 #      resid = 1e-08
 #      solveopts = {
 #        mixed_rsq = 0
@@ -473,21 +474,21 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #        allfacodd = 1
 #        allmass = 0.2
 #        coeffs = { 2.5 }
-#        pt0 = { userdata: 0x2cc9848 }
-#        qt = userdata: 0x2b5f448
-#        qt2 = userdata: 0x2cbc998
+#        pt0 = { userdata: 0x1df43d8 }
+#        qt = userdata: 0x1daf2a8
+#        qt2 = userdata: 0x1daf138
 #        1 = { 1, 0.16 }
 #      }
 #    }
 #    GR = {
 #      coeffs = { -2 }
-#      pt0 = { userdata: 0x2c9db08 }
+#      pt0 = { userdata: 0x1e0edc8 }
 #      1 = {
 #        allfaceven = 0.4
 #        allfacodd = -1
 #        allmass = -0.2
-#        qt = userdata: 0x2c9db08
-#        qt2 = userdata: 0x2cb03b8
+#        qt = userdata: 0x1e0edc8
+#        qt2 = userdata: 0x1dfd648
 #        resid = 1e-08
 #        solveopts = {
 #          mixed_rsq = 0
@@ -519,7 +520,7 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #          }
 #          gf = {
 #            a = <loop>
-#            f = userdata: 0x2bd4438
+#            f = userdata: 0x1dc8f48
 #          }
 #          latsize = { 4, 4, 4, 8 }
 #          params = {
@@ -529,11 +530,11 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #          vol = 512
 #          xi0 = 1
 #        }
-#        f = userdata: 0x2c1e418
+#        f = userdata: 0x1de8458
 #      }
 #      ffprec = 2
 #      masses = { 0.2 }
-#      pt = { userdata: 0x2c852e8 }
+#      pt = { userdata: 0x1e13398 }
 #      resid = 1e-07
 #      solveopts = {
 #        mixed_rsq = 0
@@ -546,39 +547,39 @@ Setting pseudo: i=mass j=species -> 2	2	0.2
 #  }
 #}
 plaq ss: 1  st: 1  tot: 1
-Sgq:             0.000000  Sgp:            -8.069289  Sfq:          3062.803307
-Sgq:          2326.186227  Sgp:         -2189.365667  Sfq:          2917.989141
-Sold:          3054.734018  Snew:          3054.809702
-Sgq:             0.000000  Sgp:            -8.069295  Sfq:          3062.803311
-Sold:          3054.734018 Srev:          3054.734016 dS:            -0.000001
-ACCEPT deltaS = 0.0756838  p = 0.927109  r = 0
-#unitarity deviation avg: 1.12498e-15  max: 3.78602e-15
-#new unitarity deviation avg: 1.22947e-16  max: 2.61207e-16
-#traj 1 secs: 2.43618
-#GF     secs:    0.288  12% calls:  202 mflops:  4180 rms: 0.0475 max: 0.1303
-#GU     secs:    0.121   5% calls:  200
-#LL     secs:    0.326  13% calls:   41 mflops:     0
-#FF[01] secs:    1.431  59% calls:   42 mflops:    24 rms: 0.0610 max: 0.2575
+Sgq:             0  Sgp:            -8.0693  Sfq:          3062.8033
+Sgq:          2326.1862  Sgp:         -2189.3657  Sfq:          2917.9891
+Sold:          3054.7340  Snew:          3054.8097
+Sgq:             0  Sgp:            -8.0693  Sfq:          3062.8033
+Sold:          3054.7340 Srev:          3054.7340 dS:            0
+ACCEPT deltaS = 0.07568  p = 0.92711  r = 0
+#unitarity deviation avg: 1.07354e-15  max: 3.97424e-15
+#new unitarity deviation avg: 1.20248e-16  max: 2.5256e-16
+#traj 1 secs: 2.97932
+#GF     secs:    0.265   9% calls:  202 mflops:  4539 rms: 0.0475 max: 0.1303
+#GU     secs:    0.131   4% calls:  200
+#LL     secs:    0.459  15% calls:   41 mflops:     0
+#FF[01] secs:    1.850  62% calls:   42 mflops:    18 rms: 0.0610 max: 0.2575
 #FF[02] secs:    0.000   0% calls:    0 mflops:     0 rms: 0.0000 max: 0.0000
 #FF[03] secs:    0.000   0% calls:    0 mflops:     0 rms: 0.0000 max: 0.0000
 #FF[04] secs:    0.000   0% calls:    0 mflops:     0 rms: 0.0000 max: 0.0000
-#FFtot  secs:    1.431  59% calls:   42 mflops:    24
-#CG[01] secs:    0.001   0% calls:    1 mflops:  6185 avgits:    19 max:    19
-#CG[02] secs:    0.001   0% calls:    1 mflops:  8317 avgits:    19 max:    19
-#CG[03] secs:    0.005   0% calls:    3 mflops: 10434 avgits:    53 max:   117
-#CG[04] secs:    0.005   0% calls:    3 mflops: 10773 avgits:    52 max:   116
-#CG[05] secs:    0.004   0% calls:    3 mflops: 10210 avgits:    39 max:    80
-#CG[06] secs:    0.004   0% calls:    3 mflops: 10196 avgits:    40 max:    82
-#CG[07] secs:    0.057   2% calls:   42 mflops: 11104 avgits:    49 max:    78
-#CG[08] secs:    0.055   2% calls:   42 mflops: 11433 avgits:    48 max:    78
-#CG[09] secs:    0.050   2% calls:   42 mflops: 11278 avgits:    44 max:    63
-#CG[10] secs:    0.052   2% calls:   42 mflops: 11068 avgits:    44 max:    65
-#CGtot  secs:    0.233  10% calls:  182 mflops: 11135 avgits:    46 max:   117
-#other  secs:    0.037   2%
+#FFtot  secs:    1.850  62% calls:   42 mflops:    18
+#CG[01] secs:    0.001   0% calls:    1 mflops:  5961 avgits:    19 max:    19
+#CG[02] secs:    0.001   0% calls:    1 mflops:  8328 avgits:    19 max:    19
+#CG[03] secs:    0.005   0% calls:    3 mflops: 10768 avgits:    53 max:   117
+#CG[04] secs:    0.004   0% calls:    3 mflops: 10969 avgits:    53 max:   116
+#CG[05] secs:    0.004   0% calls:    3 mflops: 10372 avgits:    39 max:    80
+#CG[06] secs:    0.004   0% calls:    3 mflops: 10438 avgits:    40 max:    82
+#CG[07] secs:    0.055   2% calls:   42 mflops: 11408 avgits:    49 max:    78
+#CG[08] secs:    0.054   2% calls:   42 mflops: 11591 avgits:    48 max:    78
+#CG[09] secs:    0.050   2% calls:   42 mflops: 11471 avgits:    44 max:    63
+#CG[10] secs:    0.051   2% calls:   42 mflops: 11311 avgits:    44 max:    65
+#CGtot  secs:    0.228   8% calls:  182 mflops: 11358 avgits:    46 max:   117
+#other  secs:    0.046   2%
 1,2,3,4  0.0610192    0.257529    
 MEASplaq ss: 0.780923  st: 0.775516  tot: 0.77822 
 MEASploop: spatial: 0.382067 0.00276265 temporal: 0.178702 0.022603
-MEASpbp mass 0.01 : 0.0412705
+MEASpbp mass 0.01 : 0.041271
 #COULGAUGE: iter = 2, tgfold = 0.714466, tgfnew = 0.788878, tgf_s = 0.788878, tgf_t = 0.000000
 #COULGAUGE: iter = 7, tgfold = 0.900609, tgfnew = 0.909274, tgf_s = 0.909274, tgf_t = 0.000000
 #COULGAUGE: iter = 13, tgfold = 0.923444, tgfnew = 0.924120, tgf_s = 0.924120, tgf_t = 0.000000
@@ -586,113 +587,113 @@ MEASpbp mass 0.01 : 0.0412705
 #COULGAUGE: iter = 24, tgfold = 0.925397, tgfnew = 0.925404, tgf_s = 0.925404, tgf_t = 0.000000
 #COULGAUGE: iter = 30, tgfold = 0.925416, tgfnew = 0.925417, tgf_s = 0.925417, tgf_t = 0.000000
 #COULGAUGE: end: iter = 30, tgfold = 0.925417, tgf_s = 0.925417, tgf_t = 0.000000
-Start wall source 1 at t=2.
-Start Color 1.
+Start wall source 1.0000 at t=2.0000
+Start Color 1.0000
 #even_src norm2: 0.5
 #End Color.
-Start Color 2.
+Start Color 2.0000
 #even_src norm2: 0.5
 #End Color.
-Start Color 3.
+Start Color 3.0000
 #even_src norm2: 0.5
 #End Color.
 #End wall source.
-Source 2
+Source 2.0000
 #Local Pions
 	Pion5		Pion5_4
-0	9.132442e-01	-9.010809e-01
-1	1.638070e+00	1.635606e+00
-2	4.501199e-01	-4.457536e-01
-3	1.401877e+00	1.400513e+00
-4	4.620308e-01	-4.605334e-01
-5	1.575400e+00	1.573500e+00
-6	4.949020e-01	-4.908424e-01
-7	1.700492e+00	1.696489e+00
+0	0.91324	-0.90108
+1	1.6381	1.6356
+2	0.45012	-0.44575
+3	1.4019	1.4005
+4	0.46203	-0.46053
+5	1.5754	1.5735
+6	0.4949	-0.49084
+7	1.7005	1.6965
 Local Baryon
 	Nucleon
-0	5.082705e-06
-1	1.994867e-02
-2	1.095348e-06
-3	1.261205e-02
-4	8.017451e-08
-5	1.490425e-02
-6	-6.631255e-07
-7	1.546595e-02
+0	5.0827e-06
+1	0.019949
+2	1.0953e-06
+3	0.012612
+4	8.0175e-08
+5	0.014904
+6	-6.6313e-07
+7	0.015466
 
 Nonlocal Pions + Check
 	Pion5	Pion5_4	Pion_i5	Pion_ij
-0	3.581790e+00	-1.766744e+00	2.974439e+00	-2.929819e+00
-1	6.674202e+00	3.332015e+00	6.265261e+00	6.257991e+00
-2	1.841386e+00	-9.117589e-01	1.416810e+00	-1.401337e+00
-3	5.604459e+00	2.799317e+00	5.257167e+00	5.253037e+00
-4	1.820376e+00	-9.069861e-01	1.388319e+00	-1.383755e+00
-5	6.286163e+00	3.139248e+00	5.785419e+00	5.780332e+00
-6	1.995602e+00	-9.894474e-01	1.588973e+00	-1.574938e+00
-7	6.550711e+00	3.267372e+00	6.030089e+00	6.017721e+00
+0	3.5818	-1.7667	2.9744	-2.9298
+1	6.6742	3.332	6.2653	6.258
+2	1.8414	-0.91176	1.4168	-1.4013
+3	5.6045	2.7993	5.2572	5.253
+4	1.8204	-0.90699	1.3883	-1.3838
+5	6.2862	3.1392	5.7854	5.7803
+6	1.9956	-0.98945	1.589	-1.5749
+7	6.5507	3.2674	6.0301	6.0177
 Nonlocal Baryons
 	Nucleon	Delta
-0	5.115140e-04	-8.958946e-03
-1	2.007792e-02	7.312879e-01
-2	-8.222036e-05	5.872219e-03
-3	1.285299e-02	5.285554e-01
-4	-6.636468e-04	1.796241e-03
-5	1.507728e-02	5.032495e-01
-6	-1.888359e-04	-1.191353e-02
-7	1.570009e-02	5.597239e-01
-MEASplaq_ss 9.442238211131e-01
-MEASplaq_t even 9.426367139731e-01 odd 9.408842668962e-01
-MEASplaq_x even 9.427059957791e-01 odd 9.452664778476e-01
-MEASplaq_y even 9.404510511169e-01 odd 9.432799897265e-01
-MEASplaq_z even 9.431931242651e-01 odd 9.455196265865e-01
-MEASplaq_a even 9.416755445179e-01 odd 9.412336390239e-01
-MEASpbp_all m 1.0000e-02 even 6.180344919252e-03 5.620802553046e-21 odd 6.699033867385e-03 1.242314989306e-20
-MEASpbp_1 m 1.0000e-02 even 2.487252526209e-01 -1.839598057510e-02 odd 2.048411788551e-01 1.762387236818e-02
-MEASpbp_t m 1.0000e-02 even 3.454823889468e-01 -2.323554573320e-02 odd 1.080840425293e-01 2.246343752627e-02
-MEASpbp_x m 1.0000e-02 even 2.748728448138e-01 2.746554950165e-02 odd 2.379320805536e-01 -5.708222749218e-03
-MEASpbp_y m 1.0000e-02 even 2.513689212415e-01 3.703219147546e-02 odd 2.329640117051e-01 -5.904333101134e-02
-MEASpbp_z m 1.0000e-02 even 2.391255821168e-01 -7.300155037247e-02 odd 2.241980534218e-01 5.761125213964e-02
-MEASpbp_all m 2.0000e-02 even 1.240142862598e-02 1.091596064254e-20 odd 1.232904319202e-02 4.869027725133e-21
-MEASpbp_1 m 2.0000e-02 even 2.239660688391e-01 -3.039124082011e-02 odd 2.519634151829e-01 2.039221317842e-02
-MEASpbp_t m 2.0000e-02 even 3.259915311972e-01 -1.668017232211e-02 odd 1.499379528247e-01 6.681144680420e-03
-MEASpbp_x m 2.0000e-02 even 2.790028100490e-01 2.673155813680e-02 odd 3.126452640527e-01 1.462316666398e-03
-MEASpbp_y m 2.0000e-02 even 2.466668405779e-01 1.679754999674e-02 odd 2.444738852538e-01 -3.665774055748e-02
-MEASpbp_z m 2.0000e-02 even 2.551174117464e-01 -1.419027272593e-02 odd 2.473657675821e-01 -1.429804493098e-02
-#measurement time: 0.163281 seconds
-#trajectory time: 2.59959 seconds
-#total time: 2.59962 seconds
-Sgq:          2326.186227  Sgp:            -2.458795  Sfq:          3024.346995
-Sgq:          3766.413407  Sgp:         -1314.360011  Sfq:          2896.163919
-Sold:          5348.074426  Snew:          5348.217314
-Sgq:          2326.186226  Sgp:            -2.458797  Sfq:          3024.346998
-Sold:          5348.074426 Srev:          5348.074428 dS:             0.000001
-ACCEPT deltaS = 0.142887  p = 0.866852  r = 0.387032
-#unitarity deviation avg: 1.12692e-15  max: 3.23388e-15
-#new unitarity deviation avg: 1.2529e-16  max: 2.65039e-16
-#traj 1 secs: 2.47478
-#GF     secs:    0.278  11% calls:  202 mflops:  4327 rms: 0.0533 max: 0.1283
-#GU     secs:    0.121   5% calls:  200
-#LL     secs:    0.312  13% calls:   40 mflops:     0
-#FF[01] secs:    1.413  57% calls:   42 mflops:    24 rms: 0.0663 max: 0.2284
+0	0.00051151	-0.0089589
+1	0.020078	0.73129
+2	-8.222e-05	0.0058722
+3	0.012853	0.52856
+4	-0.00066365	0.0017962
+5	0.015077	0.50325
+6	-0.00018884	-0.011914
+7	0.0157	0.55972
+MEASplaq_ss 0.944223821
+MEASplaq_t even 0.942636714 odd 0.940884267
+MEASplaq_x even 0.942705996 odd 0.945266478
+MEASplaq_y even 0.940451051 odd 0.94327999
+MEASplaq_z even 0.943193124 odd 0.945519627
+MEASplaq_a even 0.941675545 odd 0.941233639
+MEASpbp_all m 0.01 even 0.0061803 0 odd 0.006699 0
+MEASpbp_1 m 0.01 even 0.24873 -0.018396 odd 0.20484 0.017624
+MEASpbp_t m 0.01 even 0.34548 -0.023236 odd 0.10808 0.022463
+MEASpbp_x m 0.01 even 0.27487 0.027466 odd 0.23793 -0.0057082
+MEASpbp_y m 0.01 even 0.25137 0.037032 odd 0.23296 -0.059043
+MEASpbp_z m 0.01 even 0.23913 -0.073002 odd 0.2242 0.057611
+MEASpbp_all m 0.02 even 0.012401 0 odd 0.012329 0
+MEASpbp_1 m 0.02 even 0.22397 -0.030391 odd 0.25196 0.020392
+MEASpbp_t m 0.02 even 0.32599 -0.01668 odd 0.14994 0.0066811
+MEASpbp_x m 0.02 even 0.279 0.026732 odd 0.31265 0.0014623
+MEASpbp_y m 0.02 even 0.24667 0.016798 odd 0.24447 -0.036658
+MEASpbp_z m 0.02 even 0.25512 -0.01419 odd 0.24737 -0.014298
+#measurement time: 0.213643 seconds
+#trajectory time: 3.19309 seconds
+#total time: 3.1931 seconds
+Sgq:          2326.1862  Sgp:            -2.4588  Sfq:          3024.3470
+Sgq:          3766.4134  Sgp:         -1314.3600  Sfq:          2896.1639
+Sold:          5348.0744  Snew:          5348.2173
+Sgq:          2326.1862  Sgp:            -2.4588  Sfq:          3024.3470
+Sold:          5348.0744 Srev:          5348.0744 dS:             0
+ACCEPT deltaS = 0.14289  p = 0.86685  r = 0.38703
+#unitarity deviation avg: 1.0612e-15  max: 3.49025e-15
+#new unitarity deviation avg: 1.20421e-16  max: 2.6969e-16
+#traj 1 secs: 3.03372
+#GF     secs:    0.263   9% calls:  202 mflops:  4586 rms: 0.0533 max: 0.1283
+#GU     secs:    0.131   4% calls:  200
+#LL     secs:    0.447  15% calls:   40 mflops:     0
+#FF[01] secs:    1.838  61% calls:   42 mflops:    19 rms: 0.0663 max: 0.2284
 #FF[02] secs:    0.000   0% calls:    0 mflops:     0 rms: 0.0000 max: 0.0000
 #FF[03] secs:    0.000   0% calls:    0 mflops:     0 rms: 0.0000 max: 0.0000
 #FF[04] secs:    0.000   0% calls:    0 mflops:     0 rms: 0.0000 max: 0.0000
-#FFtot  secs:    1.413  57% calls:   42 mflops:    24
-#CG[01] secs:    0.002   0% calls:    1 mflops: 11458 avgits:    75 max:    75
-#CG[02] secs:    0.002   0% calls:    1 mflops: 11617 avgits:    75 max:    75
-#CG[03] secs:    0.009   0% calls:    3 mflops: 11952 avgits:   115 max:   116
-#CG[04] secs:    0.009   0% calls:    3 mflops: 12064 avgits:   116 max:   117
-#CG[05] secs:    0.007   0% calls:    3 mflops: 11651 avgits:    82 max:    83
-#CG[06] secs:    0.007   0% calls:    3 mflops: 11721 avgits:    83 max:    83
-#CG[07] secs:    0.077   3% calls:   42 mflops: 11730 avgits:    69 max:    78
-#CG[08] secs:    0.075   3% calls:   42 mflops: 11912 avgits:    68 max:    80
-#CG[09] secs:    0.064   3% calls:   42 mflops: 11691 avgits:    57 max:    66
-#CG[10] secs:    0.065   3% calls:   42 mflops: 11528 avgits:    58 max:    65
-#CGtot  secs:    0.315  13% calls:  182 mflops: 11735 avgits:    66 max:   117
-#other  secs:    0.034   1%
+#FFtot  secs:    1.838  61% calls:   42 mflops:    19
+#CG[01] secs:    0.002   0% calls:    1 mflops: 11485 avgits:    75 max:    75
+#CG[02] secs:    0.002   0% calls:    1 mflops: 11560 avgits:    75 max:    75
+#CG[03] secs:    0.009   0% calls:    3 mflops: 12053 avgits:   116 max:   117
+#CG[04] secs:    0.009   0% calls:    3 mflops: 12123 avgits:   116 max:   117
+#CG[05] secs:    0.007   0% calls:    3 mflops: 11728 avgits:    82 max:    83
+#CG[06] secs:    0.007   0% calls:    3 mflops: 11730 avgits:    83 max:    83
+#CG[07] secs:    0.075   2% calls:   42 mflops: 11976 avgits:    69 max:    78
+#CG[08] secs:    0.074   2% calls:   42 mflops: 12063 avgits:    68 max:    80
+#CG[09] secs:    0.063   2% calls:   42 mflops: 11845 avgits:    57 max:    66
+#CG[10] secs:    0.064   2% calls:   42 mflops: 11741 avgits:    58 max:    65
+#CGtot  secs:    0.311  10% calls:  182 mflops: 11912 avgits:    66 max:   117
+#other  secs:    0.045   1%
 1,2,3,4  0.0663206    0.2284      
 MEASplaq ss: 0.659142  st: 0.66355   tot: 0.661346
 MEASploop: spatial: 0.234847 0.00957087 temporal: 0.171448 0.0252158
-MEASpbp mass 0.01 : 0.0313317
+MEASpbp mass 0.01 : 0.031332
 #COULGAUGE: iter = 3, tgfold = 0.737915, tgfnew = 0.790361, tgf_s = 0.790361, tgf_t = 0.000000
 #COULGAUGE: iter = 8, tgfold = 0.869437, tgfnew = 0.875401, tgf_s = 0.875401, tgf_t = 0.000000
 #COULGAUGE: iter = 13, tgfold = 0.884481, tgfnew = 0.885170, tgf_s = 0.885170, tgf_t = 0.000000
@@ -700,77 +701,77 @@ MEASpbp mass 0.01 : 0.0313317
 #COULGAUGE: iter = 24, tgfold = 0.886466, tgfnew = 0.886473, tgf_s = 0.886473, tgf_t = 0.000000
 #COULGAUGE: iter = 30, tgfold = 0.886485, tgfnew = 0.886486, tgf_s = 0.886486, tgf_t = 0.000000
 #COULGAUGE: end: iter = 30, tgfold = 0.886486, tgf_s = 0.886486, tgf_t = 0.000000
-Start wall source 1 at t=2.
-Start Color 1.
+Start wall source 1.0000 at t=2.0000
+Start Color 1.0000
 #even_src norm2: 0.5
 #End Color.
-Start Color 2.
+Start Color 2.0000
 #even_src norm2: 0.5
 #End Color.
-Start Color 3.
+Start Color 3.0000
 #even_src norm2: 0.5
 #End Color.
 #End wall source.
-Source 2
+Source 2.0000
 #Local Pions
 	Pion5		Pion5_4
-0	1.513491e+00	-1.497824e+00
-1	1.569418e+00	1.563363e+00
-2	4.825697e-01	-4.778401e-01
-3	9.418770e-01	9.399731e-01
-4	4.511730e-01	-4.489032e-01
-5	1.104938e+00	1.102516e+00
-6	6.433397e-01	-6.385418e-01
-7	1.443742e+00	1.438323e+00
+0	1.5135	-1.4978
+1	1.5694	1.5634
+2	0.48257	-0.47784
+3	0.94188	0.93997
+4	0.45117	-0.4489
+5	1.1049	1.1025
+6	0.64334	-0.63854
+7	1.4437	1.4383
 Local Baryon
 	Nucleon
-0	2.966456e-06
-1	9.677653e-03
-2	2.844021e-07
-3	3.643847e-03
-4	1.510965e-08
-5	5.178710e-03
-6	-4.153517e-07
-7	7.886538e-03
+0	2.9665e-06
+1	0.0096777
+2	2.844e-07
+3	0.0036438
+4	1.511e-08
+5	0.0051787
+6	-4.1535e-07
+7	0.0078865
 
 Nonlocal Pions + Check
 	Pion5	Pion5_4	Pion_i5	Pion_ij
-0	5.853916e+00	-2.899727e+00	4.844010e+00	-4.797550e+00
-1	5.830943e+00	2.905398e+00	5.036435e+00	5.021664e+00
-2	1.804286e+00	-8.939953e-01	1.272532e+00	-1.260112e+00
-3	3.605041e+00	1.799403e+00	3.206369e+00	3.202424e+00
-4	1.761277e+00	-8.770045e-01	1.335932e+00	-1.332107e+00
-5	4.190141e+00	2.091202e+00	3.748307e+00	3.743575e+00
-6	2.359091e+00	-1.171346e+00	1.886790e+00	-1.874031e+00
-7	5.579570e+00	2.780538e+00	4.936526e+00	4.923222e+00
+0	5.8539	-2.8997	4.844	-4.7976
+1	5.8309	2.9054	5.0364	5.0217
+2	1.8043	-0.894	1.2725	-1.2601
+3	3.605	1.7994	3.2064	3.2024
+4	1.7613	-0.877	1.3359	-1.3321
+5	4.1901	2.0912	3.7483	3.7436
+6	2.3591	-1.1713	1.8868	-1.874
+7	5.5796	2.7805	4.9365	4.9232
 Nonlocal Baryons
 	Nucleon	Delta
-0	5.640102e-04	4.700176e-02
-1	9.545400e-03	4.005420e-01
-2	-1.002865e-04	1.546761e-02
-3	3.605700e-03	1.571924e-01
-4	-1.537911e-04	1.600851e-03
-5	5.112295e-03	1.810677e-01
-6	-1.018108e-03	-7.116397e-03
-7	7.836666e-03	3.757022e-01
-MEASplaq_ss 9.145203168408e-01
-MEASplaq_t even 9.153563740672e-01 odd 9.206606904859e-01
-MEASplaq_x even 9.163189908073e-01 odd 9.173384220087e-01
-MEASplaq_y even 9.114289960467e-01 odd 9.163569675751e-01
-MEASplaq_z even 9.136158657602e-01 odd 9.190390897181e-01
-MEASplaq_a even 9.205138730158e-01 odd 9.120060063324e-01
-MEASpbp_all m 1.0000e-02 even 7.122204518240e-03 -2.179698117601e-21 odd 5.615203793144e-03 -1.176422884618e-20
-MEASpbp_1 m 1.0000e-02 even 2.309029726691e-01 4.012812728137e-02 odd 2.085356187179e-01 1.344774069321e-02
-MEASpbp_t m 1.0000e-02 even 2.881214413290e-01 -5.223970508340e-03 odd 1.513171500580e-01 5.879983848292e-02
-MEASpbp_x m 1.0000e-02 even 2.319468204385e-01 1.061987001873e-02 odd 2.653778069852e-01 3.559094799548e-02
-MEASpbp_y m 1.0000e-02 even 2.268758701805e-01 3.507059126325e-02 odd 2.846065665767e-01 -3.643402502720e-02
-MEASpbp_z m 1.0000e-02 even 2.351952662083e-01 1.764898740534e-02 odd 1.955997233585e-01 -3.767799551384e-02
-MEASpbp_all m 2.0000e-02 even 1.113821866207e-02 7.831525458155e-21 odd 1.324163642372e-02 -5.677944189761e-21
-MEASpbp_1 m 2.0000e-02 even 2.107591346763e-01 3.505604451552e-02 odd 1.836806180238e-01 -1.614287966515e-02
-MEASpbp_t m 2.0000e-02 even 2.645061333004e-01 -1.428596911223e-02 odd 1.299336193997e-01 3.319913396259e-02
-MEASpbp_x m 2.0000e-02 even 1.904808205249e-01 -1.795746890383e-02 odd 2.376342859181e-01 -6.170934612544e-03
-MEASpbp_y m 2.0000e-02 even 2.316250171221e-01 -8.924976337484e-03 odd 2.414562660005e-01 -1.500678827631e-02
-MEASpbp_z m 2.0000e-02 even 2.303173288341e-01 3.783749112684e-02 odd 2.216235694639e-01 -3.655476725039e-02
-#measurement time: 0.154535 seconds
-#trajectory time: 2.62941 seconds
-#total time: 2.62943 seconds
+0	0.00056401	0.047002
+1	0.0095454	0.40054
+2	-0.00010029	0.015468
+3	0.0036057	0.15719
+4	-0.00015379	0.0016008
+5	0.0051123	0.18107
+6	-0.0010181	-0.0071164
+7	0.0078367	0.3757
+MEASplaq_ss 0.914520317
+MEASplaq_t even 0.915356374 odd 0.920660691
+MEASplaq_x even 0.916318991 odd 0.917338422
+MEASplaq_y even 0.911428996 odd 0.916356968
+MEASplaq_z even 0.913615866 odd 0.91903909
+MEASplaq_a even 0.920513873 odd 0.912006006
+MEASpbp_all m 0.01 even 0.0071222 0 odd 0.0056152 0
+MEASpbp_1 m 0.01 even 0.2309 0.040128 odd 0.20854 0.013448
+MEASpbp_t m 0.01 even 0.28812 -0.005224 odd 0.15132 0.0588
+MEASpbp_x m 0.01 even 0.23195 0.01062 odd 0.26538 0.035591
+MEASpbp_y m 0.01 even 0.22688 0.035071 odd 0.28461 -0.036434
+MEASpbp_z m 0.01 even 0.2352 0.017649 odd 0.1956 -0.037678
+MEASpbp_all m 0.02 even 0.011138 0 odd 0.013242 0
+MEASpbp_1 m 0.02 even 0.21076 0.035056 odd 0.18368 -0.016143
+MEASpbp_t m 0.02 even 0.26451 -0.014286 odd 0.12993 0.033199
+MEASpbp_x m 0.02 even 0.19048 -0.017957 odd 0.23763 -0.0061709
+MEASpbp_y m 0.02 even 0.23163 -0.008925 odd 0.24146 -0.015007
+MEASpbp_z m 0.02 even 0.23032 0.037837 odd 0.22162 -0.036555
+#measurement time: 0.211702 seconds
+#trajectory time: 3.24552 seconds
+#total time: 3.24554 seconds

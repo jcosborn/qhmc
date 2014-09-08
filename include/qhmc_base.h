@@ -21,7 +21,7 @@
 #define printerr0(...) do { if0 printerr(__VA_ARGS__); } while(0)
 #define TRACE do{if0{printf("%s %s %i\n", __FILE__, __func__, __LINE__);fflush(stdout);}} while(0)
 #define ABORT(c) exit(c)
-#define LABORT(L,c) luaL_error(L, "aborted with code %i\n", c)
+#define LABORT(L,c) luaL_error(L, "aborted with code %d\n", c)
 #define qerror(c,...) do { TRACE; printf(__VA_ARGS__); ABORT(c); } while(0)
 #define qlerror(L,c,...) do{ TRACE; printf(__VA_ARGS__); LABORT(L,c); }while(0)
 #define qassert(x) do{ if(!(x)) qerror(1,"assert failed (%s)\n", #x); }while(0)

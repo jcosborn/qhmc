@@ -250,5 +250,5 @@ function actmt.pbp(a, g, mass, resid, opts)
   local y = getqt(a, 2)
   x:randomU1()
   a:solve(y, x, mass, resid, "all", opts, 0)
-  return x:Re_dot(y)/(4*qopqdp.Nc*a.ga.vol)
+  return x:Re_dot(y)/(4*x:nc()*a.ga.vol)
 end

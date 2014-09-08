@@ -263,9 +263,11 @@ asqtad_set(asqtad_t *h, int prec)
     return;
   }
   gauge_t *g = h->g;
-  int nd = g->nd;
+  gauge_t *g2 = h->gLong;
   QOP_info_t info;
   if(prec==1) {
+#if 0
+    int nd = g->nd;
     QDP_F_ColorMatrix *flinks[nd];
     for(int i=0; i<nd; i++) {
       flinks[i] = QDP_F_create_M();
@@ -278,11 +280,23 @@ asqtad_set(asqtad_t *h, int prec)
     for(int i=0; i<nd; i++) {
       QDP_F_destroy_M(flinks[i]);
     }
+#else
+    QOP_F_GaugeField *qg = QOP_FD_create_G_from_qdp(g->links);
+    QOP_F_rephase_G(qg, h->r0, &h->bc, &h->ssign);
+    h->ffl = QOP_F_asqtad_create_L_from_G(&info, &h->coeffs, qg);
+    QOP_F_destroy_G(qg);
+#endif
   } else {
     QOP_GaugeField *qg = QOP_create_G_from_qdp(g->links);
     QOP_rephase_G(qg, h->r0, &h->bc, &h->ssign);
-    h->fl = QOP_asqtad_create_L_from_G(&info, &h->coeffs, qg);
+    QOP_GaugeField *qg2 = qg;
+    if(g2!=g) {
+      qg2 = QOP_create_G_from_qdp(g2->links);
+      QOP_rephase_G(qg2, h->r0, &h->bc, &h->ssign);
+    }
+    h->fl = QOP_asqtad_create_L_from_G2(&info, &h->coeffs, qg, qg2);
     QOP_destroy_G(qg);
+    if(g2!=g) QOP_destroy_G(qg2);
   }
   h->time = info.final_sec;
   h->flops = info.final_flop;
@@ -292,23 +306,25 @@ asqtad_set(asqtad_t *h, int prec)
 static int
 qopqdp_asqtad_set(lua_State *L)
 {
-  int nargs = lua_gettop(L);
-  qassert(nargs>=2&&nargs<=3);
-  asqtad_t *h = qopqdp_asqtad_check(L, 1);
-  gauge_t *g = qopqdp_gauge_check(L, 2);
-  double prec = luaL_optint(L, 3, 0);
-  if(h->fl) {
-    QOP_asqtad_destroy_L(h->fl);
-    h->fl = NULL;
+  BEGIN_ARGS;
+  GET_ASQTAD(a);
+  GET_GAUGE(g);
+  OPT_GAUGE(g2, g);
+  OPT_INT(prec, 0);
+  END_ARGS;
+  if(a->fl) {
+    QOP_asqtad_destroy_L(a->fl);
+    a->fl = NULL;
   }
-  if(h->ffl) {
-    QOP_F_asqtad_destroy_L(h->ffl);
-    h->ffl = NULL;
+  if(a->ffl) {
+    QOP_F_asqtad_destroy_L(a->ffl);
+    a->ffl = NULL;
   }
   qopqdp_asqtad_set_opts();
-  h->g = g;
-  if(prec==1) asqtad_set(h, 1);
-  if(prec==2) asqtad_set(h, 2);
+  a->g = g;
+  a->gLong = g2;
+  if(prec==1) asqtad_set(a, 1);
+  if(prec==2) asqtad_set(a, 2);
   return 0;
 }
 
@@ -327,6 +343,7 @@ qopqdp_asqtad_D(lua_State *L)
     eos = qopqdp_check_evenodd(L, 6);
   }
   asqtad_set(h, 2);
+  //printf("%i %i %i\n", h->g->nc, QDP_get_nc(qd->cv), QDP_get_nc(qs->cv));
   QOP_asqtad_dslash_qdp(NULL, h->fl, mass, qd->cv, qs->cv, eod, eos);
   return 0;
 }
@@ -474,6 +491,7 @@ qopqdp_asqtad_solve(lua_State *L)
   } else
 #endif
     {
+      //printf0("calling asqtadInvert\n");
       asqtadInvert(&info, h->fl, &invarg, rap, mass, nm, qqd, qs->cv);
     }
 
@@ -620,8 +638,10 @@ qopqdp_asqtad_force(lua_State *L)
 static int
 qopqdp_asqtad_squark(lua_State *L)
 {
-  qassert(lua_gettop(L)==1);
-  qopqdp_squark_create(L, 0, NULL);
+  BEGIN_ARGS;
+  GET_ASQTAD(a);
+  END_ARGS;
+  qopqdp_squark_create(L, a->nc, a->lat);
   return 1;
 }
 
@@ -669,6 +689,10 @@ qopqdp_asqtad_coeffs(lua_State *L)
   return 0;
 }
 
+#ifdef SOLVE2
+#include "solve2.c"
+#endif
+
 static struct luaL_Reg asqtad_reg[] = {
   { "__gc",        qopqdp_asqtad_gc },
   { "set",         qopqdp_asqtad_set },
@@ -676,6 +700,9 @@ static struct luaL_Reg asqtad_reg[] = {
   { "D",           qopqdp_asqtad_D },
   { "Ddag",        qopqdp_asqtad_Ddag },
   { "solve",       qopqdp_asqtad_solve },
+#ifdef SOLVE2
+  { "solve2",      qopqdp_asqtad_solve2 },
+#endif
   { "force",       qopqdp_asqtad_force },
   { "time",        qopqdp_asqtad_time },
   { "flops",       qopqdp_asqtad_flops },
@@ -685,21 +712,26 @@ static struct luaL_Reg asqtad_reg[] = {
 };
 
 asqtad_t *
-qopqdp_asqtad_create(lua_State *L)
+qopqdp_asqtad_create(lua_State *L, int nc, lattice_t *lat)
 {
+  if(lat==NULL) lat = qopqdp_get_default_lattice(L);
+  if(nc==0) nc = lat->defaultNc;
   asqtad_t *h = lua_newuserdata(L, sizeof(asqtad_t));
+  h->nc = nc;
+  h->lat = lat;
   h->fl = NULL;
   h->ffl = NULL;
   h->g = NULL;
+  h->gLong = NULL;
   h->fatphase = NULL;
   h->longphase = NULL;
-  h->nd = QDP_ndim();
-  qopqdp_origin_alloc(&h->r0, h->nd);
-  qopqdp_origin_default(h->r0, h->nd);
-  qopqdp_bcphase_alloc(&h->bc, h->nd);
-  qopqdp_bcphase_default(&h->bc, h->nd);
-  qopqdp_signmask_alloc(&h->ssign, h->nd);
-  qopqdp_signmask_default(&h->ssign, h->nd);
+  int nd = lat->nd;
+  qopqdp_origin_alloc(&h->r0, nd);
+  qopqdp_origin_default(h->r0, nd);
+  qopqdp_bcphase_alloc(&h->bc, nd);
+  qopqdp_bcphase_default(&h->bc, nd);
+  qopqdp_signmask_alloc(&h->ssign, nd);
+  qopqdp_signmask_default(&h->ssign, nd);
   qopqdp_asqtad_coeffs_default(&h->coeffs, 1);
   if(luaL_newmetatable(L, mtname)) {
     lua_pushvalue(L, -1);

@@ -407,8 +407,8 @@ force_t *
 qopqdp_force_create(lua_State *L, int nc, lattice_t *lat)
 {
 #define NC nc
-  if(nc==0) nc = QOPQDP_DEFAULTNC;
   if(lat==NULL) lat = qopqdp_get_default_lattice(L);
+  if(nc==0) nc = lat->defaultNc;
   int nd = QDP_ndim_L(lat->qlat);
   force_t *f = lua_newuserdata(L, sizeof(force_t)+nd*sizeof(QDP_ColorMatrix*));
   f->nd = nd;

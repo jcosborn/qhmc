@@ -447,8 +447,8 @@ wquark_t *
 qopqdp_wquark_create_unset(lua_State *L, int nc, lattice_t *lat)
 {
 #define NC nc
-  if(nc==0) nc = QOPQDP_DEFAULTNC;
   if(lat==NULL) lat = qopqdp_get_default_lattice(L);
+  if(nc==0) nc = lat->defaultNc;
   wquark_t *q = lua_newuserdata(L, sizeof(wquark_t));
   q->df = QDP_create_D_L(lat->qlat);
   q->lat = lat;

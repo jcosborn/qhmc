@@ -1,0 +1,9 @@
+#loading: /home/osborn/lqcd/install/qhmc-git/hmc/Init.lua
+#runtest: using temp file fieldIO.tmp
+ndim = 4
+numsites = 256
+len = 4 4 4 4
+nsquares = 1 1 1 1
+!file metadata: test
+DML_partition_in times: read 0.00  send 0.00  total 0.00
+!record metadata: test2
