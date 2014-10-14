@@ -78,6 +78,17 @@ qopqdp_lattice_call(lua_State *L)
 }
 
 static int
+qopqdp_lattice_volume(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_LATTICE(l);
+  END_ARGS;
+  int v = QDP_volume_L(l->qlat);
+  lua_pushinteger(L, v);
+  return 1;
+}
+
+static int
 qopqdp_lattice_seed(lua_State *L)
 {
   BEGIN_ARGS;
@@ -349,6 +360,7 @@ static struct luaL_Reg lattice_reg[] = {
   { "__gc",           qopqdp_lattice_gc },
   { "__len",          qopqdp_lattice_len },
   { "__call",         qopqdp_lattice_call },
+  { "volume",         qopqdp_lattice_volume },
   { "seed",           qopqdp_lattice_seed },
   { "subset",         qopqdp_lattice_subset },
   { "reader",         qopqdp_lattice_reader },

@@ -36,7 +36,8 @@ function ploop()
   local pl = {}
   local i = nd-1
   local plpath = {}
-  for j=1,L[i] do plpath[j] = -i end
+  --for j=1,L[i] do plpath[j] = -i end -- changed convention
+  for j=1,L[i] do plpath[j] = i end
   pl = G.field:loop(plpath)
   return pl
 end

@@ -1,13 +1,15 @@
-require 'Util'
+--require 'Util'
 
+--[[ old stuff, not working yet
+-- changed sign convention on paths
 paths0 = {
-  { 1, 2,-1,-2, 3, 4,-3,-4}
+  {-1,-2, 1, 2,-3,-4, 3, 4}
 }
 coeffs0 = { {1} } -- coeff[path][rep]
 
 local paths1 = {
-  { 1, 2, 3,-2,-1, 4, 1,-4,-1,-3},
-  { 1, 2, 3,-1, 4,-3, 1,-4,-1,-2}
+  {-1,-2,-3, 2, 1,-4,-1, 4, 1, 3},
+  {-1,-2,-3, 1,-4, 3,-1, 4, 1, 2}
 }
 --local coeffs1 = { {0.09029782,0.4884618},{-0.1786298,0.4126987} } -- SU(2)
 local coeffs1 = { {0.07872507,0.3173630},{-0.1888383,0.2854577} } -- SU(3)
@@ -144,4 +146,104 @@ function pathDo(g, nd, paths, coeffs)
   end
   s = s/np
   return s
+end
+--]]
+
+-- get F_{mu,nu}
+-- f: (out) F_{mu,nu}
+-- g: (in) gauge field
+-- mu: (in) mu
+-- nu: (in) nu
+-- order: (in) 0 (a^2) or 1 (a^4)
+function fmunu(f, g, mu, nu, order)
+  order = order or 0
+  local ps = { { -mu, -nu,  mu,  nu },
+	       {  nu, -mu, -nu,  mu },
+	       {  mu,  nu, -mu, -nu },
+	       { -nu,  mu,  nu, -mu } }
+  local f0 = f:clone()
+  f:zero()
+  for i=1,#ps do
+    f0:unit()
+    f0:transport(f0, g, ps[i])
+    f:combine({f,f0},{1,0.25})
+    if order>0 then
+      -- 1 loop: 135/90 = 1.5
+      -- 2 loop: -27/180 = -3/20 = -0.15 = -0.1*1.5
+      -- 3 loop: 1/90 = 1/135*1.5
+      local p2 = {}; for j=1,#ps[i] do p2[#p2+1] = ps[i][j]; p2[#p2+1] = ps[i][j] end
+      f0:unit()
+      f0:transport(f0, g, p2)
+      f:combine({f,f0},{1,-0.025})
+      local p3 = {}; for j=1,#ps[i] do p3[#p3+1] = ps[i][j]; p3[#p3+1] = ps[i][j]; p3[#p3+1] = ps[i][j] end
+      f0:unit()
+      f0:transport(f0, g, p3)
+      f:combine({f,f0},{1,1/540})
+    end
+  end
+  local TAH = 11 -- should be globally set
+  f:makeGroup(TAH)
+  if order>0 then
+    f0:combine({f},{complex(0,-1.5)})
+  else
+    f0:combine({f},{complex(0,-1)})
+  end
+  f:set(f0)
+end
+
+-- comment from original C code
+-- ESW addition 8-21-2014
+-- Get symmE and topology at O(a^2) and optionally also O(a^4)
+-- The O(a^2) is equivalent to Luscher's measurement of symmE
+-- defined in his Wilson flow paper. symmQ is defined with
+-- the same definition of the field-strength tensor.
+-- The O(a^4) improved is based on arXiv:0203008. I use the 3-loop
+-- definition, using the 1x1, 2x2, and 3x3 clover loop to build the
+-- improved op. 
+-- 1: gauge field
+-- 2: 0 for just O(a^2) calculation, 1 for O(a^4) calculation.
+-- 3: optional subset support.
+function symmEQ(g, order, subsets)
+  local f = {}
+  local n = 0
+  -- 1:1,2 2:1,3 3:2,3 4:1,4 5:2,4 6:3,4
+  for nu=2,4 do
+    for mu=1,nu-1 do
+      n = n + 1
+      f[n] = L:colorMatrix()
+      fmunu(f[n], g, mu, nu, order)
+    end
+  end
+  local function contract(r, a, f1, f2, subs)
+    local z
+    if subs==nil then
+      z = f1:contract(f2)
+    else
+      z = f1:contract(f2, subs)
+    end
+    --printf("%i: %s\n", i, z)
+    --z = f[i]:dot(f[i])
+    if type(z)~="table" then z = {z} end
+    for i=1,#z do
+      r[i] = (r[i] or 0) + a * z[i].r
+    end
+  end
+  -- First, get symmetric E!
+  -- E = 1/4 F_{mu nu}^a F_{mu nu}^a
+  local se = {}
+  local sef = 1/L:volume()
+  for i=1,n do
+    contract(se, sef, f[i], f[i], subsets)
+  end
+  -- Next, get symmQ!
+  -- Q = 1/(32 pi^2) eps_uvrs F_uv^a F_rs^a
+  -- check normalization, should be 1/(8*pi^2)?
+  local sq = {}
+  local sqf = 1/(4*math.pi^2)
+  contract(sq,  sqf, f[1], f[6], subsets)
+  contract(sq, -sqf, f[2], f[5], subsets)
+  contract(sq,  sqf, f[3], f[4], subsets)
+  if #se == 1 then se = se[1] end
+  if #sq == 1 then sq = sq[1] end
+  return se, sq
 end

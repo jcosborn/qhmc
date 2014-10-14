@@ -37,10 +37,11 @@ function rtloop(U, r, t)
   local lr,li = 0,0
   for mu=1,nd-1 do
     local p = {}
-    for i=1,t do p[#p+1] = nd end
-    for i=1,r do p[#p+1] = mu end
+    -- changed conventions
     for i=1,t do p[#p+1] = -nd end
     for i=1,r do p[#p+1] = -mu end
+    for i=1,t do p[#p+1] = nd end
+    for i=1,r do p[#p+1] = mu end
     local tr,ti = U:loop(p)
     lr = lr + tr
     li = li + ti
@@ -54,12 +55,14 @@ function stats(U)
 
   for i=1,nd do
     for j=i+1,nd do
-      local lr,li = U:loop({i,j,-i,-j})
+      --local lr,li = U:loop({i,j,-i,-j}) -- changed conventions
+      local lr,li = U:loop({-i,-j,i,j})
       printf(" plaq%i%i:  %g\t%g\n", i, j, lr, li)
     end
   end
 
-  local plpath = rep(-nd, latsize[nd])
+  --local plpath = rep(-nd, latsize[nd]) -- changed conventions
+  local plpath = rep(nd, latsize[nd])
   plpr,plpi = U:loop(plpath)
   printf(" ploop:  %g\t%g\n", plpr, plpi)
 

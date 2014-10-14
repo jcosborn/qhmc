@@ -1,3 +1,10 @@
+2014-10-13	James Osborn
+	changed sign convention for gauge loop
+	added field parallel transport
+
+2014-09-19	James Osborn
+	added ability to get global PRN from random state field
+
 ===========================================================================
 2014-09-08      version 0.1.3
 ===========================================================================

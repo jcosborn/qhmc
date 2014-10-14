@@ -224,7 +224,8 @@ function gaugemt.ploop(g)
   local nd = #qopqdp.lattice()
   local pl = {}
   for i=1,nd do
-    local plpath = rep(-i,g.a.latsize[i])
+    --local plpath = rep(-i,g.a.latsize[i]) -- changed convention
+    local plpath = rep(i,g.a.latsize[i])
     pl[i] = g.g:loop(plpath)
   end
   return pl

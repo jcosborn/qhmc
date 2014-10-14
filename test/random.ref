@@ -1,0 +1,13 @@
+#runtest: using temp file random.raw
+##loading: /home/osborn/lqcd/install/qhmc-git/hmc/Init.lua
+##runtest: using temp file random.tmp
+#ndim = 4
+#numsites = 256
+#len = 4 4 4 4
+#nsquares = 1 1 1 1
+x1: 0.82193
+x2: 0.226993
+x3: 0.405537
+y1: 0.82193
+y2: 0.226993
+y3: 0.405537

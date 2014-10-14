@@ -79,6 +79,32 @@ qopqdp_bcphase_push(lua_State *L, QOP_bc_t *c, char *prefix, int maketable)
 }
 #endif
 
+static int
+qopqdp_asqtad_bc(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_ASQTAD(a);
+  OPT_AS_COMPLEX_ARRAY(nbc,bc,0,NULL);
+  END_ARGS;
+  int nd = a->lat->nd;
+  if(nbc>0) { // set
+    int n = nd<nbc ? nd : nbc;
+    for(int i=0; i<n; i++) {
+      a->bc.phase[i].re = bc[i].r;
+      a->bc.phase[i].im = bc[i].i;
+    }
+    return 0;
+  }
+  // else get
+  qhmc_complex_t b[nd];
+  for(int i=0; i<nd; i++) {
+    b[i].r = a->bc.phase[i].re;
+    b[i].i = a->bc.phase[i].im;
+  }
+  qhmc_push_complex_array(L, nd, b);
+  return 1;
+}
+
 static void
 qopqdp_signmask_alloc(QOP_staggered_sign_t *s, int nd)
 {
@@ -537,6 +563,7 @@ qopqdp_asqtad_solve(lua_State *L)
   h->time = info.final_sec;
   h->flops = info.final_flop;
   h->its = resarg[0].final_iter;
+  h->rsq = resarg[0].final_rsq;
   return 0;
 #undef NC
 }
@@ -673,6 +700,16 @@ qopqdp_asqtad_its(lua_State *L)
 }
 
 static int
+qopqdp_asqtad_rsq(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_ASQTAD(a);
+  END_ARGS;
+  lua_pushnumber(L, a->rsq);
+  return 1;
+}
+
+static int
 qopqdp_asqtad_coeffs(lua_State *L)
 {
   int nargs = lua_gettop(L);
@@ -695,6 +732,7 @@ qopqdp_asqtad_coeffs(lua_State *L)
 
 static struct luaL_Reg asqtad_reg[] = {
   { "__gc",        qopqdp_asqtad_gc },
+  { "bc",          qopqdp_asqtad_bc },
   { "set",         qopqdp_asqtad_set },
   { "quark",       qopqdp_asqtad_squark },
   { "D",           qopqdp_asqtad_D },
@@ -707,6 +745,7 @@ static struct luaL_Reg asqtad_reg[] = {
   { "time",        qopqdp_asqtad_time },
   { "flops",       qopqdp_asqtad_flops },
   { "its",         qopqdp_asqtad_its },
+  { "rsq",         qopqdp_asqtad_rsq },
   { "coeffs",      qopqdp_asqtad_coeffs },
   { NULL, NULL}
 };

@@ -74,11 +74,11 @@ qopqdp_hisq_set_coeffs(QOP_hisq_coeffs_t *coeffs, double u0, double f7lf)
   coeffs->fat7_seven_staple = -(u2*u4)/384.0;
   coeffs->fat7_lepage = -u4*(f7lf)/16.0;
   coeffs->asqtad_one_link = (8.0-3.0*f7lf)/8.0;
-  coeffs->asqtad_three_staple = -u2/16.0;
-  coeffs->asqtad_five_staple = u4/64.0;
-  coeffs->asqtad_seven_staple = -(u2*u4)/384.0;
-  coeffs->asqtad_lepage = -u4*(2.0-f7lf)/16.0;
-  coeffs->asqtad_naik = -u2/24.0;
+  coeffs->asqtad_three_staple = -1.0/16.0;
+  coeffs->asqtad_five_staple = 1.0/64.0;
+  coeffs->asqtad_seven_staple = -1.0/384.0;
+  coeffs->asqtad_lepage = -(2.0-f7lf)/16.0;
+  coeffs->asqtad_naik = -1.0/24.0;
   coeffs->difference_one_link = 0;
   coeffs->difference_naik = 0;
 }

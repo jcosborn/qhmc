@@ -236,6 +236,10 @@ end
 function actmt.solve(a, dest, src, m, res, sub, opts, n)
   local t0 = clock()
   a.h:solve(dest, src, m, res, sub, opts)
+  if a.h:rsq() > res*res then
+    printf("warning rsq: %g > %g  ratio: %g  its: %i\n",
+	   a.h:rsq(), res*res, a.h:rsq()/(res*res), a.h:its())
+  end
   if n>0 then
     a.CGtime[n] = a.CGtime[n] + clock() - t0
     --a.CGtime[n] = a.CGtime[n] + a.h:time()

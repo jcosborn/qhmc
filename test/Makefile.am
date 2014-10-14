@@ -7,11 +7,13 @@ TEST_EXTENSIONS = .lua
 LUA_LOG_COMPILER = $(srcdir)/runtest $(top_builddir)/bin/qhmc
 
 TESTS = \
- subset.lua \
+ fieldIO.lua \
+ gauge.lua \
+ momentum.lua \
  norm2.lua \
  point.lua \
- momentum.lua \
- fieldIO.lua \
+ random.lua \
+ subset.lua \
  milc-su3_rhmc_hisq.lua \
  wilsonHMC.lua \
  wilson2fHMC.lua \
@@ -19,11 +21,13 @@ TESTS = \
 
 EXTRA_DIST = \
  runtest runtest.lua \
- subset.lua subset.raw subset.ref \
- norm2.lua norm2.raw norm2.ref \
- momentum.lua momentum.raw momentum.ref \
- point.lua point.raw point.ref \
  fieldIO.lua fieldIO.raw fieldIO.ref \
+ gauge.lua gauge.raw gauge.ref \
+ momentum.lua momentum.raw momentum.ref \
+ norm2.lua norm2.raw norm2.ref \
+ point.lua point.raw point.ref \
+ random.lua random.raw random.ref \
+ subset.lua subset.raw subset.ref \
  milc-su3_rhmc_hisq.lua milc-su3_rhmc_hisq.raw milc-su3_rhmc_hisq.ref \
   milc-su3_rhmc_hisq.in milc-su3_rhmc_hisq.rat \
  wilsonHMC.lua wilsonHMC.raw wilsonHMC.ref \

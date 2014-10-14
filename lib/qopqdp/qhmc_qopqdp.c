@@ -409,7 +409,8 @@ qopqdp_seed(lua_State *L)
 static int
 qopqdp_random(lua_State *L)
 {
-  qassert(lua_gettop(L)==0);
+  BEGIN_ARGS;
+  END_ARGS;
   double r = 0;
   if(QDP_this_node==0) {
     QLA_Real t;
@@ -534,6 +535,30 @@ qopqdp_writer(lua_State *L)
 }
 
 static int
+qopqdp_getFileLattice(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_STRING(fn);
+  END_ARGS;
+  QIO_Layout ql;
+  ql.latdim = 0;
+  ql.latsize = NULL;
+  ql.this_node = QMP_get_node_number();
+  ql.number_of_nodes = QMP_get_number_of_nodes();
+  QIO_String *qs = QIO_string_create();
+  QIO_Reader *qr = QIO_open_read(qs, fn, &ql, NULL, NULL);
+  int nd = QIO_get_reader_latdim(qr);
+  //printf0("lattice ndim = %i\n", *len);
+  int *ls = QIO_get_reader_latsize(qr);
+  //printf0("lattice size =");
+  //for(i=0; i<nd; i++) printf0(" %i", ls[i]);
+  //printf0("\n");
+  qhmc_push_int_array(L, nd, ls);
+  QIO_close_read(qr);
+  return 1;
+}
+
+static int
 qopqdp_remapout(lua_State *L)
 {
   qassert(lua_gettop(L)==1);
@@ -548,6 +573,25 @@ qopqdp_remapout(lua_State *L)
   dup2(fd, 2);
   close(fd);
   return 0;
+}
+
+static int
+qopqdp_option(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_STRING(opt);
+  if(nargs==2) nextarg++;
+  END_ARGS;
+  // return old value
+#define GETI(s,v) if(strcmp(opt,s)==0) lua_pushinteger(L, v);
+  GETI("MILCGaussian", QLA_use_milc_gaussian);
+#undef GETI
+  if(nargs==2) { // set new value
+#define SETI(s,v) if(strcmp(opt,s)==0) v = luaL_checkinteger(L, 2);
+    SETI("MILCGaussian", QLA_use_milc_gaussian);
+#undef SETI
+  }
+  return 1;
 }
 
 static struct luaL_Reg qopqdp_reg[] = {
@@ -572,7 +616,9 @@ static struct luaL_Reg qopqdp_reg[] = {
   { "dw",             qopqdp_dw },
   { "reader",         qopqdp_reader },
   { "writer",         qopqdp_writer },
+  { "getFileLattice", qopqdp_getFileLattice },
   { "remapout",       qopqdp_remapout },
+  { "option",         qopqdp_option },
   { NULL, NULL}
 };
 

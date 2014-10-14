@@ -596,6 +596,7 @@ void qopqdp_forceD_array_check(lua_State *L, int idx, int n, forceD_t *g[n]);
 typedef struct {
   double time;
   double flops;
+  double rsq;
   int its;
   int *r0;
   int nc;

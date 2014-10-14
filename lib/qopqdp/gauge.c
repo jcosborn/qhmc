@@ -88,6 +88,17 @@ qopqdp_gauge_call(lua_State *L)
 }
 
 static int
+qopqdp_gauge_nc(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_GAUGE(g);
+  END_ARGS;
+  int nc = g->nc;
+  lua_pushinteger(L, nc);
+  return 1;
+}
+
+static int
 qopqdp_gauge_unit(lua_State *L)
 {
   qassert(lua_gettop(L)==1);
@@ -640,7 +651,7 @@ qopqdp_gauge_heatbath(lua_State *L)
 
 // calculate generic loop
 // 1: gauge field
-// 2: path
+// 2: path (+(1+mu): from forward, -(1+mu): from backward)
 // 3: (opt) subset/subsets
 static int
 qopqdp_gauge_loop(lua_State *L)
@@ -676,7 +687,7 @@ qopqdp_gauge_loop(lua_State *L)
       lua_pushnil(L);
       return 1;
     }
-    if(d>0) { // shift from backward
+    if(d<0) { // shift from backward
       if(intemp) {
 	QDP_M_eq_Ma_times_M(m[1-k], g->links[mu], temp[k], all);
 	//QDP_discard_M(temp[k]);
@@ -880,6 +891,7 @@ static struct luaL_Reg gauge_reg[] = {
   { "__gc",     qopqdp_gauge_gc },
   { "__len",    qopqdp_gauge_len },
   { "__call",   qopqdp_gauge_call },
+  { "nc",       qopqdp_gauge_nc },
   { "unit",     qopqdp_gauge_unit },
   { "random",   qopqdp_gauge_random },
   { "load",     qopqdp_gauge_load },

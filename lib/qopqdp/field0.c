@@ -115,6 +115,7 @@ typedef S2(QDP_D_,QDPT) qdptypeD;
 #endif
 #define qdpptrreadonly(f,s) S2(QDP_site_ptr_readonly_,A)(f,s)
 #define qdpptrreadwrite(f,s) S2(QDP_site_ptr_readwrite_,A)(f,s)
+#define qdprandom(f,r,s) SP3x(QDP_,A,_eq_random_S,C1x,f,r,s)
 #define qdpgaussian(f,r,s) SP3x(QDP_,A,_eq_gaussian_S,C1x,f,r,s)
 #define qdptimes(f1,f2,f3,s) SP6(QDP_,A,_eq_,A,_times_,A,C111x,f1,f2,f3,s)
 #define qdprtimes(f1,r,f2,s) SP4(QDP_,A,_eq_r_times_,A,C1x1x,f1,r,f2,s)
@@ -122,6 +123,7 @@ typedef S2(QDP_D_,QDPT) qdptypeD;
 #define qdpctimes(f1,c,f2,s) SP4(QDP_,A,_eq_c_times_,A,C1x1x,f1,c,f2,s)
 #define qdppeqctimes(f1,c,f2,s) SP4(QDP_,A,_peq_c_times_,A,C1x1x,f1,c,f2,s)
 #define qdpMtimes(f1,m,f2,s) SP4x(QDP_,A,_eq_M_times_,A,C1m1x,f1,m,f2,s)
+#define qdpMatimes(f1,m,f2,s) SP4x(QDP_,A,_eq_Ma_times_,A,C1m1x,f1,m,f2,s)
 #define qdpveqMatimes(f1,m,f2,s,n) SP4x(QDP_,A,_veq_Ma_times_,A,C1m1xx,f1,m,f2,s,n)
 #define qdpvpeqMtimes(f1,m,f2,s,n) SP4x(QDP_,A,_vpeq_M_times_,A,C1m1xx,f1,m,f2,s,n)
 #define qdpsum(r,f,s) SP4x(QDP_,AL,_eq_sum_,A,Cl1x,r,f,s)
@@ -131,6 +133,8 @@ typedef S2(QDP_D_,QDPT) qdptypeD;
 #define qdplnorm2(r,f,s) SP3(QDP_,R_eq_norm2_,A,Cx1x,r,f,s)
 #define qdpdot(c,f1,f2,s) SP5(QDP_,c_eq_,A,_dot_,A,Cx11x,c,f1,f2,s)
 #define qdpdotmulti(c,f1,f2,s,n) SP6(QDP_,c_eq_,A,_dot_,A,_multi,Cx11xx,c,f1,f2,s,n)
+#define qdpadot(c,f1,f2,s) SP5(QDP_,c_eq_,A,a_dot_,A,Cx11x,c,f1,f2,s)
+#define qdpadotmulti(c,f1,f2,s,n) SP6(QDP_,c_eq_,A,a_dot_,A,_multi,Cx11xx,c,f1,f2,s,n)
 #ifdef ISREAL
 #define qdpredot(r,f1,f2,s) SP5(QDP_,r_eq_,A,_dot_,A,Cx11x,r,f1,f2,s)
 #define qdpredotmulti(r,f1,f2,s,n) SP6(QDP_,r_eq_,A,_dot_,A,_multi,Cx11xx,r,f1,f2,s,n)
@@ -543,6 +547,30 @@ ftype_seed(lua_State *L)
   qhmc_qopqdp_seed_func(t->field, seed, uniform, sub);
   return 0;
 }
+
+static int
+ftype_globalRand(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  END_ARGS;
+  double r = 0;
+  QDP_Lattice *lat = t->lat->qlat;
+  int nd = QDP_ndim_L(lat);
+  int x[nd];
+  for(int i=0; i<nd; i++) x[i] = 0;
+  int n0 = QDP_node_number_L(lat, x);
+  if(QDP_this_node==n0) {
+    int i0 = QDP_index_L(lat, x);
+    QLA_RandomState *qrs = QDP_site_ptr_readwrite_S(t->field, i0);
+    QLA_Real s;
+    QLA_R_eq_random_S(&s, qrs);
+    r = s;
+  }
+  QMP_sum_double(&r);
+  lua_pushnumber(L, r);
+  return 1;
+}
 #endif
 
 #ifdef ARITH
@@ -749,10 +777,30 @@ ftype_momentum(lua_State *L)
 }
 #endif
 
+#ifdef ISREAL
+// 1: field
+// 2: (optional) random state
+// 3: (optional) subset
+static int
+ftype_randomUniform(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  OPT_QOPQDP_QRSTATE(rs, t->lat->rs);
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  END_ARGS;
+  qdprandom(t->field, rs, sub);
+  return 0;
+#undef NC
+}
+#endif
+
 // default normalized to sigma = 1
 // 1: field
-// 2: (optional) sigma
-// 3: (optional) subset
+// 2: (optional) random state
+// 3: (optional) sigma
+// 4: (optional) subset
 static int
 ftype_random(lua_State *L)
 {
@@ -1143,15 +1191,25 @@ ftype_contract(lua_State *L)
   END_ARGS;
   if(ns==-1) {
     QLA_Complex c;
-    qdpadj(t1->field, t1->field, subs[0]);
-    qdpdot(&c, t1->field, t2->field, subs[0]);
-    qdpadj(t1->field, t1->field, subs[0]);
+#ifdef ISVECTOR
+    qdptype *tt = qdpcreate(t1->qlat);
+    qdpadj(tt, t1->field, subs[0]);
+    qdpdot(&c, tt, t2->field, subs[0]);
+    qdpdestroy(tt);
+#else
+    qdpadot(&c, t1->field, t2->field, subs[0]);
+#endif
     qhmc_complex_create(L, QLA_real(c), QLA_imag(c));
   } else {
     QLA_Complex c[ns];
-    qdpadj(t1->field, t1->field, QDP_all_L(t1->qlat));
-    qdpdotmulti(c, t1->field, t2->field, subs, ns);
-    qdpadj(t1->field, t1->field, QDP_all_L(t1->qlat));
+#ifdef ISVECTOR
+    qdptype *tt = qdpcreate(t1->qlat);
+    qdpadj(tt, t1->field, QDP_all_L(t1->qlat));
+    qdpdotmulti(c, tt, t2->field, subs, ns);
+    qdpdestroy(tt);
+#else
+    qdpadotmulti(c, t1->field, t2->field, subs, ns);
+#endif
     qhmc_complex_t cc[ns];
     for(int i=0; i<ns; i++) {
       cc[i].r = QLA_real(c[i]);
@@ -1283,6 +1341,86 @@ ftype_smearGauss(lua_State *L)
     qdpdestroy(xb1[i]);
     qdpdestroy(xb2[i]);
   }
+  return 0;
+#undef NC
+}
+
+// calculate path parallel transport
+// 1: result field
+// 2: source field
+// 3: gauge field
+// 4: path (+(1+mu): from forward, -(1+mu): from backward)
+// 5: (opt) subset
+static int
+ftype_transport(lua_State *L)
+{
+#define NC QDP_get_nc(g->links[0])
+  BEGIN_ARGS;
+  GET_FTYPE(dest);
+  GET_FTYPE(src);
+  GET_GAUGE(g);
+  GET_TABLE_LEN_INDEX(plen,pidx);
+  OPT_QSUBSET(sub, dest->lat, QDP_all_L(dest->qlat));
+  END_ARGS;
+  int dirs[plen]; qhmc_get_int_array(L, pidx, plen, dirs);
+  QDP_Subset all = QDP_all_L(dest->qlat);
+  QDP_Shift *neighbor = QDP_neighbor_L(dest->qlat);
+
+  qdptype *m[2], *temp[2];
+  m[0] = qdpcreate(dest->qlat);
+  m[1] = qdpcreate(dest->qlat);
+  temp[0] = qdpcreate(dest->qlat);
+  temp[1] = qdpcreate(dest->qlat);
+
+  int k = 0;
+  int intemp = 0;
+  qdpeq(m[k], src->field, all);
+  for(int i=0; i<plen; i++) {
+    int d = dirs[i];
+    int mu = abs(d) - 1;
+    //printf0("i: %i  d: %i  mu: %i\n", i, d, mu);
+    if(mu<0 || mu>=g->nd) {
+      printf0("%s invalid index[%i] %i (nd=%i)\n", __func__, i, d, g->nd);
+      lua_pushnil(L);
+      return 1;
+    }
+    if(d<0) { // shift from backward
+      if(intemp) {
+	qdpMatimes(m[1-k], g->links[mu], temp[k], all);
+	//QDP_discard_M(temp[k]);
+      } else {
+	qdpMatimes(m[1-k], g->links[mu], m[k], all);
+      }
+      k = 1-k;
+      qdpeqs(temp[k], m[k], neighbor[mu], QDP_backward, all);
+      intemp = 1;
+    } else { // shift from forward
+      if(intemp) {
+	qdpeq(m[1-k], temp[k], all);
+	//QDP_discard_M(temp[k]);
+	k = 1-k;
+      }
+      //printf("k: %i\n", k);
+      //TRACE;
+      qdpeqs(temp[k], m[k], neighbor[mu], QDP_forward, all);
+      //TRACE;
+      qdpMtimes(m[1-k], g->links[mu], temp[k], all);
+      //TRACE;
+      k = 1-k;
+      intemp = 0;
+    }
+  }
+  if(intemp) {
+    qdpeq(dest->field, temp[k], sub);
+  } else {
+    qdpeq(dest->field, m[k], sub);
+  }
+
+  qdpdestroy(m[0]);
+  qdpdestroy(m[1]);
+  qdpdestroy(temp[0]);
+  qdpdestroy(temp[1]);
+
   return 0;
 #undef NC
 }
@@ -1478,6 +1616,7 @@ static struct luaL_Reg ftype_reg[] = {
   { "set",           ftype_set },
 #ifdef ISRSTATE
   { "seed",          ftype_seed },
+  { "globalRand",    ftype_globalRand },
 #endif
 #ifdef ARITH
   { "zero",          ftype_zero },
@@ -1505,6 +1644,7 @@ static struct luaL_Reg ftype_reg[] = {
   //{ "infnorm",    qopqdp_force_infnorm },
   { "reDot",         ftype_redot },
 #ifdef ISREAL
+  { "randomUniform", ftype_randomUniform },
   { "dot",           ftype_redot },
   { "contract",      ftype_redot },
 #else
@@ -1519,6 +1659,7 @@ static struct luaL_Reg ftype_reg[] = {
 #endif // ARITH
 #ifdef COLORED
   { "smearGauss",    ftype_smearGauss },
+  { "transport",     ftype_transport },
 #endif
 #ifdef COLORED2
   { "combineColor",  ftype_combineColor },

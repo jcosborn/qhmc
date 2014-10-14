@@ -4,11 +4,11 @@ function clock()
   return qopqdp.dtime()
 end
 
-function profile(...)
+function profcontrol(...)
   return qopqdp.profile(...)
 end
 
-function verbosity(...)
+function verbcontrol(...)
   return qopqdp.verbosity(...)
 end
 
