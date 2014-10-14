@@ -1,8 +1,7 @@
-package.path = arg[0]:gsub("[^/]*.lua","?.lua") .. ";./hmc/?.lua;" .. package.path
 require 'common'
 require 'gaugeact'
 
-trace(doTrace)
+--trace(doTrace)
 
 local nx = nx or 4
 local nt = nt or 8
@@ -27,42 +26,6 @@ else
    U:unit()
 end
 
-function plaq(g)
-  local ss,st = g:action({plaq=1})
-  local s = vol*qopqdp.defaultNc
-  return ss/s, st/s
-end
-
-function wflow(u, coeffs, eps, nsteps)
-  -- u1 = exp((eps/4)f0) u0
-  -- u2 = exp((eps*8/9)f1-(eps*17/36)f0) u1
-  -- u3 = exp((eps*3/4)f2-(eps*8/9)f1+(eps*17/36)f0) u2
-  local f = qopqdp.force()
-  local ft = qopqdp.force()
-  for i=1,nsteps do
-    --[[
-    u:force(f, coeffs)
-    u:update(f, eps)
-    --]]
-    --[[
-    local alpha = 0.5
-    u:force(ft, coeffs)
-    u:update(ft, eps*alpha)
-    u:force(f, coeffs)
-    f:update(ft, 2*alpha-1-2*alpha*alpha)
-    u:update(f, eps*0.5/alpha)
-    --]]
-    u:force(f, coeffs)
-    u:update(f, eps/4)
-    u:force(ft, coeffs)
-    f:update(ft, -32/17)
-    u:update(f, eps*-17/36)
-    u:force(ft, coeffs)
-    f:update(ft, 27/17)
-    u:update(f, eps*17/36)
-  end
-end
-
 coeffs = { plaq=1 }
 --coeffs = { plaq=1, rect=-0.05 }
 eps = 0.025
@@ -81,7 +44,7 @@ t0 = clock()
 
 stats(U, 0)
 for i=1,nsteps do
-   wflow(U, coeffs, eps, 1)
+  wflow(U, coeffs, eps, 1)
   stats(U, i)
   if(i%10==0) then collectgarbage() end
 end

@@ -72,3 +72,12 @@ printf("time: %.10g\n", t0)
 for i=1,#se do
   printf("%i  se: %.10g  sq: %.10g\n", i, se[i], sq[i])
 end
+
+eps = 0.025
+for i=1,10 do
+  wflow(g, {plaq=1}, eps, 1)
+  se,sq = symmEQ(g,1)
+  t = eps * i
+  printf("se: %.10g\n", t*t*se)
+  printf("sq: %.10g\n", sq)
+end

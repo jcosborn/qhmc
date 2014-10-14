@@ -149,6 +149,42 @@ function pathDo(g, nd, paths, coeffs)
 end
 --]]
 
+function plaq(g)
+  local ss,st = g:action({plaq=1})
+  local s = vol*g:nc()
+  return ss/s, st/s
+end
+
+function wflow(u, coeffs, eps, nsteps)
+  -- u1 = exp((eps/4)f0) u0
+  -- u2 = exp((eps*8/9)f1-(eps*17/36)f0) u1
+  -- u3 = exp((eps*3/4)f2-(eps*8/9)f1+(eps*17/36)f0) u2
+  local f = qopqdp.force()
+  local ft = qopqdp.force()
+  for i=1,nsteps do
+    --[[
+    u:force(f, coeffs)
+    u:update(f, eps)
+    --]]
+    --[[
+    local alpha = 0.5
+    u:force(ft, coeffs)
+    u:update(ft, eps*alpha)
+    u:force(f, coeffs)
+    f:update(ft, 2*alpha-1-2*alpha*alpha)
+    u:update(f, eps*0.5/alpha)
+    --]]
+    u:force(f, coeffs)
+    u:update(f, eps/4)
+    u:force(ft, coeffs)
+    f:update(ft, -32/17)
+    u:update(f, eps*-17/36)
+    u:force(ft, coeffs)
+    f:update(ft, 27/17)
+    u:update(f, eps*17/36)
+  end
+end
+
 -- get F_{mu,nu}
 -- f: (out) F_{mu,nu}
 -- g: (in) gauge field
@@ -237,7 +273,6 @@ function symmEQ(g, order, subsets)
   end
   -- Next, get symmQ!
   -- Q = 1/(32 pi^2) eps_uvrs F_uv^a F_rs^a
-  -- check normalization, should be 1/(8*pi^2)?
   local sq = {}
   local sqf = 1/(4*math.pi^2)
   contract(sq,  sqf, f[1], f[6], subsets)
