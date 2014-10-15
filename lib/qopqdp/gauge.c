@@ -99,6 +99,17 @@ qopqdp_gauge_nc(lua_State *L)
 }
 
 static int
+qopqdp_gauge_lattice(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_GAUGE(g);
+  END_ARGS;
+  lattice_t *lat = g->lat;
+  qopqdp_lattice_wrap(L, lat->qlat, lat->defaultPrecision, lat->defaultNc, 0);
+  return 1;
+}
+
+static int
 qopqdp_gauge_unit(lua_State *L)
 {
   qassert(lua_gettop(L)==1);
@@ -892,6 +903,7 @@ static struct luaL_Reg gauge_reg[] = {
   { "__len",    qopqdp_gauge_len },
   { "__call",   qopqdp_gauge_call },
   { "nc",       qopqdp_gauge_nc },
+  { "lattice",  qopqdp_gauge_lattice },
   { "unit",     qopqdp_gauge_unit },
   { "random",   qopqdp_gauge_random },
   { "load",     qopqdp_gauge_load },

@@ -151,7 +151,7 @@ end
 
 function plaq(g)
   local ss,st = g:action({plaq=1})
-  local s = vol*g:nc()
+  local s = g:lattice():volume()*g:nc()
   return ss/s, st/s
 end
 
@@ -185,6 +185,13 @@ function wflow(u, coeffs, eps, nsteps)
   end
 end
 
+function plaqE(g)
+  local ss,st = plaq(g)
+  local nd = #(g:lattice())
+  local e = 0.5*nd*(nd-1)*(2-ss-st)
+  return e
+end
+
 -- get F_{mu,nu}
 -- f: (out) F_{mu,nu}
 -- g: (in) gauge field
@@ -206,7 +213,7 @@ function fmunu(f, g, mu, nu, order)
     if order>0 then
       -- 1 loop: 135/90 = 1.5
       -- 2 loop: -27/180 = -3/20 = -0.15 = -0.1*1.5
-      -- 3 loop: 1/90 = 1/135*1.5
+      -- 3 loop: 1/90 = 1.5*1/135
       local p2 = {}; for j=1,#ps[i] do p2[#p2+1] = ps[i][j]; p2[#p2+1] = ps[i][j] end
       f0:unit()
       f0:transport(f0, g, p2)

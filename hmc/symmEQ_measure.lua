@@ -57,27 +57,29 @@ t0 = clock() - t0
 printf("time: %.10g\n", t0)
 printf("se: %.10g\n", se)
 printf("sq: %.10g\n", sq)
+pe = plaqE(g)
+printf("pe: %.10g\n", pe)
 
 t0 = clock()
-se,sq = symmEQ(g,1)
+se,sq = symmEQ(g, 1)
 t0 = clock() - t0
 printf("time: %.10g\n", t0)
 printf("se: %.10g\n", se)
 printf("sq: %.10g\n", sq)
 
 t0 = clock()
-se,sq = symmEQ(g,1,"timeslices")
+se,sq = symmEQ(g, 1, "timeslices")
 t0 = clock() - t0
 printf("time: %.10g\n", t0)
 for i=1,#se do
   printf("%i  se: %.10g  sq: %.10g\n", i, se[i], sq[i])
 end
 
-eps = 0.025
-for i=1,10 do
+eps = 0.01
+for i=1,100 do
   wflow(g, {plaq=1}, eps, 1)
-  se,sq = symmEQ(g,1)
+  se,sq = symmEQ(g, 1)
   t = eps * i
-  printf("se: %.10g\n", t*t*se)
-  printf("sq: %.10g\n", sq)
+  printf("t: %-5g  se: %-15.10g  se*t^2: %-15.10g  sq: %-15.10g\n",
+	 t, se, t*t*se, sq)
 end
