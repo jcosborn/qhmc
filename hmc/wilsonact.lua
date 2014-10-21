@@ -173,6 +173,7 @@ end
 
 function actmt.solve(a, dest, src, mass, res, sub, opts, n)
   local t0 = clock()
+  dest:zero()
   a.w:solve(dest, src, mass, res, sub, opts)
   if n>0 then
     a.CGtime[n] = a.CGtime[n] + clock() - t0

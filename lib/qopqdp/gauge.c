@@ -923,6 +923,8 @@ static struct luaL_Reg gauge_reg[] = {
   { NULL, NULL}
 };
 
+// different fwd & bck links
+
 gauge_t *
 qopqdp_gauge_create(lua_State *L, int nc, lattice_t *lat)
 {

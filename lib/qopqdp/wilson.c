@@ -427,7 +427,7 @@ qopqdp_wilson_solve(lua_State *L)
   invarg.evenodd = eo;
   QOP_resid_arg_t resarg = QOP_RESID_ARG_DEFAULT;
   resarg.rsqmin = resid*resid;
-  QDP_D_eq_zero(qd->field, QDP_all);
+  //QDP_D_eq_zero(qd->field, QDP_all);
 #if 0
   {
     //QLA_DiracFermion *v = QDP_expose_V(qs->field);

@@ -6,6 +6,8 @@ typedef struct {
   double r,i;
 } qhmc_complex_t;
 
+#define QHMC_PI 3.14159265358979323846
+
 void open_qhmc_complex(lua_State* L);
 qhmc_complex_t *qhmc_complex_create(lua_State* L, double re, double im);
 qhmc_complex_t *qhmc_complex_check(lua_State *L, int idx);
@@ -21,4 +23,5 @@ void qhmc_opt_as_complex_array(lua_State *L, int *idx, int required, int n, qhmc
 #define GET_AS_COMPLEX(v) qhmc_complex_t v; qhmc_complex_get_as(L,nextarg,&v); nextarg++
 #define OPT_AS_COMPLEX_PTR(v,d) qhmc_complex_t _t ## v, *v = qhmc_opt_as_complex_ptr(L,&nextarg,0,&_t ## v,d)
 #define OPT_AS_COMPLEX_DEF_REAL(v,d) qhmc_complex_t v; qhmc_opt_as_complex_def_real(L,&nextarg,0,&v,d)
+#define GET_AS_COMPLEX_ARRAY(n,t) int n=qhmc_opt_as_complex_array_len(L,nextarg,1,0); qhmc_complex_t t[n==0?1:abs(n)]; qhmc_opt_as_complex_array(L,&nextarg,1,n,t,0,NULL)
 #define OPT_AS_COMPLEX_ARRAY(n,t,dn,dt) int n=qhmc_opt_as_complex_array_len(L,nextarg,0,dn); qhmc_complex_t t[n==0?1:abs(n)]; qhmc_opt_as_complex_array(L,&nextarg,0,n,t,dn,dt)

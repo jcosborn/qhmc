@@ -55,60 +55,71 @@ end
 local function gamma(g)
   return gammamatrix[g]
 end
+local function gammaDagger(g)
+  local m = gammamatrix[g]
+  local ng = 0.5*(g%2) + 0.25*(g%4) + 0.125*(g%8) + 0.125*(g%16)
+  if ng==2 or ng==3 then m = -1*m end
+  return m
+end
 --print(gamma(15))
 
-function pointProp(L, w, pt, smearsrc, smeardest, mass, resid, opts)
+function pointProp(L, w, pt, smearsrc, smeardest, mass, resid, opts, oldprop)
   local src = w:quark()
-  local dest = {}
-  local dest2 = {}
+  local dest = w:quark()
   local Nc = src:nc()
   local Ns = 4
+  local dest2 = oldprop
+  if not dest2 then
+    dest2 = {}
+    for spin2 = 1,Ns do
+      dest2[spin2] = {}
+      for spin = 1,Ns do
+	local tcm = L:colorMatrix()
+	dest2[spin2][spin] = tcm
+	tcm:zero()
+      end
+    end
+  end
   local cvCS = {}
   local cvSC = {}
   for spin = 1,Ns do
     cvSC[spin] = {}
-    dest2[spin] = {}
     for color = 1,Nc do
       if spin==1 then cvCS[color] = {} end
       cvCS[color][spin] = L:colorVector()
       cvSC[spin][color] = cvCS[color][spin]
     end
   end
-  for spin = 0,Ns-1 do
-    for color = 0,Nc-1 do
-      local k = Ns*color + spin + 1
+  for spin = 1,Ns do
+    for spin2 = 1,Ns do
+      dest2[spin2][spin]:splitColor(cvSC[spin2])
+    end
+    for color = 1,Nc do
+      printf("source spin: %i  color: %i\n", spin, color)
       src:zero()
-      -- point({coord},color,spin,re,im)
-      src:point(pt,color,spin,1)
+      -- point({coord},color,spin,value)
+      src:point(pt,color-1,spin-1,1)
       if smearsrc then
 	printf("src norm2: %g\n", src:norm2())
-	--src:smearGauss(g, 4, rsmear, nsmear)
 	smearsrc(src)
       end
       printf("src norm2: %g\n", src:norm2())
-      dest[k] = w:quark()
 
+      dest:combineSpin(cvCS[color])
       t0 = qopqdp.dtime()
-      w:solve(dest[k], src, mass, resid, "all", opts)
+      w:solve(dest, src, mass, resid, "all", opts) 
       dt = qopqdp.dtime() - t0
       mf = 1e-6 * w:flops() / dt
       printf("its: %g  secs: %g  Mflops: %g\n", w:its(), dt, mf)
       if smeardest then
-	printf("dest norm2: %.16g\n", dest[k]:norm2())
-	--dest[k]:smearGauss(g, 4, rsmear, nsmear);
-	smeardest(dest[k])
+	printf("dest norm2: %.16g\n", dest:norm2())
+	smeardest(dest)
       end
-      printf("dest norm2: %.16g\n", dest[k]:norm2())
-      --wr:write(dest[#dest], "<field metadata/>")
+      printf("dest norm2: %.16g\n", dest:norm2())
+      dest:splitSpin(cvCS[color])
     end
-    for color = 0,Nc-1 do
-      local k = Ns*color + spin + 1
-      dest[k]:splitSpin(cvCS[color+1])
-    end
-    for spin2 = 0,Ns-1 do
-      local cm = L:colorMatrix()
-      dest2[spin2+1][spin+1] = cm
-      cm:combineColor(cvSC[spin2+1])
+    for spin2 = 1,Ns do
+      dest2[spin2][spin]:combineColor(cvSC[spin2])
     end
   end
   return dest2
@@ -299,13 +310,15 @@ function wilsonMesons2(dest)
   return mesons
 end
 
-function wilsonMesons3(dest)
+function wilsonMesons3(destu, destd)
   local mesons = {}
-  local p = prop(dest)
+  local pu = prop(destu)
+  local pd = pu
+  if destd then pd = prop(destd) end
   for g = 0,15 do
     mesons[g] = {}
-    local p2 = gamma(15-g) * p * gamma(15-g)
-    local t = p:dot(p2,"timeslices")
+    local p2 = gammaDagger(15-g) * pu * gamma(15-g)
+    local t = pd:dot(p2,"timeslices")
     for i=1,t.nr do mesons[g][i] = t(i,1).r end
   end
   return mesons
@@ -351,16 +364,25 @@ function add_cross(p)
   end
 end
 
-function wilsonBaryons3(dest)
-  local Nc = dest[1][1]:nc()
+function wilsonBaryons3(destu, destd)
+  local Nc = destu[1][1]:nc()
   if Nc ~= 3 then return nil end
   local baryons = {}
-  local p = prop(dest)
-  local p2 = p * gamma(5)
-  local p3 = contract24(p, p2)
+  local pu = prop(destu)
+  local pd = pu
+  if destd then pd = prop(destd) end
+  -- gamma(5) = gamma_x gamma_z = C gamma_5
+  local p2 = pd * gamma(5)
+  local p3 = contract24(pu, p2)
+  p2 = nil
+  collectgarbage()
   local p4 = p3 * gamma(5)
   add_cross(p4)
-  local p5 = p4 * p
+  p3 = nil
+  collectgarbage()
+  local p5 = p4 * pu
+  p4 = nil
+  collectgarbage()
   p5 = p5:mapMethod("trace")
   p5 = p5:mapMethod("sum", "timeslices")
   for g = 0,15 do
@@ -371,5 +393,7 @@ function wilsonBaryons3(dest)
     baryons[g] = {}
     for i=1,t.nr do baryons[g][i] = t(i,1) end
   end
+  p5 = nil
+  collectgarbage()
   return baryons
 end

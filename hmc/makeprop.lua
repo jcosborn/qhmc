@@ -3,9 +3,11 @@ require 'gaugeact'
 require 'wilsonObservables'
 
 --trace(true)
-latsize = { 4, 4, 4, 8 }
-aniso = 1/2.38
---aniso = 1
+nx = 4
+nt = 8
+latsize = { nx, nx, nx, nt }
+--aniso = 1/2.38
+aniso = 1
 mass = -0.4125
 --rsmear = 0.6
 --nsmear = 30
@@ -38,18 +40,31 @@ function getplaq(g)
   printf("plaq ss: %-8g  st: %-8g  tot: %-8g\n", ps/s, pt/s, 0.5*(ps+pt)/s)
 end
 
-g = qopqdp.gauge()
-if fn then g:load(fn)
+g0 = qopqdp.gauge()
+if fn then g0:load(fn)
 else
-  --g:unit()
-  g:random()
+  --g0:unit()
+  g0:random()
 end
 
-getplaq(g)
+getplaq(g0)
 -- coulomb(j_decay, error, max iterations, overrelaxation param)
 -- note that here 0->x, ..., 3->t
---g:coulomb(3, 1e-7, 1000, 1.2)
---getplaq(g)
+--g0:coulomb(3, 1e-7, 1000, 1.2)
+--getplaq(g0)
+
+-- background EM field
+function setE(g, q)
+  -- U_z = exp(-i 2 pi q t/(nt*nx)) U_z
+  g(3):momentum({0,0,0,-q/nx},0,0,0,1)
+  -- U_t = exp(i 2 pi q z delta(t,nt-1)/nx) U_t
+  g(4):momentum({0,0,q,0},0,0,0,1,"timeslice"..(nt-1))
+end
+qu = 2
+qd = -1
+qn = 1
+g = g0:copy()
+setE(g, qn*qu)
 
 w = qopqdp.wilson()
 w:printcoeffs()
@@ -81,12 +96,12 @@ end
 function smear(f)
   f:smearGauss(g, 4, rsmear, nsmear)
 end
-smearsrc = smear
-smeardest = smear
+--smearsrc = smear
+--smeardest = smear
 
 function spectrum()
   local pt = {0,0,0,0}
-  local pt = randomPoint(L)
+  --local pt = randomPoint(L)
   printf("src point: %i %i %i %i\n", pt[1], pt[2], pt[3], pt[4])
   dest2 = pointProp(L, w, pt, smearsrc, smeardest, mass, resid, opts)
 

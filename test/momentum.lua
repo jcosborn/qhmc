@@ -23,22 +23,26 @@ f1:zero()
 f2:zero()
 test()
 
--- p coords, p color, p spin, offset coords, offset color, offset spin
-f1:momentum({0,0,0,0},0,0,{0,0,0,0},0,0)
-f2:momentum({0,0,0,0},0,0,{0,0,0,0},0,0)
+-- p coords, p color, p spin, factor, field factor
+f1:momentum({0,0,0,0},0,0,1,0)
+f2:momentum({0,0,0,0},0,0,1,0)
 test()
 
---f2:momentum({1,2,3,1},1,2,{0,0,0,0},0,0)
+--f2:momentum({1,2,3,1},1,2,1,0)
 --test()
 
-f1:momentum({1,2,3,1},1,2,{0,0,0,0},0,0)
-f2:momentum({1,2,3,1},1,2,{1,1,1,1},1,1)
+nc = f1:nc()
+ns = 4
+t = 2*math.pi*((6/nx)+(1/nt)+(1/nc)+(2/ns))
+s = complex(math.cos(t),-math.sin(t))
+f1:momentum({1,2,3,1},1,2,1,0)
+f2:momentum({1,2,3,1},1,2,s,0)
 test()
 
 f1:zero()
 f2:zero()
-f1:momentum({1,2,3,1},1,2,{0,0,0,0},0,0,"timeslice2")
-f2:momentum({1,2,3,1},1,2,{1,1,1,1},1,1,"timeslice2")
+f1:momentum({1,2,3,1},1,2,1,0,"timeslice2")
+f2:momentum({1,2,3,1},1,2,s,0,"timeslice2")
 test()
 
 TESTOFF()

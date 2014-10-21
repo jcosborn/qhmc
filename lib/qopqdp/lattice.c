@@ -382,6 +382,14 @@ static struct luaL_Reg lattice_reg[] = {
   { NULL, NULL}
 };
 
+// subsets: 
+// int ndirs, dirs[ndirs], origin[ndirs], block[ndirs]
+// int ndigits, base[ndigits]
+// double digitcoeffs[ndigits]
+// * k = dirs[i]  (i=1..ndirs)
+// * y[i] = (x[k]-origin[i])//block[i]
+// * digit[j] = floor(sum_l dc[j][l]*y[l]) % base[j]
+
 lattice_t *
 qopqdp_lattice_wrap(lua_State *L, QDP_Lattice *qlat,
 		    char *defPrec, int defNc, int doGC)

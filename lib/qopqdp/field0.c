@@ -395,7 +395,7 @@ ftype_clone(lua_State *L)
 #undef NC
 }
 
-// set from another field
+// set from constant or another field
 static int
 ftype_set(lua_State *L)
 {
@@ -703,54 +703,50 @@ ftype_site(lua_State *L)
   return rv;
 }
 
-#if defined(ARITH) && !defined(ISREAL) && !defined(COLORED2)
-// 1: field
-// 2: space-time momentum
-// 3: color momentum
-// 4: spin momentum
-// 5: scale
-// 6: original field value scale [ f = exp(i*p*x)(a+b*f) ]
-// 5: space-time offset
-// 6: color offset
-// 7: spin offset
-// 8: subset
+#if defined(ARITH) && !defined(ISREAL)
+// calculates: f = exp(i*[p*x+pc*ic+ps*is])(a+b*f)
+// 1: field (f)
+// 2: space-time momentum (p)
+// 3: color momentum (pc)
+// 4: spin momentum (ps)
+// 5: scale (a)
+// 6: original field value scale (b) 
+// 7: subset
 static int
 ftype_momentum(lua_State *L)
 {
 #define NC QDP_get_nc(t->field)
   BEGIN_ARGS;
   GET_FTYPE(t);
-  GET_TABLE_LEN_INDEX(nd, pi);
+  GET_AS_COMPLEX_ARRAY(nd, p);
   GET_COLOR_SPIN(p);
   OPT_AS_COMPLEX_DEF_REAL(aa,1);
   OPT_AS_COMPLEX_DEF_REAL(bb,0);
-  OPT_TABLE_LEN_INDEX(nd2, oi);
-  OPT_COLOR_SPIN_ZERO(o);
   OPT_SUBSET(sub, t->lat, QDP_all_L(t->qlat));
   END_ARGS;
-  //qassert(nd==nd2);
   qassert(nd==t->lat->nd);
   QLA_Complex a, b;
   QLA_c_eq_r_plus_ir(a, aa.r, aa.i);
   QLA_c_eq_r_plus_ir(b, bb.r, bb.i);
-  int p[nd], o[nd];
-  qhmc_get_int_array(L, pi, nd, p);
-  if(oi>0) qhmc_get_int_array(L, oi, nd, o);
-  else for(int i=0; i<nd; i++) o[i] = 0;
   int mynode = QDP_this_node;
-  double m[nd];
+  QLA_Complex m[nd];
   for(int i=0; i<nd; i++) {
-    m[i] = (6.2831853071795864769*p[i])/QDP_coord_size(i);
+    double tt = (2*QHMC_PI)/QDP_coord_size(i);
+    QLA_c_eq_r_plus_ir(m[i], tt*p[i].r, tt*p[i].i);
   }
-#ifdef COLORED
-  double mc = (6.2831853071795864769*pc)/QLA_Nc;
-#define PXC + mc*(ic-oc)
+#ifdef COLORED2
+  double mc1 = (2*QHMC_PI*pc1)/QLA_Nc;
+  double mc2 = (2*QHMC_PI*pc2)/QLA_Nc;
+#define PXC + mc1*ic1 + mc2*ic2
+#elif defined(COLORED)
+  double mc = (2*QHMC_PI*pc)/QLA_Nc;
+#define PXC + mc*ic
 #else
 #define PXC
 #endif
 #ifdef SPIN
-  double ms = (6.2831853071795864769*ps)/QLA_Ns;
-#define PXS + ms*(is-os)
+  double ms = (2*QHMC_PI*ps)/QLA_Ns;
+#define PXS + ms*is
 #else
 #define PXS
 #endif
@@ -759,16 +755,22 @@ ftype_momentum(lua_State *L)
       qlatype *ts = qdpptrreadwrite(t->field,s);
       int x[nd];
       QDP_get_coords(x, mynode, s);
-      QLA_Real px0 = 0;
+      QLA_Complex px0;
+      QLA_c_eq_r(px0, 0);
       for(int i=0; i<nd; i++) {
-	px0 += m[i]*(x[i]-o[i]);
+	QLA_c_peq_r_times_c(px0, x[i], m[i]);
       }
       LOOP_FTYPE_ELEM {
-	QLA_Real px = px0 PXC PXS;
 	QLA_Complex z1;
 	QLA_Complex z2;
+	QLA_Complex px;
+	QLA_Complex ipx;
+	QLA_Real pcs = 0 PXC PXS;
+	QLA_c_eq_c(px, px0);
+	QLA_c_peq_r(px, pcs);
+	QLA_c_eq_ic(ipx, px);
+	QLA_C_eq_cexp_C(&z1, &ipx);
 	QLA_c_eq_c_times_c_plus_c(z2, b, QLAELEM(*ts,i), a);
-	QLA_C_eq_cexpi_R(&z1, &px);
 	QLA_c_eq_c_times_c(QLAELEM(*ts,i), z1, z2);
       } END_LOOP_FTYPE_ELEM;
     });
@@ -778,6 +780,34 @@ ftype_momentum(lua_State *L)
 #endif
 
 #ifdef ISREAL
+// 1: field
+// 2: dimension (1..nd)
+// 3: (optional) subset
+static int
+ftype_latticeCoord(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  GET_INT(mu);
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  END_ARGS;
+  int nd = t->lat->nd;
+  if(mu<1 || mu>nd) {
+    qlerror(L, 1, "coordinate dimension out of range %i (%i)\n", mu, nd);
+  }
+  mu--;
+  int x[nd];
+  int s;
+  QDP_loop_sites(s, sub, {
+      QDP_get_coords_L(t->qlat, x, QDP_this_node, s);
+      qlatype *ts = qdpptrreadwrite(t->field, s);
+      *ts = x[mu];
+    });
+  return 0;
+#undef NC
+}
+
 // 1: field
 // 2: (optional) random state
 // 3: (optional) subset
@@ -794,7 +824,7 @@ ftype_randomUniform(lua_State *L)
   return 0;
 #undef NC
 }
-#endif
+#endif // ISREAL
 
 // default normalized to sigma = 1
 // 1: field
@@ -1623,7 +1653,7 @@ static struct luaL_Reg ftype_reg[] = {
   { "unit",          ftype_unit },
   { "point",         ftype_point },
   { "site",          ftype_site },
-#if !defined(ISREAL) && !defined(COLORED2)
+#if !defined(ISREAL)
   { "momentum",      ftype_momentum },
 #endif
   { "random",        ftype_random },
@@ -1644,6 +1674,7 @@ static struct luaL_Reg ftype_reg[] = {
   //{ "infnorm",    qopqdp_force_infnorm },
   { "reDot",         ftype_redot },
 #ifdef ISREAL
+  { "latticeCoord",  ftype_latticeCoord },
   { "randomUniform", ftype_randomUniform },
   { "dot",           ftype_redot },
   { "contract",      ftype_redot },
@@ -1669,19 +1700,13 @@ static struct luaL_Reg ftype_reg[] = {
 #endif
   { NULL, NULL}
 };
-// df:splitSpin({cv,...})
-// df:combineSpin({cv,...})
-
-// momentum -> f = exp(ipx)(a+b*f)
+// complex momentum -> f = exp(ipx)(a+b*f)
 // eqRxF
-
-// tr
 // shift
-// transport
-// multiply (R*T,C*T,M*M,M1*M)
-// split/combine spin
-// nc*CV <-> CM
-// check/make: GL,U,H,AH,SL,SU,TGL,TH,TAH
+// multiply (R*T,C*T,M*M,M1*M) and constant
+// kronecker product (FF, RF, CF, VD, DV) and constant
+// FFT
+// repesentations (V^n, M^n)
 
 ftype_t *
 ftype_wrap(lua_State *L, lattice_t *lat, qdptype *field, int doGC)
