@@ -34,6 +34,9 @@ function TESTPAT(s, ...)
     gsubs[n] = {...}
   end
 end
+function TESTIGNORE(s)
+  TESTPAT(s, ".*", "#%0")
+end
 function TESTPATFMT(s, f)
   local n = 1
   local function fmt()

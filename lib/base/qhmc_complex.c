@@ -309,7 +309,7 @@ qhmc_complex_newindex(lua_State *L)
       return 0;
     }
   }
-  qlerror0(L,1,"invalid complex element (%s)\n", key);
+  qlerror(L, 1, "invalid complex element (%s)\n", key);
   return 0;
 }
 
@@ -428,7 +428,7 @@ static int
 qhmc_complex(lua_State* L)
 {
   int nargs = lua_gettop(L);
-  qassert(nargs<=2);
+  qlassert(L, nargs<=2);
   qhmc_complex_t *c = qhmc_complex_create(L, 0, 0);
   if(nargs==1) {
     qhmc_complex_get_as(L, 1, c);

@@ -310,7 +310,7 @@ qopqdp_smear(lua_State *L)
 		topdir, sidedir, toplinknum, sidelinknum, coeffs);
   } else {
     printerr("unknown smearing type: %s\n", type);
-    ABORT(1);
+    LABORT(L, 1);
   }
   return 0;
 }
@@ -607,7 +607,7 @@ qopqdp_smearChain(lua_State *L)
 		topdir, sidedir, toplinknum, sidelinknum, coeffs);
   } else {
     printerr("unknown smearing type: %s\n", type);
-    ABORT(1);
+    LABORT(L, 1);
   }
   return 0;
 }

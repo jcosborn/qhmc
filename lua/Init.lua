@@ -111,3 +111,5 @@ do
     end
   end
 end
+
+Class = require 'pl.class'

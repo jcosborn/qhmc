@@ -59,11 +59,61 @@ qhmc_opt_double(lua_State *L, int *idx, int required, double def)
   return x;
 }
 
+// returns len:
+//  -1 if single value found
+//   n if table of 'n' values found
+// def otherwise
+int
+qhmc_opt_as_double_array_len(lua_State *L, int idx, int required, int def)
+{
+  int len = def, tlen = -1, i = idx;
+  int type = lua_type(L, idx);
+  if(type==LUA_TTABLE) {
+    tlen = tableLength(L, idx);
+    tableGetIndex(L, idx, 1);
+    i = -1;
+  }
+  int ii = i;
+  qhmc_opt_double(L, &ii, required, 0);
+  if(ii>i) len = tlen;
+  if(type==LUA_TTABLE) {
+    lua_pop(L, 1);
+  }
+  return len;
+}
+
+void
+qhmc_opt_as_double_array(lua_State *L, int *idx, int required, int n,
+			 double *t, int dn, double *def)
+{
+  int type = lua_type(L, *idx);
+  if(type==LUA_TTABLE) {
+    tableGetIndex(L, *idx, 1);
+    int ii = -1;
+    qhmc_opt_double(L, &ii, required, 0);
+    lua_pop(L, 1);
+    if(ii==-1) {
+      for(int i=0; i<abs(n); i++) t[i] = def[i];
+    } else {
+      for(int i=0; i<n; i++) {
+        tableGetIndex(L, *idx, i+1);
+	t[i] = lua_tonumber(L, -1);
+        lua_pop(L, 1);
+      }
+      (*idx)++;
+    }
+  } else {
+    double df = 0;
+    if(def!=NULL) df = *def;
+    *t = qhmc_opt_double(L, idx, required, df);
+  }
+}
+
 void
 qhmc_get_bool_array(lua_State *L, int idx, int n, int *a)
 {
   luaL_checktype(L, idx, LUA_TTABLE);
-  qassert(n==lua_objlen(L, idx));
+  qlassert(L, n==lua_objlen(L, idx));
   for(int i=0; i<n; i++) {
     lua_rawgeti(L, idx, i+1);
     a[i] = lua_toboolean(L, -1);
@@ -75,7 +125,7 @@ void
 qhmc_get_int_array(lua_State *L, int idx, int n, int *a)
 {
   luaL_checktype(L, idx, LUA_TTABLE);
-  qassert(n==lua_objlen(L, idx));
+  qlassert(L, n==lua_objlen(L, idx));
   for(int i=0; i<n; i++) {
     lua_rawgeti(L, idx, i+1);
     a[i] = lua_tointeger(L, -1);
@@ -97,7 +147,7 @@ void
 qhmc_get_float_array(lua_State *L, int idx, int n, float *a)
 {
   luaL_checktype(L, idx, LUA_TTABLE);
-  qassert(n==lua_objlen(L, idx));
+  qlassert(L, n==lua_objlen(L, idx));
   for(int i=0; i<n; i++) {
     lua_rawgeti(L, idx, i+1);
     a[i] = lua_tonumber(L, -1);
@@ -119,7 +169,7 @@ void
 qhmc_get_double_array(lua_State *L, int idx, int n, double *a)
 {
   luaL_checktype(L, idx, LUA_TTABLE);
-  qassert(n==lua_objlen(L, idx));
+  qlassert(L, n==lua_objlen(L, idx));
   for(int i=0; i<n; i++) {
     lua_rawgeti(L, idx, i+1);
     a[i] = lua_tonumber(L, -1);
@@ -159,7 +209,7 @@ qhmc_tableGetString(lua_State *L, int idx, char *key)
 static int
 qhmc_isMaster(lua_State *L)
 {
-  qassert(lua_gettop(L)==0);
+  qlassert(L, lua_gettop(L)==0);
   int ismaster = qhmc_master();
   lua_pushboolean(L, ismaster);
   return 1;
@@ -168,7 +218,7 @@ qhmc_isMaster(lua_State *L)
 static int
 qhmc_dtime(lua_State *L)
 {
-  qassert(lua_gettop(L)==0);
+  qlassert(L, lua_gettop(L)==0);
   double t = 0;
 #if _POSIX_TIMERS > 0
   struct timespec ts;
@@ -188,7 +238,7 @@ static int fdout, fderr;
 static int
 qhmc_remapout(lua_State *L)
 {
-  qassert(lua_gettop(L)==1);
+  qlassert(L, lua_gettop(L)==1);
   lua_pushvalue(L, -1);
   const char *s = luaL_checkstring(L, -1);
   lua_pop(L, 1);
@@ -206,7 +256,7 @@ qhmc_remapout(lua_State *L)
 static int
 qhmc_restoreout(lua_State *L)
 {
-  qassert(lua_gettop(L)==0);
+  qlassert(L, lua_gettop(L)==0);
   fflush(stdout);
   dup2(fdout, 1);
   close(fdout);

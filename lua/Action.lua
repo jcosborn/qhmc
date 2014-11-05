@@ -29,6 +29,7 @@ function Action(opts)
     local xi0 = self.xi0 or 1
     local nd = #self.field.lattice.latsize
     local nd1 = nd-1
+    self.xi0 = xi0
     self.act0 = vol*nd*(0.5*nd1*plaq + nd1*rect + 4*pgm + 0.5*nd1*adjplaq)
     self.act0 = self.act0*(1+xi0*xi0)/(2*xi0)
   elseif self.kind == "momentum" then
@@ -129,17 +130,26 @@ function actionmt.GetForce(self, momentum, field, eps)
   if not self.momentum then
     self.momentum = self.field:Momentum()
   end
-  local f = self.momentum.field
+  local m = momentum:GetField()
+  local g = field:GetField()
+  local f = self.momentum:GetField()
   f:zero()
-  field.field:force(f, self.coeffs, self.beta, self.xi0)
-  momentum.field:update(f, eps)
+  g:force(f, self.coeffs, self.beta, self.xi0)
+  --momentum.field:update(f, eps)
+  self.momentum:IncrementUpdateNumber()
+  --m:combine({m,f}, {1,eps})
+  for i=1,#m do 
+    local mi = m(i)
+    mi:combine({mi,f(i)},{1,eps})
+  end
+  momentum:IncrementUpdateNumber()
   local gf2 = eps*eps*f:norm2()
   local gfi = eps*f:infnorm()
   updateStats(self, "getForce",
 	      {seconds=(clock()-t0),nUpdate=1,rms=gf2,max=gfi})
   if self.printForce then
-    local ff2 = momentum.field:norm2()
-    printf("gauge force: norm %g\tinf %g\tff2: %g\n", gf2, gfi, ff2)
+    local ff2 = m:norm2()
+    printf("%s:GetForce: norm %g\tinf %g\tff2: %g\n", self.name, gf2, gfi, ff2)
   end
 end
 

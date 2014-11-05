@@ -85,6 +85,12 @@ qlamakegroup(int NC, QLA_ColorMatrix *x, int g)
     QLA_M_eq_r_times_M(x, &half, &y);
   } break;
   }
+  if(g&GROUP_T) {
+    QLA_Complex c1, c2;
+    QLA_C_eq_trace_M(&c1, x);
+    QLA_c_eq_r_times_c(c2, 1./QLA_Nc, c1);
+    QLA_M_meq_c(x, &c2);
+  }
   if(g&GROUP_S) {
     QLA_D_Complex d1, d2;
     QLA_ColorMatrix y;
@@ -93,16 +99,15 @@ qlamakegroup(int NC, QLA_ColorMatrix *x, int g)
     QLA_c_eq_r_plus_ir(d1, QLA_real(c), QLA_imag(c));
     QLA_D_C_eq_clog_C(&d2, &d1);
     QLA_c_eq_r_times_c(d1, -1./QLA_Nc, d2);
+    // FIX SH & SAH?
+    //{
+    //double w = (2*QHMC_PI)/QLA_Nc;
+    //double im = QLA_imag(d1);
+    //double im2 = im + round((QHMC_PI-im)/w)*w;
     QLA_D_C_eq_cexp_C(&d2, &d1);
     QLA_c_eq_r_plus_ir(c, QLA_real(d2), QLA_imag(d2));
     QLA_M_eq_M(&y, x);
     QLA_M_eq_C_times_M(x, &c, &y);
-  }
-  if(g&GROUP_T) {
-    QLA_Complex c1, c2;
-    QLA_C_eq_trace_M(&c1, x);
-    QLA_c_eq_r_times_c(c2, 1./QLA_Nc, c1);
-    QLA_M_meq_c(x, &c2);
   }
 }
 

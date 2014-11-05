@@ -1,6 +1,6 @@
 AM_CFLAGS = -I$(top_srcdir)/include -DLUA_COMPAT_ALL \
- -DPREFIXHMC=\"$(prefix)/hmc\" \
- -DSRCDIRHMC=\"$(abs_top_srcdir)/hmc\"
+ -DPREFIXLUA=\"$(prefix)/lua\" \
+ -DSRCDIRLUA=\"$(abs_top_srcdir)/lua\"
 
 lib_LIBRARIES = ../libqhmc_base.a
 

@@ -5,6 +5,8 @@ fieldmt._type = "Field"
 fieldmt.__index = fieldmt
 local momentummap =  -- momentum lie group for given gauge group
   { GL="GL", SL="TGL", U="AH", SU="TAH", R="R", SR="TR", O="AS", SO="TAS" }
+local groupNum = { GL=0, U=1, H=2, AH=3, SL=4, SU=5, SH=6, SAH=7, TGL=8,
+		   TU=9, TH=10, TAH=11, TSL=12, TSU=13, TSH=14, TSAH=15 }
 
 function Field(lattice, opts)
   local f = {}
@@ -22,7 +24,8 @@ function Field(lattice, opts)
   tableCopyTo(f, opts)
   if f.kind == "gauge" then
     if f.momentum then
-      f.field = qopqdp.force(f.precision, f.nc, lattice.qdplat)
+      --f.field = qopqdp.force(f.precision, f.nc, lattice.qdplat)
+      f.field = qopqdp.gauge(f.precision, f.nc, lattice.qdplat)
       f.name = "M" .. f.group .. f.nc
     else
       f.field = qopqdp.gauge(f.precision, f.nc, lattice.qdplat)
@@ -66,6 +69,14 @@ function SetTransform(newfs, oldfs, funcs, args)
       nf.parents[p] = -1
     end
   end
+end
+
+function fieldmt:GetUpdateNumber()
+  return self.nupdate
+end
+
+function fieldmt:IncrementUpdateNumber()
+  self.nupdate = self.nupdate + 1
 end
 
 -- group, momentum group
@@ -160,18 +171,34 @@ end
 
 function fieldmt:Norm2()
   local f = self:GetField()
-  return f:norm2()
+  local s,t = 0,{}
+  for i=1,#f do
+    local fn = f(i):norm2()
+    s = s + fn
+    t[i] = fn
+  end
+  return s, t
 end
 
 function fieldmt:Random(var) -- ... for variance
-  if self.momentum then
+  local f = self.field
+  local v
+  if type(var) ~= "table" then v = var or 1 end
+  if self.group == "TAH" then
+    f:randomTAH()
     if var then
-      self.field:random(var) -- FIXME: only does TAH
-    else
-      self.field:random() -- FIXME: only does TAH
+      for i=1,#f do
+	local fi = f(i)
+	fi:combine({fi},{v or var[i]})
+      end
     end
   else
-    self.field:random() -- FIXME: only does SU
+    local gr = qopqdp.groupNumber(self.group) or 0
+    for i=1,#f do
+      local fi = f(i)
+      fi:random(v or var[i])
+      fi:makeGroup(gr)
+    end
   end
   self.nupdate = self.nupdate + 1
 end

@@ -54,13 +54,13 @@ qopqdp_writer_write(lua_State *L)
   QDP_string_set(md, (char *)mds);
   if(prec==QDP_Precision) {
     if(istable) {
-      wquark_t *wq[nfields];
-      qopqdp_wquark_array_check(L, 2, nfields, wq);
+      ldfermion_t *wq[nfields];
+      qopqdp_ldfermion_array_check(L, 2, nfields, wq);
       QDP_DiracFermion *df[nfields];
       for(int i=0; i<nfields; i++) df[i] = wq[i]->df;
       QDP_vwrite_D(w->qw, md, df, nfields);
     } else {
-      wquark_t *wq = qopqdp_wquark_check(L, 2);
+      ldfermion_t *wq = qopqdp_ldfermion_check(L, 2);
       QDP_write_D(w->qw, md, wq->df);
     }
   } else {
@@ -73,8 +73,8 @@ qopqdp_writer_write(lua_State *L)
 #endif
     if(istable) {
 #define NC QDP_get_nc(wq[0]->df)
-      wquark_t *wq[nfields];
-      qopqdp_wquark_array_check(L, 2, nfields, wq);
+      ldfermion_t *wq[nfields];
+      qopqdp_ldfermion_array_check(L, 2, nfields, wq);
       QDPO(DiracFermion) *df[nfields];
       for(int i=0; i<nfields; i++) {
 	df[i] = QDPO(create_D)();
@@ -87,7 +87,7 @@ qopqdp_writer_write(lua_State *L)
 #undef NC
     } else {
 #define NC QDP_get_nc(wq->df)
-      wquark_t *wq = qopqdp_wquark_check(L, 2);
+      ldfermion_t *wq = qopqdp_ldfermion_check(L, 2);
       QDPO(DiracFermion) *df = QDPO(create_D)();
       QDPOP(D_eq_D)(df, wq->df, QDP_all);
       QDPO(write_D)(w->qw, md, df);

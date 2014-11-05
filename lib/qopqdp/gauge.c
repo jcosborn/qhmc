@@ -110,6 +110,17 @@ qopqdp_gauge_lattice(lua_State *L)
 }
 
 static int
+qopqdp_gauge_zero(lua_State *L)
+{
+  qassert(lua_gettop(L)==1);
+  gauge_t *g = qopqdp_gauge_check(L, -1);
+  for(int i=0; i<g->nd; i++) {
+    QDP_M_eq_zero(g->links[i], QDP_all_L(g->qlat));
+  }
+  return 0;
+}
+
+static int
 qopqdp_gauge_unit(lua_State *L)
 {
   qassert(lua_gettop(L)==1);
@@ -185,6 +196,118 @@ qopqdp_gauge_random(lua_State *L)
   }
   QDP_reset_S(g->lat->rs);
   return 0;
+}
+
+static void
+randforce(NCPROT QLA_ColorMatrix(*m), int i, void *args)
+{
+  QLA_RandomState *s = (QLA_RandomState*)args + i;
+  QLA_Real s2 = 0.70710678118654752440;  // sqrt(1/2)
+  QLA_Real s3 = 0.57735026918962576450;  // sqrt(1/3)
+  QLA_Real r3 = s2*QLA_gaussian(s);
+  QLA_Real r8 = s2*s3*QLA_gaussian(s);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,0,0), 0, r3+r8);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,1,1), 0, -r3+r8);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,2,2), 0, -2*r8);
+  QLA_Real r01 = s2*QLA_gaussian(s);
+  QLA_Real r02 = s2*QLA_gaussian(s);
+  QLA_Real r12 = s2*QLA_gaussian(s);
+  QLA_Real i01 = s2*QLA_gaussian(s);
+  QLA_Real i02 = s2*QLA_gaussian(s);
+  QLA_Real i12 = s2*QLA_gaussian(s);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,0,1),  r01, i01);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,1,0), -r01, i01);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,0,2),  r02, i02);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,2,0), -r02, i02);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,1,2),  r12, i12);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,2,1), -r12, i12);
+}
+
+static int
+qopqdp_force_random(lua_State *L)
+{
+#define NC QDP_get_nc(g->links[0])
+  BEGIN_ARGS;
+  GET_GAUGE(g);
+  END_ARGS;
+  QDP_RandomState *rs = g->lat->rs;
+  qassert(rs!=NULL);
+  if(QLA_Nc==3) { // use MILC conventions
+    QLA_RandomState *s = QDP_expose_S(rs);
+    for(int i=0; i<g->nd; i++) {
+      QDP_M_eq_funcia(g->links[i], randforce, s, QDP_all_L(g->qlat));
+    }
+    QDP_reset_S(rs);
+  } else {
+    QDP_ColorMatrix *m = QDP_create_M_L(g->qlat);
+    for(int i=0; i<g->nd; i++) {
+      QDP_M_eq_gaussian_S(m, rs, QDP_all_L(g->qlat));
+      QDP_M_eq_antiherm_M(g->links[i], m, QDP_all_L(g->qlat));
+    }
+    QDP_destroy_M(m);
+  }
+  return 0;
+#undef NC
+}
+
+static int
+qopqdp_gauge_norm2(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_GAUGE(g);
+  END_ARGS;
+  QLA_Real nrm = 0;
+  int nd = g->nd;
+  double tn[nd];
+  for(int i=0; i<nd; i++) {
+    QLA_Real t;
+    QDP_r_eq_norm2_M(&t, g->links[i], QDP_all_L(g->qlat));
+    nrm += t;
+    tn[i] = t;
+  }
+  lua_pushnumber(L, nrm);
+  qhmc_push_double_array(L, nd, tn);
+  return 2;
+}
+
+static int
+qopqdp_gauge_infnorm(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_GAUGE(g);
+  END_ARGS;
+  QLA_Real nrm = 0;
+  int nd = g->nd;
+  double tn[nd];
+  for(int i=0; i<nd; i++) {
+    QLA_Real t = infnorm_M(g->links[i], QDP_all_L(g->qlat));
+    if(t>nrm) nrm = t;
+    tn[i] = t;
+  }
+  lua_pushnumber(L, nrm);
+  qhmc_push_double_array(L, nd, tn);
+  return 2;
+}
+
+static int
+qopqdp_force_derivForce(lua_State *L)
+{
+#define NC QDP_get_nc(f->links[0])
+  BEGIN_ARGS;
+  GET_GAUGE(f);
+  GET_GAUGE(g);
+  END_ARGS;
+  QDP_ColorMatrix *t = QDP_create_M_L(f->qlat);
+  for(int mu=0; mu<4; mu++) {
+    QDP_M_eq_M_times_Ma(t, g->links[mu], f->links[mu], QDP_all_L(f->qlat));
+    // factor of -2 for GL -> U
+    QDP_M_eq_r_times_M(t, (QLA_Real[1]){-2}, t, QDP_all_L(f->qlat));
+    QDP_M_eq_antiherm_M(f->links[mu], t, QDP_all_L(f->qlat));
+  }
+  //info->final_flop += (4.*(198+24+18))*QDP_sites_on_node;
+  QDP_destroy_M(t);
+  return 0;
+#undef NC
 }
 
 // 1: gauge
@@ -545,23 +668,32 @@ qopqdp_gauge_action(lua_State *L)
 static int
 qopqdp_gauge_force(lua_State *L)
 {
-  int nargs = lua_gettop(L);
-  qassert(nargs>=3&&nargs<=5);
-  gauge_t *g = qopqdp_gauge_check(L, 1);
-  force_t *f = qopqdp_force_check(L, 2);
-  for(int i=0; i<f->nd; i++) QDP_M_eq_zero(f->force[i], QDP_all_L(g->qlat));
+  BEGIN_ARGS;
+  GET_GAUGE(g);
+  OPT_GAUGE(fg, NULL);
+  force_t *f = NULL;
+  if(fg==NULL) {
+    GET_FORCE(f0);
+    f = f0;
+  }
   QOP_gauge_coeffs_t coeffs;
-  get_gauge_coeffs(L, &coeffs, 3);
-  double beta = luaL_optnumber(L, 4, 1);
-  QLA_Real ixi0=1, xi0=luaL_optnumber(L, 5, 1);
+  get_gauge_coeffs(L, &coeffs, nextarg); nextarg++;
+  OPT_DOUBLE(beta, 1);
+  OPT_DOUBLE(xi0d, 1);
+  END_ARGS;
+  int nd = g->nd;
+  QDP_ColorMatrix *force[nd];
+  for(int i=0; i<nd; i++) force[i] = f ? f->force[i] : fg->links[i];
+  for(int i=0; i<nd; i++) QDP_M_eq_zero(force[i], QDP_all_L(g->qlat));
+  QLA_Real ixi0=1, xi0=xi0d;
   if(xi0!=1) {
     ixi0 = 1/xi0;
     beta *= ixi0;
-    QDP_M_eq_r_times_M(g->links[g->nd-1], &xi0, g->links[g->nd-1], QDP_all_L(g->qlat));
+    QDP_M_eq_r_times_M(g->links[nd], &xi0, g->links[nd], QDP_all_L(g->qlat));
   }
   QOP_info_t info;
   QOP_GaugeField *qg = QOP_create_G_from_qdp(g->links);
-  QOP_Force *qf = QOP_create_F_from_qdp(f->force);
+  QOP_Force *qf = QOP_create_F_from_qdp(force);
   switch(g->nc) {
 #ifdef HAVE_NC3
   case 3:
@@ -572,14 +704,19 @@ qopqdp_gauge_force(lua_State *L)
   default: 
    QOP_symanzik_1loop_gauge_force(&info, qg, qf, &coeffs, beta);
   }
-  QOP_extract_F_to_qdp(f->force, qf);
+  QOP_extract_F_to_qdp(force, qf);
   QOP_destroy_G(qg);
   QOP_destroy_F(qf);
   if(xi0!=1) {
     QDP_M_eq_r_times_M(g->links[g->nd-1], &ixi0, g->links[g->nd-1], QDP_all_L(g->qlat));
   }
-  f->time = info.final_sec;
-  f->flops = info.final_flop;
+  if(f) {
+    f->time = info.final_sec;
+    f->flops = info.final_flop;
+  } else {
+    fg->time = info.final_sec;
+    fg->flops = info.final_flop;
+  }
   return 0;
 }
 
@@ -587,44 +724,45 @@ static int
 qopqdp_gauge_update(lua_State *L)
 {
 #define NC QDP_get_nc(g->links[0])
-  qassert(lua_gettop(L)==3);
-  gauge_t *g = qopqdp_gauge_check(L, 1);
-  force_t *f = qopqdp_force_check(L, 2);
-  int nd = f->nd;
+  BEGIN_ARGS;
+  GET_GAUGE(g);
+  OPT_GAUGE(fg, NULL);
+  force_t *f = NULL;
+  if(fg==NULL) {
+    GET_FORCE(f0);
+    f = f0;
+  }
+  GET_AS_DOUBLE_ARRAY(ns, s); ns = abs(ns);
+  OPT_INT(gr, GROUP_TAH);
+  END_ARGS;
+  int nd = g->nd;
   double eps[nd];
-  if(lua_type(L,3)==LUA_TTABLE) {
-    qhmc_get_double_array(L, 3, nd, eps);
-  } else {
-    double s = luaL_checknumber(L, 3);
-    for(int i=0; i<nd; i++) eps[i] = s;
-  }
-#if 0
-  {
-    QLA_ColorMatrix *cm = QDP_expose_M(f->force[0]);
-    printf("%g\t%g\n", eps[0], QLA_imag(QLA_elem_M(*cm,0,0)));
-    QDP_reset_M(f->force[0]);
-  }
-#endif
-  //get_gauge_links(g);
+  for(int i=0; i<nd; i++) eps[i] = (i<ns) ? s[i] : eps[i-1];
+  QDP_ColorMatrix *force[nd];
+  for(int i=0; i<nd; i++) force[i] = f ? f->force[i] : fg->links[i];
+
   QDP_ColorMatrix *m1 = QDP_create_M_L(g->qlat);
   QDP_ColorMatrix *m2 = QDP_create_M_L(g->qlat);
   for(int i=0; i<nd; i++) {
     QLA_Real teps = eps[i];
-    QDP_M_eq_r_times_M(m1, &teps, f->force[i], QDP_all_L(g->qlat));
-    //QDP_M_eq_exp_M(m2, m1, QDP_all_L(m2));
-    QDP_M_eq_expTA_M(m2, m1, QDP_all_L(g->qlat));  // assume traceless antihermitian
+    QDP_M_eq_r_times_M(m1, &teps, force[i], QDP_all_L(g->qlat));
+    if(gr==GROUP_TAH) {
+      QDP_M_eq_expTA_M(m2, m1, QDP_all_L(g->qlat));
+    } else {
+      QDP_M_eq_exp_M(m2, m1, QDP_all_L(g->qlat));
+    }
     QDP_M_eq_M_times_M(m1, m2, g->links[i], QDP_all_L(g->qlat));
     QDP_M_eq_M(g->links[i], m1, QDP_all_L(g->qlat));
 #ifdef QHMC_REPRO_UNIFORM
     int err;
-#define chk(x, i, s) \
+#define chk(x, i, s)		      \
     err = check_uniform_M((x)[i], s); \
-    if(err) { \
+    if(err) {								\
       fprintf(stderr, "%i repro error %s %i index %i\n", QDP_this_node, #x, i, err-1); \
-      QDP_abort(1); \
+      QDP_abort(1);							\
     }
-    chk(f->force, i, QDP_even);
-    chk(f->force, i, QDP_odd);
+    chk(force, i, QDP_even);
+    chk(force, i, QDP_odd);
     chk(g->links, i, QDP_even);
     chk(g->links, i, QDP_odd);
 #endif
@@ -904,8 +1042,13 @@ static struct luaL_Reg gauge_reg[] = {
   { "__call",   qopqdp_gauge_call },
   { "nc",       qopqdp_gauge_nc },
   { "lattice",  qopqdp_gauge_lattice },
+  { "zero",     qopqdp_gauge_zero },
   { "unit",     qopqdp_gauge_unit },
   { "random",   qopqdp_gauge_random },
+  { "randomTAH",qopqdp_force_random },
+  { "norm2",      qopqdp_gauge_norm2 },
+  { "infnorm",    qopqdp_gauge_infnorm },
+  { "derivForce", qopqdp_force_derivForce },
   { "load",     qopqdp_gauge_load },
   { "save",     qopqdp_gauge_save },
   { "set",      qopqdp_gauge_set },
@@ -937,6 +1080,8 @@ qopqdp_gauge_create(lua_State *L, int nc, lattice_t *lat)
   g->lat = lat;
   g->qlat = lat->qlat;
   g->nc = nc;
+  g->time = 0;
+  g->flops = 0;
   for(int i=0; i<nd; i++) {
     g->links[i] = QDP_create_M_L(lat->qlat);
   }

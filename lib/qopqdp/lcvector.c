@@ -5,6 +5,7 @@
 #define FTYPE cvector
 #define FTYPEC CVECTOR
 #define ISVECTOR
+#define ISCVECTOR
 #define ARITH
 #define PRECISE
 #define COLORED
@@ -108,6 +109,17 @@ qlamakegroup(int NC, QLA_ColorVector *x, int g)
     }
   } break;
   }
+  if(g&GROUP_T) {
+    QLA_Complex c1, c2;
+    QLA_c_eq_r(c1, 0);
+    for(int ic=0; ic<QLA_Nc; ic++) {
+      QLA_c_peq_c(c1, QLA_elem_V(*x,ic));
+    }
+    QLA_c_eq_r_times_c(c2, 1./QLA_Nc, c1);
+    for(int ic=0; ic<QLA_Nc; ic++) {
+      QLA_c_meq_c(QLA_elem_V(*x,ic), c2);
+    }
+  }
   if(g&GROUP_S) {
     QLA_D_Complex d1, d2;
     QLA_ColorVector y;
@@ -125,17 +137,6 @@ qlamakegroup(int NC, QLA_ColorVector *x, int g)
     QLA_c_eq_r_plus_ir(c, QLA_real(d2), QLA_imag(d2));
     QLA_V_eq_V(&y, x);
     QLA_V_eq_C_times_V(x, &c, &y);
-  }
-  if(g&GROUP_T) {
-    QLA_Complex c1, c2;
-    QLA_c_eq_r(c1, 0);
-    for(int ic=0; ic<QLA_Nc; ic++) {
-      QLA_c_peq_c(c1, QLA_elem_V(*x,ic));
-    }
-    QLA_c_eq_r_times_c(c2, 1./QLA_Nc, c1);
-    for(int ic=0; ic<QLA_Nc; ic++) {
-      QLA_c_meq_c(QLA_elem_V(*x,ic), c2);
-    }
   }
 }
 

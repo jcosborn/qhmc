@@ -232,10 +232,10 @@ function actmt.refresh(a, g)
   for i,r in ipairs(a.rhmc) do
     for j,t in ipairs(r.GR) do
       if t.allmass then
-	t.qt2:random("all")
+	t.qt2:random(math.sqrt(0.5), "all")
 	a.h:D(t.qt, t.qt2, t.allmass, "even", "all")
       else
-	t.qt:random("even")
+	t.qt:random(math.sqrt(0.5), "even")
       end
       if t.pt then
 	a:solve(t.pt, t.qt, t.masses, t.resid, "even", t.solveopts, t.cgnum)
@@ -318,7 +318,7 @@ function actmt.pbp(a, g, mass, resid, opts)
   a:set(g, 2)
   local x = getqt(a, 1)
   local y = getqt(a, 2)
-  x:random()
+  x:random(math.sqrt(0.5))
   a:solve({y}, x, {mass}, resid, "all", opts, 0)
   return mass*y:norm2()/a.ga.vol, x:norm2()/a.ga.vol
 end

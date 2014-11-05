@@ -36,10 +36,10 @@ qopqdp_lattice_gc(lua_State *L)
     }
   }
   free(lat->eodir);
-  if(lat->rs) {
-    QDP_destroy_S(lat->rs);
-    lat->rs = NULL;
-  }
+  //if(lat->rs) {
+  //QDP_destroy_S(lat->rs);
+  //lat->rs = NULL;
+  //}
   if(lat->qlat!=QDP_get_default_lattice()) {
     QDP_destroy_lattice(lat->qlat);
     lat->qlat = NULL;
@@ -98,7 +98,9 @@ qopqdp_lattice_seed(lua_State *L)
   OPT_SUBSET(sub, l, QDP_all_L(l->qlat));
   END_ARGS;
   if(l->rs==NULL) {
-    l->rs = QDP_create_S_L(l->qlat);
+    qopqdp_rstate_t *r = qopqdp_rstate_create(L, l);
+    l->rs = r->field;
+    QHMC_USERTABLE_SETFIELD(L, 1, "rs");
   }
   qhmc_qopqdp_seed_func(l->rs, seed, uniform, sub);
   return 0;
@@ -107,14 +109,10 @@ qopqdp_lattice_seed(lua_State *L)
 static int
 qopqdp_lattice_get_rstate(lua_State *L)
 {
-  BEGIN_ARGS;
-  GET_LATTICE(l);
-  END_ARGS;
-  if(l->rs==NULL) {
-    lua_pushnil(L);
-  } else {
-    qopqdp_rstate_wrap(L, l, l->rs, 0);
-  }
+  //BEGIN_ARGS;
+  //GET_LATTICE(l);
+  //END_ARGS;
+  QHMC_USERTABLE_GETFIELD(L, 1, "rs");
   return 1;
 }
 
@@ -126,6 +124,7 @@ qopqdp_lattice_set_rstate(lua_State *L)
   GET_QOPQDP_RSTATE(rs);
   END_ARGS;
   l->rs = rs->field;
+  QHMC_USERTABLE_SETFIELD(L, 1, "rs");
   return 0;
 }
 
@@ -396,6 +395,7 @@ qopqdp_lattice_wrap(lua_State *L, QDP_Lattice *qlat,
 {
   int nd = QDP_ndim_L(qlat);
   lattice_t *lat = lua_newuserdata(L, sizeof(lattice_t));
+  QHMC_USERTABLE_CREATE(L, -1);
   lat->qlat = qlat;
   lat->timeslices = NULL;
   lat->staggered = NULL;

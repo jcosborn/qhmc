@@ -11,9 +11,10 @@ function Lattice(latsize)
   self.defaultPrecision = 'D'
   self.defaultGroup = "SU"
   self.defaultNc = 3
-  self.volume = 1
-  for i=1,#latsize do self.volume=self.volume*latsize[i] end
+  --self.volume = 1
+  --for i=1,#latsize do self.volume=self.volume*latsize[i] end
   self.qdplat = qopqdp.lattice(latsize)
+  self.volume = self.qdplat:volume()
   return setmetatable(self,latticemt)
 end
 

@@ -22,11 +22,11 @@
 #define TRACE do{if0{printf("%s %s %i\n", __FILE__, __func__, __LINE__);fflush(stdout);}} while(0)
 #define ABORT(c) exit(c)
 #define LABORT(L,c) luaL_error(L, "aborted with code %d\n", c)
-#define qerror(c,...) do { TRACE; printf(__VA_ARGS__); ABORT(c); } while(0)
-#define qlerror(L,c,...) do{ TRACE; printf(__VA_ARGS__); LABORT(L,c); }while(0)
-#define qassert(x) do{ if(!(x)) qerror(1,"assert failed (%s)\n", #x); }while(0)
+#define qerror(c,...)    do {TRACE;printf(__VA_ARGS__); ABORT(c);  } while(0)
+#define qlerror(L,c,...) do {TRACE;printf(__VA_ARGS__);LABORT(L,c);} while(0)
+#define qassert(x)    do{if(!(x)) qerror(1,"assert failed (%s)\n",#x);}while(0)
 #define qlassert(L,x) do{if(!(x))qlerror(L,1,"assert failed (%s)\n",#x);}while(0)
-#define qerror0(c,...) do { if0 qerror(c,__VA_ARGS__); } while(0)
+#define qerror0(c,...)    do { if0  qerror(c,__VA_ARGS__); } while(0)
 #define qlerror0(L,c,...) do { if0 qlerror(L,c,__VA_ARGS__); } while(0)
 #define qassert0(x) do { if0 qassert(x); } while(0)
 #define qlassert0(L,x) do { if0 qlassert(L,x); } while(0)
@@ -63,12 +63,20 @@
 #define GET_DOUBLE_ARRAY(n,v) int n; get_table_len(L,nextarg,&n); double v[n]; qhmc_get_double_array(L,nextarg,n,v); nextarg++
 #define OPT_FUNCTION_INDEX(f,d) int f=(d);if(lua_isfunction(L,nextarg))f=nextarg++
 #define GET_TABLE_LEN_INDEX(l,i) int l,i=nextarg; get_table_len(L,i,&l); nextarg++
-#define OPT_TABLE_LEN_INDEX(l,i) int l,i=0; { if(lua_istable(L,nextarg)) { i=nextarg; get_table_len(L,i,&l); nextarg++; } }
-#define END_ARGS qassert(nextarg==nargs+1)
+#define OPT_TABLE_LEN_INDEX(l,i) int l=-1,i=0; { if(lua_istable(L,nextarg)) { i=nextarg; get_table_len(L,i,&l); nextarg++; } }
+#define END_ARGS qlassert(L,nextarg==nargs+1)
+#define GET_AS_DOUBLE_ARRAY(n,t) int n=qhmc_opt_as_double_array_len(L,nextarg,1,0); double t[n==0?1:abs(n)]; qhmc_opt_as_double_array(L,&nextarg,1,n,t,0,NULL)
+#define OPT_AS_DOUBLE_ARRAY(n,t,dn,dt) int n=qhmc_opt_as_double_array_len(L,nextarg,0,dn); double t[n==0?1:abs(n)]; qhmc_opt_as_double_array(L,&nextarg,0,n,t,dn,dt)
+
+#define QHMC_USERTABLE_CREATE(L,i) { int _i=lua_absindex(L,i); lua_newtable(L); lua_setuservalue(L,_i); }
+#define QHMC_USERTABLE_GETFIELD(L,i,k) lua_getuservalue(L,i); lua_getfield(L,-1,k); lua_remove(L,-2)
+#define QHMC_USERTABLE_SETFIELD(L,i,k) lua_getuservalue(L,i); lua_insert(L,-2); lua_setfield(L,-2,k); lua_pop(L,1)
 
 const char *qhmc_opt_string(lua_State *L, int *idx, int required, char *def);
 int qhmc_opt_int(lua_State *L, int *idx, int required, int def);
 double qhmc_opt_double(lua_State *L, int *idx, int required, double def);
+int qhmc_opt_as_double_array_len(lua_State *L, int idx, int required, int def);
+void qhmc_opt_as_double_array(lua_State *L, int *idx, int required, int n, double *t, int dn, double *def);
 
 void qhmc_get_bool_array(lua_State *L, int idx, int n, int *a);
 void qhmc_get_int_array(lua_State *L, int idx, int n, int *a);

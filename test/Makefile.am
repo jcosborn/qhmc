@@ -14,6 +14,7 @@ TESTS = \
  point.lua \
  random.lua \
  subset.lua \
+ stagObs.lua \
  milc-su3_rhmc_hisq.lua \
  wilsonHMC.lua \
  wilson2fHMC.lua \
@@ -28,6 +29,7 @@ EXTRA_DIST = \
  point.lua point.raw point.ref \
  random.lua random.raw random.ref \
  subset.lua subset.raw subset.ref \
+ stagObs.lua stagObs.raw stagObs.ref \
  milc-su3_rhmc_hisq.lua milc-su3_rhmc_hisq.raw milc-su3_rhmc_hisq.ref \
   milc-su3_rhmc_hisq.in milc-su3_rhmc_hisq.rat \
  wilsonHMC.lua wilsonHMC.raw wilsonHMC.ref \

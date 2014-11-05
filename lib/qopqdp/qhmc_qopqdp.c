@@ -207,7 +207,8 @@ qhmc_qopqdp_master(void)
 static int
 qopqdp_master(lua_State *L)
 {
-  qassert(lua_gettop(L)==0);
+  BEGIN_ARGS;
+  END_ARGS;
   lua_pushboolean(L, qhmc_qopqdp_master());
   return 1;
 }
@@ -215,7 +216,8 @@ qopqdp_master(lua_State *L)
 static int
 qopqdp_rank(lua_State *L)
 {
-  qassert(lua_gettop(L)==0);
+  BEGIN_ARGS;
+  END_ARGS;
   lua_pushinteger(L, QDP_this_node);
   return 1;
 }
@@ -223,7 +225,8 @@ qopqdp_rank(lua_State *L)
 static int
 qopqdp_dtime(lua_State *L)
 {
-  qassert(lua_gettop(L)==0);
+  BEGIN_ARGS;
+  END_ARGS;
   lua_pushnumber(L, QMP_time());
   return 1;
 }
@@ -235,6 +238,9 @@ qopqdp_defaultNc(lua_State *L)
   OPT_INT(nc, 0);
   END_ARGS;
   if(nc>0) {
+#if QOP_Colors != 'N'
+    qlassert(L, nc==QOP_Colors);
+#endif
     defaultNc = nc;
     return 0;
   }
@@ -307,15 +313,12 @@ qopqdp_lattice(lua_State *L)
 static int
 qopqdp_profile(lua_State *L)
 {
-  int nargs = lua_gettop(L);
-  qassert(nargs>=0 || nargs<=1);
-  int r;
+  BEGIN_ARGS;
+  OPT_INT(v, 0);
+  END_ARGS;
+  int r = QDP_profcontrol(v);
   if(nargs==0) {
-    r = QDP_profcontrol(0);
     QDP_profcontrol(r);
-  } else {
-    int v = luaL_checkinteger(L, 1);
-    r = QDP_profcontrol(v);
   }
   lua_pushinteger(L, r);
   return 1;
@@ -324,15 +327,12 @@ qopqdp_profile(lua_State *L)
 static int
 qopqdp_verbosity(lua_State *L)
 {
-  int nargs = lua_gettop(L);
-  qassert(nargs>=0 || nargs<=1);
-  int r;
+  BEGIN_ARGS;
+  OPT_INT(v, 0);
+  END_ARGS;
+  int r = QOP_verbose(v);
   if(nargs==0) {
-    r = QOP_verbose(0);
     QOP_verbose(r);
-  } else {
-    int v = luaL_checkinteger(L, 1);
-    r = QOP_verbose(v);
   }
   lua_pushinteger(L, r);
   return 1;
@@ -342,7 +342,7 @@ static int
 qopqdp_blocksize(lua_State *L)
 {
   BEGIN_ARGS;
-  OPT_INT(new,0);
+  OPT_INT(new, 0);
   END_ARGS;
   int old = QDP_get_block_size();
   lua_pushinteger(L, old);
@@ -354,7 +354,7 @@ static int
 qopqdp_readGroupSize(lua_State *L)
 {
   BEGIN_ARGS;
-  OPT_INT(new,0);
+  OPT_INT(new, 0);
   END_ARGS;
   int old = QDP_set_read_group_size(new);
   lua_pushinteger(L, old);
@@ -366,7 +366,7 @@ static int
 qopqdp_writeGroupSize(lua_State *L)
 {
   BEGIN_ARGS;
-  OPT_INT(new,0);
+  OPT_INT(new, 0);
   END_ARGS;
   int old = QDP_set_write_group_size(new);
   lua_pushinteger(L, old);
@@ -561,10 +561,9 @@ qopqdp_getFileLattice(lua_State *L)
 static int
 qopqdp_remapout(lua_State *L)
 {
-  qassert(lua_gettop(L)==1);
-  lua_pushvalue(L, -1);
-  const char *s = luaL_checkstring(L, -1);
-  lua_pop(L, 1);
+  BEGIN_ARGS;
+  GET_STRING(s);
+  END_ARGS;
   // FIXME: make safe for multiple ranks
   int fd = creat(s, 0666);
   fflush(stdout);
@@ -594,6 +593,51 @@ qopqdp_option(lua_State *L)
   return 1;
 }
 
+static int
+qopqdp_groupNumber(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_STRING(s0);
+  END_ARGS;
+  int g = 0;
+  const char *s = s0;
+  while(s[0]!='\0') {
+    switch(s[0]) {
+    case 'T': g += GROUP_T; s++; break;
+    case 'S': g += GROUP_S; s++; break;
+    case 'G': g += GROUP_GL; s+=2; break;
+    case 'U': g += GROUP_U; s++; break;
+    case 'H': g += GROUP_H; s++; break;
+    case 'A': g += GROUP_AH; s+=2; break;
+    default: qlerror(L, 1, "unknown group string %s\n", s0);
+    }
+  }
+  lua_pushinteger(L, g);
+  return 1;
+}
+
+static int
+qopqdp_groupName(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_INT(g);
+  END_ARGS;
+  char s0[5];
+  char *s = s0;
+  if(g & GROUP_T) { s[0] = 'T'; s++; }
+  if(g & GROUP_S) { s[0] = 'S'; s++; }
+  switch(g&GROUP_TYPE) {
+  case GROUP_GL: s[0]='G'; s[1]='L'; s+=2; break;
+  case GROUP_U: s[0]='U'; s++; break;
+  case GROUP_H: s[0]='H'; s++; break;
+  case GROUP_AH: s[0]='A'; s[1]='H'; s+=2; break;
+  default: qlerror(L, 1, "unknown group number %i\n", g);
+  }
+  s[0] = '\0';
+  lua_pushstring(L, s0);
+  return 1;
+}
+
 static struct luaL_Reg qopqdp_reg[] = {
   { "master",         qopqdp_master },
   { "rank",           qopqdp_rank },
@@ -619,6 +663,8 @@ static struct luaL_Reg qopqdp_reg[] = {
   { "getFileLattice", qopqdp_getFileLattice },
   { "remapout",       qopqdp_remapout },
   { "option",         qopqdp_option },
+  { "groupNumber",    qopqdp_groupNumber },
+  { "groupName",      qopqdp_groupName },
   { NULL, NULL}
 };
 

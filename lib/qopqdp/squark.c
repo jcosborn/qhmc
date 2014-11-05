@@ -263,7 +263,7 @@ struct squark_wall_info
 };
 
 // Value must be a pointer to a QLA_ColorVector
-void
+static void
 private_squark_wall(NCPROT QLA_ColorVector(*s), int coords[], void *value)
 {
   struct squark_wall_info data = *(struct squark_wall_info*)value;
@@ -550,6 +550,187 @@ qopqdp_squark_s4_ferm_observables(lua_State *L)
 #undef NC
 }
 
+// Value must be a pointer to a QLA_ColorVector
+void
+private_squark_wall_gaussian(NCPROT QLA_ColorVector *s, int coords[], void *value)
+{
+  struct squark_wall_info data = *(struct squark_wall_info*)value;
+  if (coords[data.td] == data.timeslice) { // normalize it
+    QLA_ColorVector vec;
+    QLA_Real norm_val;
+    QLA_V_eq_V(&vec, s);
+    QLA_R_eq_norm2_V(&norm_val, &vec);
+    if (norm_val != 0.0)
+      {
+	norm_val = 1.0/sqrt(norm_val);
+	QLA_V_eq_r_times_V(s, &norm_val, &vec);
+      }
+  }
+  else // set it to zero.
+    {
+      QLA_V_eq_zero(s);
+    }
+}
+
+// Constructs a normalized gaussian wall source. 
+// Arguments:
+// 1 - the staggered quark, as always.
+// 2 - Time slice.
+static int
+qopqdp_squark_wall_gaussian(lua_State *L)
+{
+#define NC QDP_get_nc(q->cv)
+  BEGIN_ARGS;
+  GET_SQUARK(q);
+  GET_INT(timeslice);
+  END_ARGS;
+  struct squark_wall_info data;
+
+  QLA_ColorVector(v);
+  data.value = &v;
+  QLA_V_eq_zero(&v);
+  QDP_V_eq_gaussian_S(q->cv, qopqdp_srs, QDP_all);
+  //QLA_c_eq_r_plus_ir(QLA_elem_V(&v,0), 0.0, 0.0); // doesn't matter since it gets a random fill.
+  data.timeslice = timeslice;
+ data.td = q->lat->nd-1;
+ QDP_V_eq_funca(q->cv, private_squark_wall_gaussian, (void*)(&data), QDP_all);
+ return 0;
+#undef NC
+}
+
+static int
+qopqdp_squark_norm2_wallsink(lua_State *L)
+{
+#define NC QDP_get_nc(q->cv)
+  BEGIN_ARGS;
+  GET_SQUARK(q);
+  OPT_SUBSETS(subs, ns, q->lat, QDP_all_and_empty_L(q->qlat), 1);
+  END_ARGS;
+  int i;
+  if(ns==1) { // I mean, this doesn't really make sense, but whatever!
+    QLA_ColorVector thesum;
+    QDP_v_eq_sum_V(&thesum, q->cv, subs[0]);
+    QLA_Real nrm2;
+    QLA_R_eq_norm2_V(&nrm2, &thesum);
+    lua_pushnumber(L, nrm2);
+  } else { // This is a wall sink contraction.
+    QLA_ColorVector thesums[ns];
+    QDP_v_eq_sum_V_multi(thesums, q->cv, subs, ns);
+    QLA_Real nrm2[ns];
+    for (i=0;i<ns;i++)
+      {
+	QLA_R_eq_norm2_V(&(nrm2[i]),&(thesums[i]));
+      }
+    qhmc_push_double_array(L, ns, nrm2);
+  }
+  return 1;
+#undef NC
+}
+
+struct squark_intwall_info
+{
+  int val; // Should always be 1.
+  int timeslice;
+  int td;
+};
+
+// Value contains a timeslice and the time direction.
+void
+private_squark_intwall(QLA_Int *i, int coords[], void *value)
+{
+  struct squark_intwall_info data = *(struct squark_intwall_info*)value;
+  if (coords[data.td] == data.timeslice) {
+    QLA_I_eq_I(i, &(data.val));
+  }
+}
+
+// Create a function that handles the dilution.
+void
+private_squark_dilute(QDP_ColorVector* cv_dil, QDP_ColorVector* cv_input,
+		      int timeslice, int color, int space_eo)
+{
+#define NC QDP_get_nc(cv_dil)
+  QDP_ColorVector* temp_cvec = QDP_create_V();
+  QDP_V_eq_zero(temp_cvec, QDP_all);
+  
+  // First, get a subset right.
+  QDP_Subset subset_use = QDP_all;
+  if (space_eo == 0)
+    {
+      subset_use = QDP_even;
+    }
+  else if (space_eo == 1)
+    {
+      subset_use = QDP_odd;
+    }
+  
+  // Next, process color (and even/odd, technically).
+  if (color != -1)
+    {
+      QDP_Complex* temp_cplx = QDP_create_C();
+      QDP_C_eq_zero(temp_cplx, QDP_all);
+      QDP_C_eq_elem_V(temp_cplx, cv_input, color, subset_use);
+      QDP_V_eq_elem_C(temp_cvec, temp_cplx, color, subset_use);
+      QDP_destroy_C(temp_cplx);
+    }
+  else
+    {
+      QDP_V_eq_V(temp_cvec, cv_input, subset_use);
+    }
+  
+  // Last, process timeslice dilution.
+  if (timeslice == -1) // no timeslice dilution.
+    {
+      QDP_V_eq_V(cv_dil, temp_cvec, subset_use);
+    }
+  else // Create an integer wall.
+    {
+      QDP_Int* latint = QDP_create_I();
+      QDP_I_eq_zero(latint, QDP_all);
+        
+      struct squark_intwall_info data;
+      data.timeslice = timeslice;
+      data.td = 3; // time direction
+      data.val = 1;
+        
+      // Build a mask that has 1's on the timeslice you want, 0's elsewhere.
+      QDP_I_eq_funca(latint, private_squark_intwall, (void*)(&data), QDP_all);
+        
+      // And now copy.
+      QDP_V_eq_V_mask_I(cv_dil, temp_cvec, latint, subset_use);
+
+      // And clean up.
+      QDP_destroy_I(latint);
+    }
+  QDP_destroy_V(temp_cvec);
+#undef NC
+}
+
+// ESW addition 03/20/2014
+// Pass in a quark (arg1), and a set of values (arg2, arg3, arg4)
+// -> (time, color, space even/odd). -1 means don't dilute. Otherwise,
+// only copy values with that timeslice/color/even or odd.
+// ESW fix 05/14/2014 -- close a memory leak.
+static int
+qopqdp_squark_dilute(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_SQUARK(q1); // diluted vector goes here.
+  GET_SQUARK(q2);
+  GET_INT(timeslice); // a time coordinate, 0 normalized.
+  GET_INT(color); // a color coordinate, 0 normalized.
+  GET_INT(space_eo); // even-odd -> 0-1
+  END_ARGS;
+  
+  //squark_t *q1 = qopqdp_squark_create_unset(L, q2->nc, q2->lat);
+  QDP_V_eq_zero(q1->cv, QDP_all);
+  
+  // Call an encapsulating function.
+  private_squark_dilute(q1->cv, q2->cv, timeslice, color, space_eo);
+  
+  return 0;
+}
+
 static struct luaL_Reg squark_reg[] = {
   { "__gc",        qopqdp_squark_gc },
   { "clone",       qopqdp_squark_clone },
@@ -569,6 +750,9 @@ static struct luaL_Reg squark_reg[] = {
   { "symshift",    qopqdp_squark_symshift },
   { "epsContract", qopqdp_squark_epscontr }, // ESW addition 11/15/2013
   { "s4Ferm",      qopqdp_squark_s4_ferm_observables }, // ESW addition 12/18/2013
+  { "wall_gaussian", qopqdp_squark_wall_gaussian }, // ESW addition 2/12/2014
+  { "norm2_wallsink",qopqdp_squark_norm2_wallsink }, 
+  { "dilute",      qopqdp_squark_dilute }, // ESW addition 3/20/2014, update 5/12/2014
   { NULL, NULL}
 };
 

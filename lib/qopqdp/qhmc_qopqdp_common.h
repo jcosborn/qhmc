@@ -506,6 +506,8 @@ qopqdp_cmatrixD_t *qopqdp_cmatrixD_opt(lua_State *L, int *idx, int req, qopqdp_c
 #define GROUP_TAH (GROUP_T+GROUP_AH)
 #define GROUP_TYPE 3 // (g&GROUP_TYPE)->{GL,U,H,AH}
 typedef struct {
+  double time;
+  double flops;
   lattice_t *lat;
   QDP_Lattice *qlat;
   int nd, nc;
@@ -518,6 +520,8 @@ void qopqdp_gaugeF_array_check(lua_State *L, int idx, int n, gaugeF_t *g[n]);
 int qopqdp_gaugeF_coulomb(lua_State *L);
 void qopqdp_F_makeSU(NCPROT QLA_F_ColorMatrix(*m), int idx, void *args);
 typedef struct {
+  double time;
+  double flops;
   lattice_t *lat;
   QDP_Lattice *qlat;
   int nd, nc, group;
@@ -634,6 +638,7 @@ hisq_t *qopqdp_hisq_check(lua_State *L, int idx);
 #define GET_HISQ(a) hisq_t *a = qopqdp_hisq_check(L,nextarg++)
 
 
+#if 0
 typedef struct {
   lattice_t *lat;
   QDP_Lattice *qlat;
@@ -645,6 +650,14 @@ squark_t *qopqdp_squark_create_unset(lua_State *L, int nc, lattice_t *lat);
 squark_t *qopqdp_squark_check(lua_State *L, int idx);
 void qopqdp_squark_array_check(lua_State *L, int idx, int n, squark_t *q[n]);
 #define GET_SQUARK(s) squark_t *s = qopqdp_squark_check(L,nextarg++)
+#else
+typedef qopqdp_cvectorD_t squark_t;
+#define qopqdp_squark_create qopqdp_cvectorD_create
+#define qopqdp_squark_create_unset qopqdp_cvectorD_create_unset
+#define qopqdp_squark_check qopqdp_cvector_check
+#define qopqdp_squark_array_check(L,i,n,q) qopqdp_cvectorD_as_array_opt(L,(int[1]){i},1,n,q,0,NULL)
+#define cv field
+#endif
 
 void asqtadInvert(QOP_info_t *info, QOP_FermionLinksAsqtad *fla,
 		  QOP_invert_arg_t *invarg, QOP_resid_arg_t *residarg[],
@@ -665,19 +678,6 @@ typedef struct {
 wilson_t *qopqdp_wilson_create(lua_State *L, int nc, lattice_t *lat);
 wilson_t *qopqdp_wilson_check(lua_State *L, int idx);
 #define GET_WILSON(w) wilson_t *w = qopqdp_wilson_check(L,nextarg);nextarg++
-
-
-typedef struct {
-  lattice_t *lat;
-  QDP_Lattice *qlat;
-  QDP_DiracFermion *df;
-  int nc;
-} wquark_t;
-wquark_t *qopqdp_wquark_create(lua_State *L, int nc, lattice_t *lat);
-wquark_t *qopqdp_wquark_create_unset(lua_State *L, int nc, lattice_t *lat);
-wquark_t *qopqdp_wquark_check(lua_State *L, int idx);
-void qopqdp_wquark_array_check(lua_State *L, int idx, int n, wquark_t *q[n]);
-#define GET_WQUARK(w) wquark_t *w = qopqdp_wquark_check(L,nextarg++)
 
 
 typedef struct {

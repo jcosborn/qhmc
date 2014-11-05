@@ -256,14 +256,14 @@ function actmt.refresh(a, g)
     for j,t in ipairs(r.GR) do
       if t.allmass then
 	if t.allmass2 then
-	  t.qt:random("all")
+	  t.qt:random(math.sqrt(0.5), "all")
 	  a.h:Ddag(t.qt2, t.qt, t.allmass2, "all", "all")
         else
-	  t.qt2:random("all")
+	  t.qt2:random(math.sqrt(0.5), "all")
         end
         a.h:D(t.qt, t.qt2, t.allmass, "even", "all")
       else
-	t.qt:random("even")
+	t.qt:random(math.sqrt(0.5), "even")
       end
       if t.pt then
 	a:solve(t.pt, t.qt, t.masses, t.resid, "even", t.solveopts, t.cgnum)

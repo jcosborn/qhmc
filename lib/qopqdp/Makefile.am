@@ -12,8 +12,8 @@ SRC = \
  reader.c writer.c \
  lrstate.c \
  smear.c misc.c \
- asqtad.c asqtad-invert.c hisq.c squark.c \
- wilson.c wquark.c \
+ asqtad.c asqtad-invert.c hisq.c \
+ wilson.c \
  dw.c dwquark.c
 FSRC = \
  lrealF.c lcomplexF.c lcvectorF.c ldfermionF.c lcmatrixF.c \

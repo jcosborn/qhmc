@@ -9,10 +9,10 @@ qopqdp_reader_check(lua_State *L, int idx)
   reader_t *r = lua_touserdata(L, idx);
 #if 1
   int hasmt = lua_getmetatable(L, idx);
-  qassert(hasmt==1);
+  qlassert(L, hasmt==1);
   luaL_getmetatable(L, mtname);
   int eq = lua_equal(L, -1, -2);
-  qassert(eq==1);
+  qlassert(L, eq==1);
   lua_pop(L, 2);
 #endif
   return r;
@@ -41,7 +41,7 @@ qopqdp_get_prec_type_nc(QDP_Reader *qr, int *prec, int *type, int *nc)
   *prec = *QIO_get_precision(ri);
   *nc = QIO_get_colors(ri);
   char *typestr = QIO_get_datatype(ri);
-  *type = -1;
+  *type = 0;
   int k = 0;
   while(typestr[k++]!='_'); // go to first char after _
   switch(typestr[k]) {
@@ -71,10 +71,6 @@ qopqdp_get_prec_type_nc(QDP_Reader *qr, int *prec, int *type, int *nc)
       break;
     }
     break;
-  }
-  if(*type==-1) {
-    printerr0("unknown datatype: %s\n", typestr);
-    ABORT(-1);
   }
   QIO_destroy_record_info(ri);
   QDP_string_destroy(md);
@@ -121,7 +117,7 @@ qopqdp_reader_read(lua_State *L)
       }
     }
   } else if(type=='P') {
-    qassert(nfields==QLA_Nc*QLA_Ns);
+    qlassert(L, nfields==QLA_Nc*QLA_Ns);
     if(prec==QDP_Precision) {
       QDP_DiracPropagator *dp = QDP_create_P_L(qlat);
       QDP_read_P(r->qr, md, dp);

@@ -61,9 +61,9 @@ qhmc_open_libs(lua_State* L)
 
   { // add search paths for libraries
     // srcdir
-    addPath(L, SRCDIRHMC);
+    addPath(L, SRCDIRLUA);
     // installdir
-    addPath(L, PREFIXHMC);
+    addPath(L, PREFIXLUA);
     // exedir
     char *dirc;
     dirc = strdup(g_argv[0]);
@@ -71,7 +71,7 @@ qhmc_open_libs(lua_State* L)
     free(dirc);
     // scriptdir?
     // other
-    addPath(L, "./hmc");
+    addPath(L, "./lua");
     addPath(L, ".");
   }
 
