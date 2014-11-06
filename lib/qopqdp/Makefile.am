@@ -14,17 +14,17 @@ SRC = \
  smear.c misc.c \
  asqtad.c asqtad-invert.c hisq.c \
  wilson.c \
- dw.c dwquark.c
+ dw.c
 FSRC = \
  lrealF.c lcomplexF.c lcvectorF.c ldfermionF.c lcmatrixF.c \
- gaugeF.c forceF.c gaugefixF.c
+ gaugeF.c gaugefixF.c
 DSRC = \
  lrealD.c lcomplexD.c lcvectorD.c ldfermionD.c lcmatrixD.c \
- gaugeD.c forceD.c gaugefixD.c
+ gaugeD.c gaugefixD.c
 
 EXTRA_DIST = \
  field0.c lreal.c lcomplex.c lcvector.c ldfermion.c lcmatrix.c \
- gauge.c force.c gaugefix.c
+ gauge.c gaugefix.c
 
 ___libqhmc_qopqdp_a_SOURCES = \
  $(HDRS) $(SRC) $(FSRC) $(DSRC)

@@ -562,42 +562,6 @@ void qopqdp_D_makeSU(NCPROT QLA_D_ColorMatrix(*m), int idx, void *args);
 
 
 typedef struct {
-  lattice_t *lat;
-  QDP_Lattice *qlat;
-  double time;
-  double flops;
-  int nd, nc;
-  QDP_F_ColorMatrix *force[];
-} forceF_t;
-forceF_t *qopqdp_forceF_create(lua_State *L, int nc, lattice_t *lat);
-forceF_t *qopqdp_forceF_check(lua_State *L, int idx);
-void qopqdp_forceF_array_check(lua_State *L, int idx, int n, forceF_t *g[n]);
-typedef struct {
-  lattice_t *lat;
-  QDP_Lattice *qlat;
-  double time;
-  double flops;
-  int nd, nc;
-  QDP_D_ColorMatrix *force[];
-} forceD_t;
-forceD_t *qopqdp_forceD_create(lua_State *L, int nc, lattice_t *lat);
-forceD_t *qopqdp_forceD_check(lua_State *L, int idx);
-void qopqdp_forceD_array_check(lua_State *L, int idx, int n, forceD_t *g[n]);
-#if QOP_Precision == 'F'
-#define force_t forceF_t
-#define qopqdp_force_create qopqdp_forceF_create
-#define qopqdp_force_check qopqdp_forceF_check
-#define qopqdp_force_array_check qopqdp_forceF_array_check
-#else
-#define force_t forceD_t
-#define qopqdp_force_create qopqdp_forceD_create
-#define qopqdp_force_check qopqdp_forceD_check
-#define qopqdp_force_array_check qopqdp_forceD_array_check
-#endif
-#define GET_FORCE(f) force_t *f = qopqdp_force_check(L,nextarg++)
-
-
-typedef struct {
   double time;
   double flops;
   double rsq;
@@ -692,18 +656,7 @@ typedef struct {
 } dw_t;
 dw_t *qopqdp_dw_create(lua_State *L, int nc, lattice_t *lat);
 dw_t *qopqdp_dw_check(lua_State *L, int idx);
-
-
-typedef struct {
-  lattice_t *lat;
-  QDP_Lattice *qlat;
-  QDP_DiracFermion **df;
-  int ls, nc;
-} dwquark_t;
-dwquark_t *qopqdp_dwquark_create(lua_State *L, int ls, int nc, lattice_t *lat);
-dwquark_t *qopqdp_dwquark_check(lua_State *L, int idx);
-void qopqdp_dwquark_array_check(lua_State *L, int idx, int n, dwquark_t *q[n]);
-#define GET_DWQUARK(d) dwquark_t *d = qopqdp_dwquark_check(L,nextarg++)
+#define GET_DW(d) dw_t *d = qopqdp_dw_check(L,nextarg++)
 
 
 QDP_Subset *qhmcqdp_get_timeslices(lattice_t *lat);

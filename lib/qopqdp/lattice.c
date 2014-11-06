@@ -304,9 +304,11 @@ qopqdp_force(lua_State *L)
   OPT_INT(nc, lat->defaultNc);
   END_ARGS;
   if(*precision=='F') {
-    qopqdp_forceF_create(L, nc, lat);
+    //qopqdp_forceF_create(L, nc, lat);
+    qopqdp_gaugeF_create(L, nc, lat);
   } else {
-    qopqdp_forceD_create(L, nc, lat);
+    //qopqdp_forceD_create(L, nc, lat);
+    qopqdp_gaugeD_create(L, nc, lat);
   }
   return 1;
 }

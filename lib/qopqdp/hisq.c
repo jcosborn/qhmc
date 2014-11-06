@@ -426,11 +426,11 @@ qopqdp_hisq_solve(lua_State *L)
 static int
 qopqdp_hisq_force(lua_State *L)
 {
-#define NC QDP_get_nc(f->force[0])
+#define NC QDP_get_nc(f->links[0])
   int narg = lua_gettop(L);
   qassert(narg>=4 && narg<=5);
   hisq_t *h = qopqdp_hisq_check(L, 1);
-  force_t *f = qopqdp_force_check(L, 2);
+  gauge_t *f = qopqdp_gauge_check(L, 2);
   int nq; get_table_len(L, 3, &nq);
   squark_t *q[nq]; qopqdp_squark_array_check(L, 3, nq, q);
   int ne; get_table_len(L, 4, &ne);
@@ -461,7 +461,7 @@ qopqdp_hisq_force(lua_State *L)
     default: QOP_F_hisq_force_multi_qdp(&info, h->ffl, fforce, &h->coeffs, qeps, qcv, &nq);
     }
     for(int i=0; i<f->nd; i++) {
-      QDP_DF_M_eq_M(f->force[i], fforce[i], QDP_all);
+      QDP_DF_M_eq_M(f->links[i], fforce[i], QDP_all);
       QDP_F_destroy_M(fforce[i]);
     }
     for(int i=0; i<nq; i++) {
@@ -472,13 +472,13 @@ qopqdp_hisq_force(lua_State *L)
     // factor of 4 normalizes force to that of phi^+ [s-4*Deo*Doe]^-1 phi
     QLA_Real qeps[ne]; for(int i=0; i<ne; i++) qeps[i] = 4*eps[i];
     QDP_ColorVector *qcv[nq]; for(int i=0; i<nq; i++) qcv[i] = q[i]->cv;
-    for(int i=0; i<f->nd; i++) QDP_M_eq_zero(f->force[i], QDP_all);
+    for(int i=0; i<f->nd; i++) QDP_M_eq_zero(f->links[i], QDP_all);
     switch(QOP_Nc) {
 #ifdef HAVE_NC3
-    case 3: QOP_3_hisq_force_multi_qdp(&info, (QOP_3_FermionLinksHisq*)h->fl, (QDP_3_ColorMatrix**)f->force, &h->coeffs, qeps, (QDP_3_ColorVector**)qcv, &nq);
+    case 3: QOP_3_hisq_force_multi_qdp(&info, (QOP_3_FermionLinksHisq*)h->fl, (QDP_3_ColorMatrix**)f->links, &h->coeffs, qeps, (QDP_3_ColorVector**)qcv, &nq);
       break;
 #endif
-    default: QOP_hisq_force_multi_qdp(&info, h->fl, f->force, &h->coeffs, qeps, qcv, &nq);
+    default: QOP_hisq_force_multi_qdp(&info, h->fl, f->links, &h->coeffs, qeps, qcv, &nq);
     }
   }
 

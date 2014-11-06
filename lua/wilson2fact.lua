@@ -447,7 +447,7 @@ function actmt.updateMomentum(a, f, g, teps, ti)
   if not a.FFmax[key] then a.FFmax[key] = 0 end
   if a.FFmax[key] < ffi then a.FFmax[key] = ffi end
 
-  f.f:update(tmin.ff.f, 1)
+  f.f:fupdate(tmin.ff.f, 1)
 end
 
 function actmt.pbp(a, g, mass, resid, opts)

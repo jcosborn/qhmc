@@ -133,6 +133,24 @@ qopqdp_gauge_unit(lua_State *L)
   return 0;
 }
 
+// 1: gauge
+// 2: number or table of numbers
+static int
+qopqdp_gauge_scale(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_GAUGE(g);
+  GET_AS_DOUBLE_ARRAY(n,sa);
+  END_ARGS;
+  int nd = g->nd;
+  QLA_Real s = 1;
+  for(int i=0; i<nd; i++) {
+    if(i<abs(n)) s = sa[i];
+    if(s!=1) QDP_M_eq_r_times_M(g->links[i],&s,g->links[i],QDP_all_L(g->qlat));
+  }
+  return 0;
+}
+
 static void
 gauge_random(NCPROT QLA_ColorMatrix(*m), int i, void *args)
 {
@@ -670,21 +688,14 @@ qopqdp_gauge_force(lua_State *L)
 {
   BEGIN_ARGS;
   GET_GAUGE(g);
-  OPT_GAUGE(fg, NULL);
-  force_t *f = NULL;
-  if(fg==NULL) {
-    GET_FORCE(f0);
-    f = f0;
-  }
+  GET_GAUGE(f);
   QOP_gauge_coeffs_t coeffs;
   get_gauge_coeffs(L, &coeffs, nextarg); nextarg++;
   OPT_DOUBLE(beta, 1);
   OPT_DOUBLE(xi0d, 1);
   END_ARGS;
   int nd = g->nd;
-  QDP_ColorMatrix *force[nd];
-  for(int i=0; i<nd; i++) force[i] = f ? f->force[i] : fg->links[i];
-  for(int i=0; i<nd; i++) QDP_M_eq_zero(force[i], QDP_all_L(g->qlat));
+  for(int i=0; i<nd; i++) QDP_M_eq_zero(f->links[i], QDP_all_L(f->qlat));
   QLA_Real ixi0=1, xi0=xi0d;
   if(xi0!=1) {
     ixi0 = 1/xi0;
@@ -693,7 +704,7 @@ qopqdp_gauge_force(lua_State *L)
   }
   QOP_info_t info;
   QOP_GaugeField *qg = QOP_create_G_from_qdp(g->links);
-  QOP_Force *qf = QOP_create_F_from_qdp(force);
+  QOP_Force *qf = QOP_create_F_from_qdp(f->links);
   switch(g->nc) {
 #ifdef HAVE_NC3
   case 3:
@@ -702,20 +713,30 @@ qopqdp_gauge_force(lua_State *L)
     break;
 #endif
   default: 
-   QOP_symanzik_1loop_gauge_force(&info, qg, qf, &coeffs, beta);
+    QOP_symanzik_1loop_gauge_force(&info, qg, qf, &coeffs, beta);
   }
-  QOP_extract_F_to_qdp(force, qf);
+  QOP_extract_F_to_qdp(f->links, qf);
   QOP_destroy_G(qg);
   QOP_destroy_F(qf);
   if(xi0!=1) {
     QDP_M_eq_r_times_M(g->links[g->nd-1], &ixi0, g->links[g->nd-1], QDP_all_L(g->qlat));
   }
-  if(f) {
-    f->time = info.final_sec;
-    f->flops = info.final_flop;
-  } else {
-    fg->time = info.final_sec;
-    fg->flops = info.final_flop;
+  f->time = info.final_sec;
+  f->flops = info.final_flop;
+  return 0;
+}
+
+static int
+qopqdp_force_update(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_GAUGE(g1);
+  GET_GAUGE(g2);
+  GET_DOUBLE(eps);
+  END_ARGS;
+  QLA_Real e = eps;
+  for(int i=0; i<g1->nd; i++) {
+    QDP_M_peq_r_times_M(g1->links[i], &e, g2->links[i], QDP_all_L(g1->qlat));
   }
   return 0;
 }
@@ -726,26 +747,19 @@ qopqdp_gauge_update(lua_State *L)
 #define NC QDP_get_nc(g->links[0])
   BEGIN_ARGS;
   GET_GAUGE(g);
-  OPT_GAUGE(fg, NULL);
-  force_t *f = NULL;
-  if(fg==NULL) {
-    GET_FORCE(f0);
-    f = f0;
-  }
+  GET_GAUGE(f);
   GET_AS_DOUBLE_ARRAY(ns, s); ns = abs(ns);
   OPT_INT(gr, GROUP_TAH);
   END_ARGS;
   int nd = g->nd;
   double eps[nd];
   for(int i=0; i<nd; i++) eps[i] = (i<ns) ? s[i] : eps[i-1];
-  QDP_ColorMatrix *force[nd];
-  for(int i=0; i<nd; i++) force[i] = f ? f->force[i] : fg->links[i];
 
   QDP_ColorMatrix *m1 = QDP_create_M_L(g->qlat);
   QDP_ColorMatrix *m2 = QDP_create_M_L(g->qlat);
   for(int i=0; i<nd; i++) {
     QLA_Real teps = eps[i];
-    QDP_M_eq_r_times_M(m1, &teps, force[i], QDP_all_L(g->qlat));
+    QDP_M_eq_r_times_M(m1, &teps, f->links[i], QDP_all_L(f->qlat));
     if(gr==GROUP_TAH) {
       QDP_M_eq_expTA_M(m2, m1, QDP_all_L(g->qlat));
     } else {
@@ -1036,6 +1050,26 @@ qopqdp_gauge_s4_gauge_observables(lua_State *L)
 #undef NC
 }
 
+static int
+qopqdp_gauge_time(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_GAUGE(g);
+  END_ARGS;
+  lua_pushnumber(L, g->time);
+  return 1;
+}
+
+static int
+qopqdp_gauge_flops(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_GAUGE(g);
+  END_ARGS;
+  lua_pushnumber(L, g->flops);
+  return 1;
+}
+
 static struct luaL_Reg gauge_reg[] = {
   { "__gc",     qopqdp_gauge_gc },
   { "__len",    qopqdp_gauge_len },
@@ -1044,6 +1078,7 @@ static struct luaL_Reg gauge_reg[] = {
   { "lattice",  qopqdp_gauge_lattice },
   { "zero",     qopqdp_gauge_zero },
   { "unit",     qopqdp_gauge_unit },
+  { "scale",    qopqdp_gauge_scale },
   { "random",   qopqdp_gauge_random },
   { "randomTAH",qopqdp_force_random },
   { "norm2",      qopqdp_gauge_norm2 },
@@ -1058,11 +1093,14 @@ static struct luaL_Reg gauge_reg[] = {
   { "makeSU",   qopqdp_gauge_makeSU },
   { "action",   qopqdp_gauge_action },
   { "force",    qopqdp_gauge_force },
+  { "fupdate",  qopqdp_force_update },
   { "update",   qopqdp_gauge_update },
   { "heatbath", qopqdp_gauge_heatbath },
   { "loop",     qopqdp_gauge_loop },
   { "coulomb",  qopqdp_gauge_coulomb },
   { "s4Gauge",  qopqdp_gauge_s4_gauge_observables }, // ESW addition 12/18/2013
+  { "time",     qopqdp_gauge_time },
+  { "flops",    qopqdp_gauge_flops },
   { NULL, NULL}
 };
 

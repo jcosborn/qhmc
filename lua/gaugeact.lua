@@ -168,7 +168,7 @@ function actmt.updateMomentum(a, f, g, eps)
   local gf = a.gf
   a:force(gf, g)
   local s = eps
-  f.f:update(gf.f, s)
+  f.f:fupdate(gf.f, s)
   local gf2 = s*s*gf.f:norm2()
   local gfi = s*gf.f:infnorm()
   if a.printforce then
@@ -242,8 +242,11 @@ end
 -- force methods
 
 function forcemt.random(f, var)
-  f.f:random()
-  if var then f.f:scale(var) end
+  --f.f:random()
+  f.f:randomTAH()
+  if var then
+    f.f:scale(var)
+  end
 end
 
 function forcemt.norm2(f)

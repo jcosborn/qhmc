@@ -320,9 +320,9 @@ qopqdp_smearChain(lua_State *L)
 {
   qassert(lua_gettop(L)==5);
   int nf; get_table_len(L, 1, &nf);
-  force_t *f[nf]; qopqdp_force_array_check(L, 1, nf, f);
+  gauge_t *f[nf]; qopqdp_gauge_array_check(L, 1, nf, f);
   int nfc; get_table_len(L, 2, &nfc);
-  force_t *fc[nfc]; qopqdp_force_array_check(L, 2, nfc, fc);
+  gauge_t *fc[nfc]; qopqdp_gauge_array_check(L, 2, nfc, fc);
   int nsg; get_table_len(L, 3, &nsg);
   gauge_t *sg[nsg]; qopqdp_gauge_array_check(L, 3, nsg, sg);
   int ng; get_table_len(L, 4, &ng);
@@ -342,8 +342,8 @@ qopqdp_smearChain(lua_State *L)
     QLA_Real c1 = coeffs[1];
     int nd = sg[0]->nd;
     for(int mu=0; mu<nd; mu++) {
-      QDP_M_peq_r_times_M(f[0]->force[mu], &c0, fc[0]->force[mu], all);
-      QDP_M_peq_r_times_M(f[1]->force[mu], &c1, fc[0]->force[mu], all);
+      QDP_M_peq_r_times_M(f[0]->links[mu], &c0, fc[0]->links[mu], all);
+      QDP_M_peq_r_times_M(f[1]->links[mu], &c1, fc[0]->links[mu], all);
     }
   } else
   // product
@@ -356,7 +356,7 @@ qopqdp_smearChain(lua_State *L)
     qassert(na==ng);
     int nd = f[0]->nd;
     if(g[0]->nc==1||g[1]->nc==1) {
-      force_t *f0=f[0], *f1=f[1];
+      gauge_t *f0=f[0], *f1=f[1];
       gauge_t *g0=g[0], *g1=g[1];
       if(g0->nc!=1) {
 	f0=f[1]; f1=f[0];
@@ -367,26 +367,26 @@ qopqdp_smearChain(lua_State *L)
 	if(adj[1]) {
 	  for(int mu=0; mu<nd; mu++) {
 	    // FIXME
-	    //QDP_C_peq_M_dot_Ma((QDP_Complex*)f0->force[mu], g1->links[mu], fc[0]->force[mu], all);
-	    QDP_M_peq_Ca_times_Ma(f1->force[mu], (QDP_Complex*)g0->links[mu], fc[0]->force[mu], all);
+	    //QDP_C_peq_M_dot_Ma((QDP_Complex*)f0->links[mu], g1->links[mu], fc[0]->links[mu], all);
+	    QDP_M_peq_Ca_times_Ma(f1->links[mu], (QDP_Complex*)g0->links[mu], fc[0]->links[mu], all);
 	  } // X^+ Y^+
 	} else {
 	  for(int mu=0; mu<nd; mu++) {
-	    QDP_C_peq_M_dot_M((QDP_Complex*)f0->force[mu], fc[0]->force[mu], g1->links[mu], all);
-	    QDP_M_peq_C_times_M(f1->force[mu], (QDP_Complex*)g0->links[mu], fc[0]->force[mu], all);
+	    QDP_C_peq_M_dot_M((QDP_Complex*)f0->links[mu], fc[0]->links[mu], g1->links[mu], all);
+	    QDP_M_peq_C_times_M(f1->links[mu], (QDP_Complex*)g0->links[mu], fc[0]->links[mu], all);
 	  } // X^+ Y
 	}
       } else {
 	if(adj[1]) {
 	  for(int mu=0; mu<nd; mu++) {
 	    // FIXME
-	    //QDP_C_peq_Ma_dot_M((QDP_Complex*)f0->force[mu], g1->links[mu], fc[0]->force[mu], all);
-	    QDP_M_peq_C_times_Ma(f1->force[mu], (QDP_Complex*)g0->links[mu], fc[0]->force[mu], all);
+	    //QDP_C_peq_Ma_dot_M((QDP_Complex*)f0->links[mu], g1->links[mu], fc[0]->links[mu], all);
+	    QDP_M_peq_C_times_Ma(f1->links[mu], (QDP_Complex*)g0->links[mu], fc[0]->links[mu], all);
 	  } // X Y^+
 	} else {
 	  for(int mu=0; mu<nd; mu++) {
-	    QDP_C_peq_M_dot_M((QDP_Complex*)f0->force[mu], g1->links[mu], fc[0]->force[mu], all);
-	    QDP_M_peq_Ca_times_M(f1->force[mu], (QDP_Complex*)g0->links[mu], fc[0]->force[mu], all);
+	    QDP_C_peq_M_dot_M((QDP_Complex*)f0->links[mu], g1->links[mu], fc[0]->links[mu], all);
+	    QDP_M_peq_Ca_times_M(f1->links[mu], (QDP_Complex*)g0->links[mu], fc[0]->links[mu], all);
 	  } // X Y
 	}
       }
@@ -394,25 +394,25 @@ qopqdp_smearChain(lua_State *L)
       if(adj[0]) {
 	if(adj[1]) {
 	  for(int mu=0; mu<nd; mu++) {
-	    QDP_M_peq_Ma_times_Ma(f[0]->force[mu], g[1]->links[mu], fc[0]->force[mu],all);
-	    QDP_M_peq_Ma_times_Ma(f[1]->force[mu], fc[0]->force[mu], g[0]->links[mu],all);
+	    QDP_M_peq_Ma_times_Ma(f[0]->links[mu], g[1]->links[mu], fc[0]->links[mu],all);
+	    QDP_M_peq_Ma_times_Ma(f[1]->links[mu], fc[0]->links[mu], g[0]->links[mu],all);
 	  } // X^+ Y^+
 	} else {
 	  for(int mu=0; mu<nd; mu++) {
-	    QDP_M_peq_M_times_Ma(f[0]->force[mu], g[1]->links[mu], fc[0]->force[mu], all);
-	    QDP_M_peq_M_times_M(f[1]->force[mu], g[0]->links[mu], fc[0]->force[mu], all);
+	    QDP_M_peq_M_times_Ma(f[0]->links[mu], g[1]->links[mu], fc[0]->links[mu], all);
+	    QDP_M_peq_M_times_M(f[1]->links[mu], g[0]->links[mu], fc[0]->links[mu], all);
 	  }
 	} // X^+ Y
       } else {
 	if(adj[1]) {
 	  for(int mu=0; mu<nd; mu++) {
-	    QDP_M_peq_M_times_M(f[0]->force[mu], fc[0]->force[mu], g[1]->links[mu], all);
-	    QDP_M_peq_Ma_times_M(f[1]->force[mu], fc[0]->force[mu], g[0]->links[mu], all);
+	    QDP_M_peq_M_times_M(f[0]->links[mu], fc[0]->links[mu], g[1]->links[mu], all);
+	    QDP_M_peq_Ma_times_M(f[1]->links[mu], fc[0]->links[mu], g[0]->links[mu], all);
 	  } // X Y^+
 	} else {
 	  for(int mu=0; mu<nd; mu++) {
-	    QDP_M_peq_M_times_Ma(f[0]->force[mu], fc[0]->force[mu], g[1]->links[mu], all);
-	    QDP_M_peq_Ma_times_M(f[1]->force[mu], g[0]->links[mu], fc[0]->force[mu], all);
+	    QDP_M_peq_M_times_Ma(f[0]->links[mu], fc[0]->links[mu], g[1]->links[mu], all);
+	    QDP_M_peq_Ma_times_M(f[1]->links[mu], g[0]->links[mu], fc[0]->links[mu], all);
 	  } // X Y
 	}
       }
@@ -424,10 +424,10 @@ qopqdp_smearChain(lua_State *L)
     int nd = f[0]->nd;
     for(int mu=0; mu<nd; mu++) {
       /// FIXME: make it add to force
-      QDP_M_eq_M(f[0]->force[mu], fc[0]->force[mu], all);
-      QDP_M_meq_Ma(f[0]->force[mu], fc[0]->force[mu], all);
+      QDP_M_eq_M(f[0]->links[mu], fc[0]->links[mu], all);
+      QDP_M_meq_Ma(f[0]->links[mu], fc[0]->links[mu], all);
       QLA_Real half=0.5;
-      QDP_M_eq_r_times_M(f[0]->force[mu], &half, f[0]->force[mu], all);
+      QDP_M_eq_r_times_M(f[0]->links[mu], &half, f[0]->links[mu], all);
     }
   } else
   // tracelessAntiherm
@@ -440,9 +440,9 @@ qopqdp_smearChain(lua_State *L)
     qassert(nf==1 && nfc==1 && nsg==1 && ng==1);
     int nd = f[0]->nd;
     for(int mu=0; mu<nd; mu++) {
-      //QDP_M_eq_M(f[0]->force[mu], fc[0]->force[mu], all);
+      //QDP_M_eq_M(f[0]->links[mu], fc[0]->links[mu], all);
       /// FIXME: make it add to force
-      QDP_M_eq_antiherm_M(f[0]->force[mu], fc[0]->force[mu], all);
+      QDP_M_eq_antiherm_M(f[0]->links[mu], fc[0]->links[mu], all);
     }
   } else
   // mobius
@@ -460,8 +460,8 @@ qopqdp_smearChain(lua_State *L)
       int i;
       QDP_loop_sites(i, all, ({
 	  QLA_ColorMatrix t1, t2, t3;
-	  QLA_ColorMatrix *fmui = QDP_site_ptr_readwrite_M(f[0]->force[mu], i);
-	  QLA_ColorMatrix *fcmui = QDP_site_ptr_readonly_M(fc[0]->force[mu],i);
+	  QLA_ColorMatrix *fmui = QDP_site_ptr_readwrite_M(f[0]->links[mu], i);
+	  QLA_ColorMatrix *fcmui = QDP_site_ptr_readonly_M(fc[0]->links[mu],i);
 	  QLA_ColorMatrix *sgmui = QDP_site_ptr_readonly_M(sg[0]->links[mu],i);
 	  QLA_M_eq_r_times_M(&t1, &d, sgmui);
 	  for(int ic=0; ic<QLA_Nc; ic++) {
@@ -478,8 +478,8 @@ qopqdp_smearChain(lua_State *L)
     qassert(nf==1 && nfc==1 && nsg==1 && ng==1);
     int nd = sg[0]->nd;
     for(int mu=0; mu<nd; mu++) {
-      sqrt_deriv(f[0]->force[mu], sg[0]->links[mu],
-		 g[0]->links[mu], fc[0]->force[mu], all);
+      sqrt_deriv(f[0]->links[mu], sg[0]->links[mu],
+		 g[0]->links[mu], fc[0]->links[mu], all);
     }
   } else
   // projectU
@@ -491,20 +491,20 @@ qopqdp_smearChain(lua_State *L)
     for(int mu=0; mu<nd; mu++) {
       tf[mu] = QDP_create_M();
       tfc[mu] = QDP_create_M();
-      QDP_M_eq_Ma(tfc[mu], fc[0]->force[mu], all);
+      QDP_M_eq_Ma(tfc[mu], fc[0]->links[mu], all);
     }
     QOP_hisq_force_multi_reunit(&info, g[0]->links, tf, tfc);
     for(int mu=0; mu<nd; mu++) {
-      QDP_M_eq_Ma(f[0]->force[mu], tf[mu], all);
+      QDP_M_eq_Ma(f[0]->links[mu], tf[mu], all);
       QDP_destroy_M(tf[mu]);
       QDP_destroy_M(tfc[mu]);
     }
 #else
     for(int mu=0; mu<nd; mu++) {
-      //QOP_projectU_deriv_qdp(&info, f[0]->force[mu], sg[0]->links[mu],
-      //g[0]->links[mu], fc[0]->force[mu]);
-      projectU_deriv(f[0]->force[mu], sg[0]->links[mu], g[0]->links[mu],
-		     fc[0]->force[mu], all);
+      //QOP_projectU_deriv_qdp(&info, f[0]->links[mu], sg[0]->links[mu],
+      //g[0]->links[mu], fc[0]->links[mu]);
+      projectU_deriv(f[0]->links[mu], sg[0]->links[mu], g[0]->links[mu],
+		     fc[0]->links[mu], all);
     }
 #endif
   } else
@@ -519,9 +519,9 @@ qopqdp_smearChain(lua_State *L)
     int nd = sg[0]->nd;
     for(int mu=0; mu<nd; mu++) {
       QLA_Real r = rho[mu];
-      // QDP_M_peq_r_times_M(f[0]->force[mu], &r, fc[0]->force[mu], all);
-      exp_deriv(f[0]->force[mu], &r, g[0]->links[mu], fc[0]->force[mu], all);
-      QDP_M_eq_r_times_M(f[0]->force[mu], &r, f[0]->force[mu], all);
+      // QDP_M_peq_r_times_M(f[0]->links[mu], &r, fc[0]->links[mu], all);
+      exp_deriv(f[0]->links[mu], &r, g[0]->links[mu], fc[0]->links[mu], all);
+      QDP_M_eq_r_times_M(f[0]->links[mu], &r, f[0]->links[mu], all);
     }
   } else
   // fat7
@@ -533,8 +533,8 @@ qopqdp_smearChain(lua_State *L)
     get_asqtad_coeffs(L, -1, &coeffs);
     lua_pop(L, 1);
     coeffs.naik = 0;
-    QOP_asqtad_deriv(&info, g[0]->links, f[0]->force, &coeffs,
-		     fc[0]->force, NULL);
+    QOP_asqtad_deriv(&info, g[0]->links, f[0]->links, &coeffs,
+		     fc[0]->links, NULL);
   } else
   // staples
   if(strcmp(type,"staples")==0) {
@@ -552,11 +552,11 @@ qopqdp_smearChain(lua_State *L)
       nstaples[i] = ntd;
       if(ntd>nsmax) nsmax = ntd;
       lua_pop(L, 1);
-      chain[i] = fc[i/nd]->force[i%nd];
+      chain[i] = fc[i/nd]->links[i%nd];
     }
     for(int i=0; i<nin; i++) {
       in[i] = g[i/nd]->links[i%nd];
-      deriv[i] = f[i/nd]->force[i%nd];
+      deriv[i] = f[i/nd]->links[i%nd];
     }
     int td[nout][nsmax], *topdir[nout];
     int sd[nout][nsmax], *sidedir[nout];

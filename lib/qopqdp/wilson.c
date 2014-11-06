@@ -121,10 +121,10 @@ rephase_G(QOP_GaugeField *g, int nd)
 #endif
 
 static void
-rephase_F(force_t *f)
+rephase_F(gauge_t *f)
 {
   set_phases(f->nd);
-  QOP_rephase_G_qdp(f->force, r0, &bc, &ss);
+  QOP_rephase_G_qdp(f->links, r0, &bc, &ss);
 }
 
 static void
@@ -560,7 +560,7 @@ qopqdp_wilson_force(lua_State *L)
   int all = 0;
   BEGIN_ARGS;
   GET_WILSON(w);
-  GET_FORCE(f);
+  GET_GAUGE(f);
   GET_AS_QOPQDP_DFERMION_ARRAY(nql, ql);
   GET_AS_QOPQDP_DFERMION_ARRAY(nqr, qr);
   GET_DOUBLE_ARRAY(nm, ms);
@@ -600,7 +600,7 @@ qopqdp_wilson_force(lua_State *L)
     //QOP_F_wilson_force_multi_qdp(&info, h->ffl, qf, &h->coeffs, qeps, qcv, &nq);
     QOP_F_extract_F_to_qdp(fforce, qf);
     for(int i=0; i<f->nd; i++) {
-      QDP_DF_M_eq_M(f->force[i], fforce[i], QDP_all);
+      QDP_DF_M_eq_M(f->links[i], fforce[i], QDP_all);
       QDP_F_destroy_M(fforce[i]);
     }
     for(int i=0; i<nq; i++) {
@@ -624,26 +624,26 @@ qopqdp_wilson_force(lua_State *L)
       if(w->coeffs.aniso!=1) {
 	QLA_Real a = 1/w->coeffs.aniso;
 	for(int i=0; i<f->nd-1; i++) {
-	  QDP_M_eq_r_times_M(f->force[i], &a, f->force[i], QDP_all);
+	  QDP_M_eq_r_times_M(f->links[i], &a, f->links[i], QDP_all);
 	}
       }
       if(all) {
-	QOP_wilson_deriv_multi_qdp(&info, w->fl, f->force, qeps, dfl, dfr, nql);
+	QOP_wilson_deriv_multi_qdp(&info, w->fl, f->links, qeps, dfl, dfr, nql);
       } else {
-	QOP_wilson_deriv_prec_multi_qdp(&info, w->fl, f->force, qks, qeps, dfl, dfr, nql);
+	QOP_wilson_deriv_prec_multi_qdp(&info, w->fl, f->links, qks, qeps, dfl, dfr, nql);
       }
       rephase_F(f);
       if(w->coeffs.aniso!=1) {
 	QLA_Real a = w->coeffs.aniso;
 	for(int i=0; i<f->nd-1; i++) {
-	  QDP_M_eq_r_times_M(f->force[i], &a, f->force[i], QDP_all);
+	  QDP_M_eq_r_times_M(f->links[i], &a, f->links[i], QDP_all);
 	}
       }
     } else {
       if(all) {
-	QOP_wilson_force_multi_qdp(&info, w->fl, f->force, qeps, dfl, dfr, nql);
+	QOP_wilson_force_multi_qdp(&info, w->fl, f->links, qeps, dfl, dfr, nql);
       } else {
-	QOP_wilson_force_prec_multi_qdp(&info, w->fl, f->force, qks, qeps, dfl, dfr, nql);
+	QOP_wilson_force_prec_multi_qdp(&info, w->fl, f->links, qks, qeps, dfl, dfr, nql);
       }
     }
   }
