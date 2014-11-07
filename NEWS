@@ -1,3 +1,13 @@
+===========================================================================
+2014-11-06      version 0.1.4
+===========================================================================
+2014-11-05	James Osborn
+	renamed "hmc" directory to "lua"
+	replaced squark and wquark with cvector and dfermion
+	replaced force_t with gauge_t
+	replaced dwquark_t with array of dfermion_t
+    	added penlight library
+
 2014-10-13	James Osborn
 	changed sign convention for gauge loop
 	added field parallel transport

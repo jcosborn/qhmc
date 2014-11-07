@@ -41,14 +41,13 @@ local space_dil = space_dil or 2 -- set to 1 to not space even/odd dilute
 
 
 -- These parameters matter!
-local prec = prec or 2 -- Use a multi-precision inverter. Default.
+local prec = prec or 1 -- Use a multi-precision inverter. Default.
 
 -- Start preparing to load the gauge field, spit out basic info.
 local latsize = { nx, nx, nx, nt }
 local vol = 1
 local spatvol = nx*nx*nx;
---local seed = seed or qopqdp.dtime();
-local seed = 1412097669;
+local seed = seed or os.time()
 printf("latsize =")
 for k,v in ipairs(latsize) do vol=vol*v; printf(" %i",v); end
 printf("\nvolume = %i\n", vol)

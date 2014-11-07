@@ -1,42 +1,43 @@
 #runtest: using temp file stagObs.raw
-#loading: /home/osborn/lqcd/install/qhmc-git/lua/Init.lua
-#loading: /home/osborn/lqcd/install/qhmc-git/lua/pl/class.lua
+#loading: /home/josborn/lqcd/install/qhmc-git/lua/Init.lua
+#loading: /home/josborn/lqcd/install/qhmc-git/lua/pl/class.lua
 #runtest: using temp file stagObs.tmp
-#loading: /home/osborn/lqcd/install/qhmc-git/lua/staggeredObservablesConn.lua
-#loading: /home/osborn/lqcd/install/qhmc-git/lua/common.lua
-#loading: /home/osborn/lqcd/install/qhmc-git/lua/smear.lua
-#loading: /home/osborn/lqcd/install/qhmc-git/lua/run.lua
-#loading: /home/osborn/lqcd/install/qhmc-git/lua/gaugeact.lua
-#loading: /home/osborn/lqcd/install/qhmc-git/lua/asqtadact.lua
-#loading: /home/osborn/lqcd/install/qhmc-git/lua/staggeredObservables.lua
-#loading: /home/osborn/lqcd/install/qhmc-git/lua/hisqact.lua
-#loading: /home/osborn/lqcd/install/qhmc-git/lua/wilsonact.lua
-#loading: /home/osborn/lqcd/install/qhmc-git/lua/wilson2fact.lua
-#loading: /home/osborn/lqcd/install/qhmc-git/lua/cgms2lua
-#loading: /home/osborn/lqcd/install/qhmc-git/lua/fields.lua
-#loading: /home/osborn/lqcd/install/qhmc-git/lua/hmc.lua
+#loading: /home/josborn/lqcd/install/qhmc-git/lua/staggeredObservablesConn.lua
+#loading: /home/josborn/lqcd/install/qhmc-git/lua/common.lua
+#loading: /home/josborn/lqcd/install/qhmc-git/lua/smear.lua
+#loading: /home/josborn/lqcd/install/qhmc-git/lua/run.lua
+#loading: /home/josborn/lqcd/install/qhmc-git/lua/gaugeact.lua
+#loading: /home/josborn/lqcd/install/qhmc-git/lua/asqtadact.lua
+#loading: /home/josborn/lqcd/install/qhmc-git/lua/staggeredObservables.lua
+#loading: /home/josborn/lqcd/install/qhmc-git/lua/hisqact.lua
+#loading: /home/josborn/lqcd/install/qhmc-git/lua/wilsonact.lua
+#loading: /home/josborn/lqcd/install/qhmc-git/lua/wilson2fact.lua
+#loading: /home/josborn/lqcd/install/qhmc-git/lua/cgms2lua
+#loading: /home/josborn/lqcd/install/qhmc-git/lua/fields.lua
+#loading: /home/josborn/lqcd/install/qhmc-git/lua/hmc.lua
 latsize = 4 4 4 8
 volume = 512
 mass = 0.05
-seed = 3190
-gfix_prec = 1e-06
-cg_prec = 1e-06
+seed = 9.87654e+08
+gfix_prec = 1e-08
+cg_prec = 1e-08
 src_num = 1
 ndim = 4
 numsites = 512
 len = 4 4 4 8
 nsquares = 1 1 1 1
-unitarity deviation avg: 1.94067e-08  max: 4.16177e-08
-new unitarity deviation avg: 1.15871e-16  max: 3.06455e-16
-plaq ss: -0.000533821  st: 0.00409575  tot: 0.00178097
-COULGAUGE: iter = 5, tgfold = 0.528782, tgfnew = 0.572502, tgf_s = 0.572502, tgf_t = 0
-COULGAUGE: iter = 10, tgfold = 0.639233, tgfnew = 0.644459, tgf_s = 0.644459, tgf_t = 0
-COULGAUGE: iter = 18, tgfold = 0.655816, tgfnew = 0.656387, tgf_s = 0.656387, tgf_t = 0
-COULGAUGE: iter = 40, tgfold = 0.659624, tgfnew = 0.659684, tgf_s = 0.659684, tgf_t = 0
-COULGAUGE: iter = 58, tgfold = 0.660005, tgfnew = 0.660011, tgf_s = 0.660011, tgf_t = 0
-COULGAUGE: iter = 105, tgfold = 0.660191, tgfnew = 0.660192, tgf_s = 0.660192, tgf_t = 0
-COULGAUGE: end: iter = 105, tgfold = 0.660192, tgf_s = 0.660192, tgf_t = 0
-#Coulgauge meas time: 0.413442#
+unitarity deviation avg: 1.95085e-08  max: 4.12863e-08
+new unitarity deviation avg: 0  max: 0
+plaq ss: -0.000705445  st: 0.00595595  tot: 0.00262525
+COULGAUGE: iter = 5, tgfold = 0.527115, tgfnew = 0.573682, tgf_s = 0.573682, tgf_t = 0
+COULGAUGE: iter = 10, tgfold = 0.642336, tgfnew = 0.647248, tgf_s = 0.647248, tgf_t = 0
+COULGAUGE: iter = 17, tgfold = 0.657114, tgfnew = 0.657622, tgf_s = 0.657622, tgf_t = 0
+COULGAUGE: iter = 32, tgfold = 0.660107, tgfnew = 0.66016, tgf_s = 0.66016, tgf_t = 0
+COULGAUGE: iter = 61, tgfold = 0.660695, tgfnew = 0.660701, tgf_s = 0.660701, tgf_t = 0
+COULGAUGE: iter = 106, tgfold = 0.660827, tgfnew = 0.660828, tgf_s = 0.660828, tgf_t = 0
+COULGAUGE: iter = 146, tgfold = 0.660836, tgfnew = 0.660836, tgf_s = 0.660836, tgf_t = 0
+COULGAUGE: end: iter = 200, tgfold = 0.660838, tgf_s = 0.660838, tgf_t = 0
+#Coulgauge meas time: 1.15415#
 smear = {
   1 = {
     alpha = { 0.4, 0.5, 0.5 }
@@ -47,125 +48,125 @@ Start smearing.
 Smearing done.
 Start random wall source 1 at t=2
 gauss_src norm2: 64
-#inversion its: 354  secs: 0.00867486  Mflops: 12661.4#
+#inversion its: 466  secs: 0.0116758  Mflops: 12383.4#
 Start random wall source 2 at t=2
 gauss_src norm2: 64
-#inversion its: 345  secs: 0.00827503  Mflops: 12935.8#
+#inversion its: 459  secs: 0.0109301  Mflops: 13029.6#
 Start random wall source 3 at t=2
 gauss_src norm2: 64
-#inversion its: 349  secs: 0.00834703  Mflops: 12972.9#
+#inversion its: 460  secs: 0.0107899  Mflops: 13227.7#
 Start wall source 1 at t=2
 Start color 1
 even_src norm2: 0.5
 odd_src norm2: 0.5
-#inversion its: 346  secs: 0.00838304  Mflops: 12806.1#
-#inversion its: 355  secs: 0.00849295  Mflops: 12969.2#
+#inversion its: 459  secs: 0.0106969  Mflops: 13313.7#
+#inversion its: 458  secs: 0.0105588  Mflops: 13458.3#
 End color.
 Start color 2
 even_src norm2: 0.5
 odd_src norm2: 0.5
-#inversion its: 350  secs: 0.00841999  Mflops: 12897.3#
-#inversion its: 346  secs: 0.00828195  Mflops: 12962.4#
+#inversion its: 458  secs: 0.0105529  Mflops: 13465.9#
+#inversion its: 458  secs: 0.0105579  Mflops: 13459.6#
 End color.
 Start color 3
 even_src norm2: 0.5
 odd_src norm2: 0.5
-#inversion its: 343  secs: 0.00822997  Mflops: 12931.2#
-#inversion its: 348  secs: 0.008322  Mflops: 12974.6#
+#inversion its: 458  secs: 0.011184  Mflops: 12706.1#
+#inversion its: 455  secs: 0.011441  Mflops: 12339.3#
 End color.
 End wall source.
 STARTPROP
 MASSES:	0.05	0.05
 SOURCE: RANDOM_WALL
 SINKS: POINT_KAON_5 WALL_KAON_5
-0 0.0366997 0 0.0385947 0
-1 0.0244553 0 0.0358167 0
-2 0.0167078 0 0.0322735 0
-3 0.0124873 0 0.026388 0
-4 0.00914318 0 0.00479039 0
-5 0.0102305 0 0.0114937 0
-6 0.0150246 0 0.01999 0
-7 0.0251503 0 0.0398578 0
+0 0.037453 0 0.0598941 0
+1 0.0254549 0 0.0477548 0
+2 0.0172982 0 0.018825 0
+3 0.0107962 0 0.0179245 0
+4 0.00943018 0 0.0125135 0
+5 0.0116963 0 0.0139009 0
+6 0.0133364 0 0.0185809 0
+7 0.0198989 0 0.0193134 0
 STARTPROP
 MASSES:	0.05	0.05
 SOURCE: EVEN_WALL
 SINKS: PION_PS PION_SC
-0 4.23591 0 -0.119415 0
-1 3.0756 0 0.216039 0
-2 2.14903 0 -0.190984 0
-3 1.53664 0 0.0698516 0
-4 1.299 0 -0.208245 0
-5 1.42267 0 0.165973 0
-6 1.99091 0 -0.0630055 0
-7 2.70647 0 0.47675 0
+0 5.20373 0 -0.28095 0
+1 3.53197 0 0.218722 0
+2 2.27559 0 0.142227 0
+3 1.43787 0 -0.109373 0
+4 1.10719 0 -0.0933758 0
+5 1.43911 0 0.270809 0
+6 2.23076 0 -0.321043 0
+7 3.37519 0 0.789651 0
 ENDPROP
 STARTPROP
 MASSES:	0.05	0.05
 SOURCE: EVEN_WALL
 SINKS: NUCLEON
-0 0.0096732 0
-1 0.000951751 0
-2 0.00090569 0
-3 -0.000151303 0
-4 -0.000200976 0
-5 0.000472715 0
-6 -0.000209822 0
-7 0.00558021 0
+0 0.00830873 0
+1 0.00217838 0
+2 -0.00132671 0
+3 -0.000152433 0
+4 0.00072562 0
+5 -0.0010754 0
+6 0.000165438 0
+7 -0.00163109 0
 ENDPROP
 STARTPROP
 MASSES:	0.05	0.05
 SOURCE: EVENANDODD_WALL
 SINKS: PION_PS PION_SC PION_i5 PION_ij
-0 18.4038 0 -0.109541 0 2.9198 0 3.0063 0
-1 13.4865 0 0.639778 0 -0.322568 0 0.701123 0
-2 8.93857 0 -0.177825 0 0.138368 0 0.0938678 0
-3 6.5283 0 -0.0378074 0 0.398392 0 -0.192588 0
-4 5.41532 0 -0.268685 0 -0.00148319 0 -0.0563605 0
-5 6.17287 0 -0.0155557 0 0.264711 0 -0.00391518 0
-6 7.70968 0 0.118473 0 0.0187349 0 0.355243 0
-7 11.2192 0 0.347548 0 0.258498 0 -0.564446 0
+0 22.9578 0 0.120233 0 4.14221 0 2.92331 0
+1 14.6944 0 -0.193693 0 0.63208 0 0.24494 0
+2 9.30724 0 0.722001 0 0.124254 0 -0.339541 0
+3 6.15797 0 -0.323276 0 -0.146093 0 0.122113 0
+4 4.96057 0 0.00856102 0 0.0880983 0 0.0210155 0
+5 6.16939 0 0.059478 0 -0.119668 0 -0.243781 0
+6 8.92709 0 -0.163504 0 0.245859 0 -0.0494893 0
+7 13.7597 0 0.765661 0 -0.0208248 0 -0.704816 0
 STARTPROP
 MASSES:	0.05	0.05
 SOURCE: EVENANDODD_WALL
 SINKS: RHO_0 RHO_is RHO_ij RHO_i5
-0 2.89681 0 1.59499 0 2.75671 0 2.31754 0
-1 0.823144 0 -0.163162 0 -0.532695 0 -0.105675 0
-2 -0.0133458 0 0.0338564 0 0.276193 0 -0.110062 0
-3 0.0247988 0 0.0908605 0 -0.173407 0 0.0396978 0
-4 -0.181934 0 0.0514435 0 -0.0429252 0 0.0111296 0
-5 0.156479 0 0.0318608 0 -0.151671 0 -0.00245283 0
-6 0.0790198 0 -0.281037 0 0.0867492 0 0.0358714 0
-7 0.319456 0 0.150603 0 -0.025825 0 0.127006 0
+0 3.73349 0 3.45207 0 3.12981 0 3.24022 0
+1 0.269881 0 -0.205308 0 -0.0855256 0 0.0503289 0
+2 0.193388 0 -0.110057 0 0.163076 0 0.255422 0
+3 -0.0503966 0 -0.0558098 0 -0.0313781 0 0.174473 0
+4 -0.260704 0 -0.261266 0 -0.146493 0 0.0866673 0
+5 -0.011052 0 0.256876 0 0.154007 0 0.157183 0
+6 0.0777575 0 -0.00320185 0 -0.341974 0 -0.0998149 0
+7 0.135884 0 0.00343049 0 0.419472 0 0.357359 0
 ENDPROP
 STARTPROP
 MASSES:	0.05	0.05
 SOURCE: EVENANDODD_WALL
 SINKS: NUCLEON DELTA
-0 0.00994469 0 0.17251 0
-1 -0.00423479 0 -0.103648 0
-2 -0.00121642 0 0.0097851 0
-3 -0.00178997 0 0.0147875 0
-4 -9.88767e-05 0 0.0116266 0
-5 -0.00158212 0 -0.00214586 0
-6 -0.00241687 0 -0.0132227 0
-7 0.0027173 0 -0.00728578 0
+0 0.00944274 0 0.248844 0
+1 0.0141635 0 -0.0233343 0
+2 -0.0002969 0 -0.0491953 0
+3 -0.00233519 0 0.00142261 0
+4 0.00199083 0 0.0239147 0
+5 -0.00135539 0 0.0158846 0
+6 0.0039578 0 0.018247 0
+7 -0.00598194 0 0.0335546 0
 ENDPROP
-#Total time: 0.522938 seconds.#
-#loading: /home/osborn/lqcd/install/qhmc-git/lua/staggeredObservablesDisc.lua
+#Total time: 1.29805 seconds.#
+#loading: /home/josborn/lqcd/install/qhmc-git/lua/staggeredObservablesDisc.lua
 latsize = 4 4 4 8
 volume = 512
 mass = 0.1
-seed = 1.4121e+09
-cg_prec = 1e-06
+seed = 9.87654e+08
+cg_prec = 1e-08
 num_src_src = 2
 source_type = U1
 ndim = 4
 numsites = 512
 len = 4 4 4 8
 nsquares = 1 1 1 1
-unitarity deviation avg: 1.95693e-08  max: 4.24152e-08
-new unitarity deviation avg: 1.17024e-16  max: 2.75744e-16
-plaq ss: -0.0107848  st: -0.00398764  tot: -0.00738625
+unitarity deviation avg: 1.95085e-08  max: 4.12863e-08
+new unitarity deviation avg: 0  max: 0
+plaq ss: -0.000705445  st: 0.00595595  tot: 0.00262525
 smear = {
   1 = {
     alpha = { 0.4, 0.5, 0.5 }
@@ -176,230 +177,230 @@ Start smearing.
 Smearing done.
 Preparing to get 2 U1 noise sources.
 Obtained 2 U1 noise sources.
-#inversion its: 175  secs: 0.00446701  Mflops: 12155.2#
-#Inversion 1, source 0, timeslice 0, space 0, color 0, total time: 0.004583#
-#inversion its: 175  secs: 0.00441408  Mflops: 12301#
-#Inversion 2, source 0, timeslice 0, space 0, color 1, total time: 0.004523#
-#inversion its: 173  secs: 0.00436902  Mflops: 12285.8#
-#Inversion 3, source 0, timeslice 0, space 0, color 2, total time: 0.004468#
-#inversion its: 174  secs: 0.00437903  Mflops: 12328.6#
-#Inversion 4, source 0, timeslice 0, space 1, color 0, total time: 0.00448#
-#inversion its: 174  secs: 0.00437307  Mflops: 12345.4#
-#Inversion 5, source 0, timeslice 0, space 1, color 1, total time: 0.004473#
-#inversion its: 175  secs: 0.00439  Mflops: 12368.5#
-#Inversion 6, source 0, timeslice 0, space 1, color 2, total time: 0.004489#
-#inversion its: 175  secs: 0.0044148  Mflops: 12299#
-#Inversion 7, source 0, timeslice 1, space 0, color 0, total time: 0.004514#
-#inversion its: 174  secs: 0.00439  Mflops: 12297.8#
-#Inversion 8, source 0, timeslice 1, space 0, color 1, total time: 0.004489#
-#inversion its: 172  secs: 0.00433993  Mflops: 12296.7#
-#Inversion 9, source 0, timeslice 1, space 0, color 2, total time: 0.004439#
-#inversion its: 175  secs: 0.00440097  Mflops: 12337.6#
-#Inversion 10, source 0, timeslice 1, space 1, color 0, total time: 0.004501#
-#inversion its: 177  secs: 0.00444293  Mflops: 12360.8#
-#Inversion 11, source 0, timeslice 1, space 1, color 1, total time: 0.004542#
-#inversion its: 175  secs: 0.00439715  Mflops: 12348.4#
-#Inversion 12, source 0, timeslice 1, space 1, color 2, total time: 0.004496#
-#inversion its: 176  secs: 0.00443387  Mflops: 12316.1#
-#Inversion 13, source 0, timeslice 2, space 0, color 0, total time: 0.004533#
-#inversion its: 174  secs: 0.00440001  Mflops: 12269.8#
-#Inversion 14, source 0, timeslice 2, space 0, color 1, total time: 0.004501#
-#inversion its: 177  secs: 0.00456119  Mflops: 12040.3#
-#Inversion 15, source 0, timeslice 2, space 0, color 2, total time: 0.004667#
-#inversion its: 174  secs: 0.00444603  Mflops: 12142.8#
-#Inversion 16, source 0, timeslice 2, space 1, color 0, total time: 0.004551#
-#inversion its: 176  secs: 0.00443006  Mflops: 12326.7#
-#Inversion 17, source 0, timeslice 2, space 1, color 1, total time: 0.004531#
-#inversion its: 176  secs: 0.00441504  Mflops: 12368.6#
-#Inversion 18, source 0, timeslice 2, space 1, color 2, total time: 0.004516#
-#inversion its: 175  secs: 0.00440407  Mflops: 12329#
-#Inversion 19, source 0, timeslice 3, space 0, color 0, total time: 0.004505#
-#inversion its: 175  secs: 0.00441217  Mflops: 12306.3#
-#Inversion 20, source 0, timeslice 3, space 0, color 1, total time: 0.004511#
-#inversion its: 176  secs: 0.0044291  Mflops: 12329.3#
-#Inversion 21, source 0, timeslice 3, space 0, color 2, total time: 0.004529#
-#inversion its: 176  secs: 0.00457406  Mflops: 11938.6#
-#Inversion 22, source 0, timeslice 3, space 1, color 0, total time: 0.004677#
-#inversion its: 174  secs: 0.00437808  Mflops: 12331.3#
-#Inversion 23, source 0, timeslice 3, space 1, color 1, total time: 0.004479#
-#inversion its: 176  secs: 0.00442004  Mflops: 12354.6#
-#Inversion 24, source 0, timeslice 3, space 1, color 2, total time: 0.004519#
-#inversion its: 173  secs: 0.00436211  Mflops: 12305.3#
-#Inversion 25, source 0, timeslice 4, space 0, color 0, total time: 0.004467#
-#inversion its: 174  secs: 0.00438619  Mflops: 12308.5#
-#Inversion 26, source 0, timeslice 4, space 0, color 1, total time: 0.004485#
-#inversion its: 174  secs: 0.00438094  Mflops: 12323.2#
-#Inversion 27, source 0, timeslice 4, space 0, color 2, total time: 0.00448#
-#inversion its: 175  secs: 0.00439715  Mflops: 12348.4#
-#Inversion 28, source 0, timeslice 4, space 1, color 0, total time: 0.004496#
-#inversion its: 178  secs: 0.004462  Mflops: 12377.5#
-#Inversion 29, source 0, timeslice 4, space 1, color 1, total time: 0.004562#
-#inversion its: 173  secs: 0.00434995  Mflops: 12339.7#
-#Inversion 30, source 0, timeslice 4, space 1, color 2, total time: 0.004449#
-#inversion its: 174  secs: 0.00438404  Mflops: 12314.5#
-#Inversion 31, source 0, timeslice 5, space 0, color 0, total time: 0.004483#
-#inversion its: 177  secs: 0.00448394  Mflops: 12247.7#
-#Inversion 32, source 0, timeslice 5, space 0, color 1, total time: 0.004585#
-#inversion its: 173  secs: 0.00436401  Mflops: 12299.9#
-#Inversion 33, source 0, timeslice 5, space 0, color 2, total time: 0.004464#
-#inversion its: 174  secs: 0.00436783  Mflops: 12360.2#
-#Inversion 34, source 0, timeslice 5, space 1, color 0, total time: 0.004468#
-#inversion its: 174  secs: 0.00436902  Mflops: 12356.8#
-#Inversion 35, source 0, timeslice 5, space 1, color 1, total time: 0.004468#
-#inversion its: 178  secs: 0.00445986  Mflops: 12383.4#
-#Inversion 36, source 0, timeslice 5, space 1, color 2, total time: 0.004559#
-#inversion its: 174  secs: 0.00438619  Mflops: 12308.5#
-#Inversion 37, source 0, timeslice 6, space 0, color 0, total time: 0.004484#
-#inversion its: 174  secs: 0.00438499  Mflops: 12311.8#
-#Inversion 38, source 0, timeslice 6, space 0, color 1, total time: 0.004484#
-#inversion its: 174  secs: 0.00438404  Mflops: 12314.5#
-#Inversion 39, source 0, timeslice 6, space 0, color 2, total time: 0.004483#
-#inversion its: 176  secs: 0.00441909  Mflops: 12357.3#
-#Inversion 40, source 0, timeslice 6, space 1, color 0, total time: 0.00452#
-#inversion its: 174  secs: 0.00437713  Mflops: 12334#
-#Inversion 41, source 0, timeslice 6, space 1, color 1, total time: 0.004476#
-#inversion its: 176  secs: 0.00442004  Mflops: 12354.6#
-#Inversion 42, source 0, timeslice 6, space 1, color 2, total time: 0.004518#
-#inversion its: 174  secs: 0.00439191  Mflops: 12292.5#
-#Inversion 43, source 0, timeslice 7, space 0, color 0, total time: 0.004492#
-#inversion its: 176  secs: 0.00443101  Mflops: 12324#
-#Inversion 44, source 0, timeslice 7, space 0, color 1, total time: 0.00453#
-#inversion its: 174  secs: 0.00438285  Mflops: 12317.9#
-#Inversion 45, source 0, timeslice 7, space 0, color 2, total time: 0.004481#
-#inversion its: 176  secs: 0.004421  Mflops: 12351.9#
-#Inversion 46, source 0, timeslice 7, space 1, color 0, total time: 0.004519#
-#inversion its: 177  secs: 0.00445604  Mflops: 12324.4#
-#Inversion 47, source 0, timeslice 7, space 1, color 1, total time: 0.004555#
-#inversion its: 176  secs: 0.00442386  Mflops: 12344#
-#Inversion 48, source 0, timeslice 7, space 1, color 2, total time: 0.004522#
-#inversion its: 175  secs: 0.00444007  Mflops: 12229#
-#Inversion 49, source 1, timeslice 0, space 0, color 0, total time: 0.00462#
-#inversion its: 175  secs: 0.00442505  Mflops: 12270.5#
-#Inversion 50, source 1, timeslice 0, space 0, color 1, total time: 0.004597#
-#inversion its: 176  secs: 0.00443912  Mflops: 12301.5#
-#Inversion 51, source 1, timeslice 0, space 0, color 2, total time: 0.004612#
-#inversion its: 175  secs: 0.00440598  Mflops: 12323.6#
-#Inversion 52, source 1, timeslice 0, space 1, color 0, total time: 0.004578#
-#inversion its: 175  secs: 0.00441408  Mflops: 12301#
-#Inversion 53, source 1, timeslice 0, space 1, color 1, total time: 0.004585#
-#inversion its: 174  secs: 0.00439191  Mflops: 12292.5#
-#Inversion 54, source 1, timeslice 0, space 1, color 2, total time: 0.004563#
-#inversion its: 175  secs: 0.0044179  Mflops: 12290.4#
-#Inversion 55, source 1, timeslice 1, space 0, color 0, total time: 0.00459#
-#inversion its: 177  secs: 0.004462  Mflops: 12308#
-#Inversion 56, source 1, timeslice 1, space 0, color 1, total time: 0.004635#
-#inversion its: 175  secs: 0.004426  Mflops: 12267.9#
-#Inversion 57, source 1, timeslice 1, space 0, color 2, total time: 0.0046#
-#inversion its: 177  secs: 0.00446701  Mflops: 12294.2#
-#Inversion 58, source 1, timeslice 1, space 1, color 0, total time: 0.00464#
-#inversion its: 177  secs: 0.00446296  Mflops: 12305.3#
-#Inversion 59, source 1, timeslice 1, space 1, color 1, total time: 0.004637#
-#inversion its: 176  secs: 0.00444198  Mflops: 12293.6#
-#Inversion 60, source 1, timeslice 1, space 1, color 2, total time: 0.004614#
-#inversion its: 175  secs: 0.004426  Mflops: 12267.9#
-#Inversion 61, source 1, timeslice 2, space 0, color 0, total time: 0.004606#
-#inversion its: 177  secs: 0.00447297  Mflops: 12277.8#
-#Inversion 62, source 1, timeslice 2, space 0, color 1, total time: 0.004644#
-#inversion its: 175  secs: 0.00440192  Mflops: 12335#
-#Inversion 63, source 1, timeslice 2, space 0, color 2, total time: 0.004575#
-#inversion its: 175  secs: 0.00441599  Mflops: 12295.7#
-#Inversion 64, source 1, timeslice 2, space 1, color 0, total time: 0.004587#
-#inversion its: 176  secs: 0.00443912  Mflops: 12301.5#
-#Inversion 65, source 1, timeslice 2, space 1, color 1, total time: 0.00461#
-#inversion its: 175  secs: 0.00440693  Mflops: 12321#
-#Inversion 66, source 1, timeslice 2, space 1, color 2, total time: 0.00458#
-#inversion its: 178  secs: 0.00448704  Mflops: 12308.4#
-#Inversion 67, source 1, timeslice 3, space 0, color 0, total time: 0.004662#
-#inversion its: 176  secs: 0.00444913  Mflops: 12273.8#
-#Inversion 68, source 1, timeslice 3, space 0, color 1, total time: 0.004623#
-#inversion its: 176  secs: 0.00443316  Mflops: 12318.1#
-#Inversion 69, source 1, timeslice 3, space 0, color 2, total time: 0.004606#
-#inversion its: 177  secs: 0.00445795  Mflops: 12319.1#
-#Inversion 70, source 1, timeslice 3, space 1, color 0, total time: 0.004632#
-#inversion its: 177  secs: 0.00446892  Mflops: 12288.9#
-#Inversion 71, source 1, timeslice 3, space 1, color 1, total time: 0.004645#
-#inversion its: 175  secs: 0.00441909  Mflops: 12287.1#
-#Inversion 72, source 1, timeslice 3, space 1, color 2, total time: 0.004592#
-#inversion its: 175  secs: 0.00440407  Mflops: 12329#
-#Inversion 73, source 1, timeslice 4, space 0, color 0, total time: 0.004578#
-#inversion its: 174  secs: 0.00437808  Mflops: 12331.3#
-#Inversion 74, source 1, timeslice 4, space 0, color 1, total time: 0.004553#
-#inversion its: 175  secs: 0.00441289  Mflops: 12304.3#
-#Inversion 75, source 1, timeslice 4, space 0, color 2, total time: 0.004585#
-#inversion its: 175  secs: 0.00444102  Mflops: 12226.4#
-#Inversion 76, source 1, timeslice 4, space 1, color 0, total time: 0.004619#
-#inversion its: 176  secs: 0.00443101  Mflops: 12324#
-#Inversion 77, source 1, timeslice 4, space 1, color 1, total time: 0.004605#
-#inversion its: 176  secs: 0.004426  Mflops: 12338#
-#Inversion 78, source 1, timeslice 4, space 1, color 2, total time: 0.0046#
-#inversion its: 175  secs: 0.00440121  Mflops: 12337#
-#Inversion 79, source 1, timeslice 5, space 0, color 0, total time: 0.004575#
-#inversion its: 176  secs: 0.00443602  Mflops: 12310.1#
-#Inversion 80, source 1, timeslice 5, space 0, color 1, total time: 0.004608#
-#inversion its: 175  secs: 0.00440907  Mflops: 12315#
-#Inversion 81, source 1, timeslice 5, space 0, color 2, total time: 0.004582#
-#inversion its: 176  secs: 0.00447893  Mflops: 12192.2#
-#Inversion 82, source 1, timeslice 5, space 1, color 0, total time: 0.004652#
-#inversion its: 175  secs: 0.00440884  Mflops: 12315.6#
-#Inversion 83, source 1, timeslice 5, space 1, color 1, total time: 0.004582#
-#inversion its: 176  secs: 0.00441885  Mflops: 12357.9#
-#Inversion 84, source 1, timeslice 5, space 1, color 2, total time: 0.004593#
-#inversion its: 175  secs: 0.00439715  Mflops: 12348.4#
-#Inversion 85, source 1, timeslice 6, space 0, color 0, total time: 0.00457#
-#inversion its: 175  secs: 0.00441313  Mflops: 12303.7#
-#Inversion 86, source 1, timeslice 6, space 0, color 1, total time: 0.004585#
-#inversion its: 177  secs: 0.00445199  Mflops: 12335.6#
-#Inversion 87, source 1, timeslice 6, space 0, color 2, total time: 0.004623#
-#inversion its: 175  secs: 0.00441313  Mflops: 12303.7#
-#Inversion 88, source 1, timeslice 6, space 1, color 0, total time: 0.004587#
-#inversion its: 176  secs: 0.00443912  Mflops: 12301.5#
-#Inversion 89, source 1, timeslice 6, space 1, color 1, total time: 0.004608#
-#inversion its: 174  secs: 0.00438786  Mflops: 12303.8#
-#Inversion 90, source 1, timeslice 6, space 1, color 2, total time: 0.00456#
-#inversion its: 175  secs: 0.00441098  Mflops: 12309.6#
-#Inversion 91, source 1, timeslice 7, space 0, color 0, total time: 0.004582#
-#inversion its: 173  secs: 0.00436807  Mflops: 12288.5#
-#Inversion 92, source 1, timeslice 7, space 0, color 1, total time: 0.004539#
-#inversion its: 175  secs: 0.00440717  Mflops: 12320.3#
-#Inversion 93, source 1, timeslice 7, space 0, color 2, total time: 0.00458#
-#inversion its: 173  secs: 0.00436711  Mflops: 12291.2#
-#Inversion 94, source 1, timeslice 7, space 1, color 0, total time: 0.004541#
-#inversion its: 175  secs: 0.00441289  Mflops: 12304.3#
-#Inversion 95, source 1, timeslice 7, space 1, color 1, total time: 0.004588#
-#inversion its: 176  secs: 0.00442791  Mflops: 12332.7#
-#Inversion 96, source 1, timeslice 7, space 1, color 2, total time: 0.0046#
-#Total Invert+Dot Time: 0.437826#
+#inversion its: 229  secs: 0.00656295  Mflops: 10826.3#
+#Inversion 1, source 0, timeslice 0, space 0, color 0, total time: 0.006704#
+#inversion its: 229  secs: 0.00565195  Mflops: 12571.3#
+#Inversion 2, source 0, timeslice 0, space 0, color 1, total time: 0.005777#
+#inversion its: 232  secs: 0.00597692  Mflops: 12043.5#
+#Inversion 3, source 0, timeslice 0, space 0, color 2, total time: 0.006109#
+#inversion its: 229  secs: 0.006073  Mflops: 11699.7#
+#Inversion 4, source 0, timeslice 0, space 1, color 0, total time: 0.006207#
+#inversion its: 230  secs: 0.00593615  Mflops: 12021.7#
+#Inversion 5, source 0, timeslice 0, space 1, color 1, total time: 0.006076#
+#inversion its: 228  secs: 0.00614882  Mflops: 11505#
+#Inversion 6, source 0, timeslice 0, space 1, color 2, total time: 0.006294#
+#inversion its: 228  secs: 0.00617504  Mflops: 11456.1#
+#Inversion 7, source 0, timeslice 1, space 0, color 0, total time: 0.00631#
+#inversion its: 231  secs: 0.00615501  Mflops: 11644.6#
+#Inversion 8, source 0, timeslice 1, space 0, color 1, total time: 0.006301#
+#inversion its: 229  secs: 0.00597501  Mflops: 11891.6#
+#Inversion 9, source 0, timeslice 1, space 0, color 2, total time: 0.006116#
+#inversion its: 229  secs: 0.00573206  Mflops: 12395.6#
+#Inversion 10, source 0, timeslice 1, space 1, color 0, total time: 0.005859#
+#inversion its: 229  secs: 0.00625515  Mflops: 11359#
+#Inversion 11, source 0, timeslice 1, space 1, color 1, total time: 0.006382#
+#inversion its: 229  secs: 0.00648689  Mflops: 10953.2#
+#Inversion 12, source 0, timeslice 1, space 1, color 2, total time: 0.006629#
+#inversion its: 230  secs: 0.00709701  Mflops: 10055.3#
+#Inversion 13, source 0, timeslice 2, space 0, color 0, total time: 0.007265#
+#inversion its: 231  secs: 0.00589895  Mflops: 12150.1#
+#Inversion 14, source 0, timeslice 2, space 0, color 1, total time: 0.006028#
+#inversion its: 231  secs: 0.00571585  Mflops: 12539.3#
+#Inversion 15, source 0, timeslice 2, space 0, color 2, total time: 0.005843#
+#inversion its: 230  secs: 0.00591302  Mflops: 12068.7#
+#Inversion 16, source 0, timeslice 2, space 1, color 0, total time: 0.006038#
+#inversion its: 229  secs: 0.00575495  Mflops: 12346.3#
+#Inversion 17, source 0, timeslice 2, space 1, color 1, total time: 0.005886#
+#inversion its: 229  secs: 0.0056231  Mflops: 12635.8#
+#Inversion 18, source 0, timeslice 2, space 1, color 2, total time: 0.005745#
+#inversion its: 233  secs: 0.00581908  Mflops: 12423.5#
+#Inversion 19, source 0, timeslice 3, space 0, color 0, total time: 0.005941#
+#inversion its: 229  secs: 0.00556707  Mflops: 12763#
+#Inversion 20, source 0, timeslice 3, space 0, color 1, total time: 0.005687#
+#inversion its: 229  secs: 0.00560999  Mflops: 12665.3#
+#Inversion 21, source 0, timeslice 3, space 0, color 2, total time: 0.005733#
+#inversion its: 230  secs: 0.00564408  Mflops: 12643.8#
+#Inversion 22, source 0, timeslice 3, space 1, color 0, total time: 0.005764#
+#inversion its: 227  secs: 0.00566888  Mflops: 12424.3#
+#Inversion 23, source 0, timeslice 3, space 1, color 1, total time: 0.005786#
+#inversion its: 230  secs: 0.0057919  Mflops: 12321.1#
+#Inversion 24, source 0, timeslice 3, space 1, color 2, total time: 0.005915#
+#inversion its: 229  secs: 0.00572705  Mflops: 12406.4#
+#Inversion 25, source 0, timeslice 4, space 0, color 0, total time: 0.005857#
+#inversion its: 228  secs: 0.00576091  Mflops: 12279.7#
+#Inversion 26, source 0, timeslice 4, space 0, color 1, total time: 0.005893#
+#inversion its: 230  secs: 0.00576806  Mflops: 12372#
+#Inversion 27, source 0, timeslice 4, space 0, color 2, total time: 0.005897#
+#inversion its: 228  secs: 0.00589299  Mflops: 12004.4#
+#Inversion 28, source 0, timeslice 4, space 1, color 0, total time: 0.006019#
+#inversion its: 229  secs: 0.00689602  Mflops: 10303.4#
+#Inversion 29, source 0, timeslice 4, space 1, color 1, total time: 0.007039#
+#inversion its: 227  secs: 0.00565195  Mflops: 12461.5#
+#Inversion 30, source 0, timeslice 4, space 1, color 2, total time: 0.005774#
+#inversion its: 228  secs: 0.00557899  Mflops: 12680.1#
+#Inversion 31, source 0, timeslice 5, space 0, color 0, total time: 0.0057#
+#inversion its: 228  secs: 0.00559115  Mflops: 12652.5#
+#Inversion 32, source 0, timeslice 5, space 0, color 1, total time: 0.005714#
+#inversion its: 231  secs: 0.0055871  Mflops: 12828.3#
+#Inversion 33, source 0, timeslice 5, space 0, color 2, total time: 0.005701#
+#inversion its: 231  secs: 0.00572801  Mflops: 12512.7#
+#Inversion 34, source 0, timeslice 5, space 1, color 0, total time: 0.005856#
+#inversion its: 229  secs: 0.00566196  Mflops: 12549.1#
+#Inversion 35, source 0, timeslice 5, space 1, color 1, total time: 0.005785#
+#inversion its: 229  secs: 0.00560093  Mflops: 12685.8#
+#Inversion 36, source 0, timeslice 5, space 1, color 2, total time: 0.00572#
+#inversion its: 229  secs: 0.00587606  Mflops: 12091.8#
+#Inversion 37, source 0, timeslice 6, space 0, color 0, total time: 0.006008#
+#inversion its: 231  secs: 0.00569892  Mflops: 12576.6#
+#Inversion 38, source 0, timeslice 6, space 0, color 1, total time: 0.005817#
+#inversion its: 230  secs: 0.00550199  Mflops: 12970.3#
+#Inversion 39, source 0, timeslice 6, space 0, color 2, total time: 0.005615#
+#inversion its: 229  secs: 0.00559402  Mflops: 12701.5#
+#Inversion 40, source 0, timeslice 6, space 1, color 0, total time: 0.00571#
+#inversion its: 229  secs: 0.005548  Mflops: 12806.8#
+#Inversion 41, source 0, timeslice 6, space 1, color 1, total time: 0.00566#
+#inversion its: 229  secs: 0.00559211  Mflops: 12705.8#
+#Inversion 42, source 0, timeslice 6, space 1, color 2, total time: 0.00571#
+#inversion its: 228  secs: 0.00553393  Mflops: 12783.3#
+#Inversion 43, source 0, timeslice 7, space 0, color 0, total time: 0.005655#
+#inversion its: 229  secs: 0.00561404  Mflops: 12656.2#
+#Inversion 44, source 0, timeslice 7, space 0, color 1, total time: 0.005735#
+#inversion its: 230  secs: 0.00560212  Mflops: 12738.5#
+#Inversion 45, source 0, timeslice 7, space 0, color 2, total time: 0.005719#
+#inversion its: 231  secs: 0.00566101  Mflops: 12660.8#
+#Inversion 46, source 0, timeslice 7, space 1, color 0, total time: 0.005783#
+#inversion its: 229  secs: 0.00575304  Mflops: 12350.4#
+#Inversion 47, source 0, timeslice 7, space 1, color 1, total time: 0.005878#
+#inversion its: 231  secs: 0.005723  Mflops: 12523.6#
+#Inversion 48, source 0, timeslice 7, space 1, color 2, total time: 0.005843#
+#inversion its: 230  secs: 0.00566196  Mflops: 12603.9#
+#Inversion 49, source 1, timeslice 0, space 0, color 0, total time: 0.005872#
+#inversion its: 228  secs: 0.005584  Mflops: 12668.7#
+#Inversion 50, source 1, timeslice 0, space 0, color 1, total time: 0.005773#
+#inversion its: 229  secs: 0.00575089  Mflops: 12355#
+#Inversion 51, source 1, timeslice 0, space 0, color 2, total time: 0.006014#
+#inversion its: 229  secs: 0.00556588  Mflops: 12765.7#
+#Inversion 52, source 1, timeslice 0, space 1, color 0, total time: 0.005766#
+#inversion its: 227  secs: 0.00557995  Mflops: 12622.3#
+#Inversion 53, source 1, timeslice 0, space 1, color 1, total time: 0.005802#
+#inversion its: 229  secs: 0.0056901  Mflops: 12487#
+#Inversion 54, source 1, timeslice 0, space 1, color 2, total time: 0.005891#
+#inversion its: 228  secs: 0.00563979  Mflops: 12543.4#
+#Inversion 55, source 1, timeslice 1, space 0, color 0, total time: 0.005836#
+#inversion its: 231  secs: 0.00572014  Mflops: 12529.9#
+#Inversion 56, source 1, timeslice 1, space 0, color 1, total time: 0.005909#
+#inversion its: 231  secs: 0.00565791  Mflops: 12667.7#
+#Inversion 57, source 1, timeslice 1, space 0, color 2, total time: 0.005849#
+#inversion its: 231  secs: 0.00571299  Mflops: 12545.6#
+#Inversion 58, source 1, timeslice 1, space 1, color 0, total time: 0.005925#
+#inversion its: 229  secs: 0.00575399  Mflops: 12348.3#
+#Inversion 59, source 1, timeslice 1, space 1, color 1, total time: 0.00596#
+#inversion its: 227  secs: 0.00555277  Mflops: 12684.1#
+#Inversion 60, source 1, timeslice 1, space 1, color 2, total time: 0.005753#
+#inversion its: 231  secs: 0.005651  Mflops: 12683.2#
+#Inversion 61, source 1, timeslice 2, space 0, color 0, total time: 0.005861#
+#inversion its: 231  secs: 0.00566912  Mflops: 12642.7#
+#Inversion 62, source 1, timeslice 2, space 0, color 1, total time: 0.005871#
+#inversion its: 227  secs: 0.00556993  Mflops: 12645#
+#Inversion 63, source 1, timeslice 2, space 0, color 2, total time: 0.005757#
+#inversion its: 229  secs: 0.00565004  Mflops: 12575.5#
+#Inversion 64, source 1, timeslice 2, space 1, color 0, total time: 0.005857#
+#inversion its: 231  secs: 0.00571585  Mflops: 12539.3#
+#Inversion 65, source 1, timeslice 2, space 1, color 1, total time: 0.005905#
+#inversion its: 228  secs: 0.0056591  Mflops: 12500.6#
+#Inversion 66, source 1, timeslice 2, space 1, color 2, total time: 0.005855#
+#inversion its: 229  secs: 0.00566483  Mflops: 12542.7#
+#Inversion 67, source 1, timeslice 3, space 0, color 0, total time: 0.005871#
+#inversion its: 229  secs: 0.00571012  Mflops: 12443.2#
+#Inversion 68, source 1, timeslice 3, space 0, color 1, total time: 0.005927#
+#inversion its: 226  secs: 0.00570297  Mflops: 12295.6#
+#Inversion 69, source 1, timeslice 3, space 0, color 2, total time: 0.005923#
+#inversion its: 229  secs: 0.00568199  Mflops: 12504.8#
+#Inversion 70, source 1, timeslice 3, space 1, color 0, total time: 0.005888#
+#inversion its: 227  secs: 0.00569987  Mflops: 12356.7#
+#Inversion 71, source 1, timeslice 3, space 1, color 1, total time: 0.005913#
+#inversion its: 230  secs: 0.00579786  Mflops: 12308.4#
+#Inversion 72, source 1, timeslice 3, space 1, color 2, total time: 0.005999#
+#inversion its: 228  secs: 0.00578499  Mflops: 12228.5#
+#Inversion 73, source 1, timeslice 4, space 0, color 0, total time: 0.005991#
+#inversion its: 230  secs: 0.00587201  Mflops: 12153#
+#Inversion 74, source 1, timeslice 4, space 0, color 1, total time: 0.006069#
+#inversion its: 231  secs: 0.00583887  Mflops: 12275.1#
+#Inversion 75, source 1, timeslice 4, space 0, color 2, total time: 0.006058#
+#inversion its: 226  secs: 0.00654101  Mflops: 10720.3#
+#Inversion 76, source 1, timeslice 4, space 1, color 0, total time: 0.006799#
+#inversion its: 228  secs: 0.00594997  Mflops: 11889.5#
+#Inversion 77, source 1, timeslice 4, space 1, color 1, total time: 0.006155#
+#inversion its: 227  secs: 0.00558782  Mflops: 12604.5#
+#Inversion 78, source 1, timeslice 4, space 1, color 2, total time: 0.005781#
+#inversion its: 229  secs: 0.0056181  Mflops: 12647#
+#Inversion 79, source 1, timeslice 5, space 0, color 0, total time: 0.005802#
+#inversion its: 230  secs: 0.00563884  Mflops: 12655.5#
+#Inversion 80, source 1, timeslice 5, space 0, color 1, total time: 0.005831#
+#inversion its: 229  secs: 0.00577998  Mflops: 12292.8#
+#Inversion 81, source 1, timeslice 5, space 0, color 2, total time: 0.00598#
+#inversion its: 229  secs: 0.005862  Mflops: 12120.8#
+#Inversion 82, source 1, timeslice 5, space 1, color 0, total time: 0.006057#
+#inversion its: 230  secs: 0.00593495  Mflops: 12024.1#
+#Inversion 83, source 1, timeslice 5, space 1, color 1, total time: 0.006143#
+#inversion its: 228  secs: 0.00604606  Mflops: 11700.5#
+#Inversion 84, source 1, timeslice 5, space 1, color 2, total time: 0.006258#
+#inversion its: 230  secs: 0.00611806  Mflops: 11664.2#
+#Inversion 85, source 1, timeslice 6, space 0, color 0, total time: 0.006323#
+#inversion its: 230  secs: 0.0058651  Mflops: 12167.3#
+#Inversion 86, source 1, timeslice 6, space 0, color 1, total time: 0.006088#
+#inversion its: 229  secs: 0.00565505  Mflops: 12564.4#
+#Inversion 87, source 1, timeslice 6, space 0, color 2, total time: 0.005856#
+#inversion its: 229  secs: 0.00566196  Mflops: 12549.1#
+#Inversion 88, source 1, timeslice 6, space 1, color 0, total time: 0.005869#
+#inversion its: 228  secs: 0.00570297  Mflops: 12404.4#
+#Inversion 89, source 1, timeslice 6, space 1, color 1, total time: 0.00591#
+#inversion its: 229  secs: 0.00582695  Mflops: 12193.7#
+#Inversion 90, source 1, timeslice 6, space 1, color 2, total time: 0.006085#
+#inversion its: 227  secs: 0.00607514  Mflops: 11593.4#
+#Inversion 91, source 1, timeslice 7, space 0, color 0, total time: 0.006279#
+#inversion its: 227  secs: 0.00560594  Mflops: 12563.8#
+#Inversion 92, source 1, timeslice 7, space 0, color 1, total time: 0.005803#
+#inversion its: 229  secs: 0.00560284  Mflops: 12681.5#
+#Inversion 93, source 1, timeslice 7, space 0, color 2, total time: 0.005801#
+#inversion its: 229  secs: 0.00559902  Mflops: 12690.1#
+#Inversion 94, source 1, timeslice 7, space 1, color 0, total time: 0.005796#
+#inversion its: 230  secs: 0.00557399  Mflops: 12802.8#
+#Inversion 95, source 1, timeslice 7, space 1, color 1, total time: 0.005766#
+#inversion its: 229  secs: 0.00559616  Mflops: 12696.6#
+#Inversion 96, source 1, timeslice 7, space 1, color 2, total time: 0.005783#
+#Total Invert+Dot Time: 0.573513#
 BEGIN_PBP
-1 1.50152 1.50152
-2 1.60317 1.60317
+1 1.52997 1.52997
+2 1.41329 1.41329
 END_PBP
 BEGIN_PBPPART
-1	1	0.171272	0.183662
-1	2	0.179677	0.184632
-1	3	0.186819	0.184527
-1	4	0.197626	0.193731
-1	5	0.177208	0.187554
-1	6	0.197849	0.189312
-1	7	0.185368	0.185441
-1	8	0.205697	0.19266
-2	1	0.187285	0.19395
-2	2	0.215788	0.202875
-2	3	0.20036	0.201221
-2	4	0.220074	0.212459
-2	5	0.211324	0.206593
-2	6	0.191481	0.1997
-2	7	0.19511	0.195234
-2	8	0.18175	0.191141
+1	1	0.193959	0.192245
+1	2	0.192204	0.189462
+1	3	0.189785	0.190219
+1	4	0.19717	0.203521
+1	5	0.20361	0.196684
+1	6	0.180511	0.185552
+1	7	0.178128	0.182955
+1	8	0.194607	0.189336
+2	1	0.187316	0.179731
+2	2	0.196279	0.185764
+2	3	0.175634	0.178642
+2	4	0.16561	0.174487
+2	5	0.162763	0.170362
+2	6	0.161974	0.167616
+2	7	0.177103	0.173301
+2	8	0.186611	0.183385
 END_PBPPART
 T	Scalar
 BEGIN_SPECTRUM
-0	211.206
-1	-139.599
-2	43.3354
-3	-26.7916
-4	33.5511
-5	-7.8176
-6	20.844
-7	-95.995
+0	-92.7182
+1	-80.2215
+2	23.5944
+3	-22.0352
+4	1.37039
+5	-37.7916
+6	10.3133
+7	-11.8446
 END_SPECTRUM
-#Total time: 0.461327 seconds.#
+#Total time: 0.598435 seconds.#

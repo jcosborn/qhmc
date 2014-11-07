@@ -32,13 +32,13 @@ local cg_prec = cg_prec or 1e-6
 local cg_max = cg_max or 2000
 local src_start = src_start or 2
 local src_num = src_num or math.floor(nt/8)
-local prec = prec or 2 -- Use a multi-precision inverter. Default.
+local prec = prec or 1 -- Use a multi-precision inverter. Default.
 
 -- Start preparing to load the gauge field, spit out basic info.
 local latsize = { nx, nx, nx, nt }
 local vol = 1
 local spatvol = nx*nx*nx;
-local seed = seed or qopqdp.dtime();
+local seed = seed or os.time()
 printf("latsize =")
 for k,v in ipairs(latsize) do vol=vol*v; printf(" %i",v); end
 printf("\nvolume = %i\n", vol)

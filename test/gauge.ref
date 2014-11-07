@@ -1,8 +1,9 @@
 #runtest: using temp file gauge.raw
-##loading: /home/osborn/lqcd/install/qhmc-git/hmc/Init.lua
+##loading: /home/josborn/lqcd/install/qhmc-git/lua/Init.lua
+##loading: /home/josborn/lqcd/install/qhmc-git/lua/pl/class.lua
 ##runtest: using temp file gauge.tmp
-##loading: /home/osborn/lqcd/install/qhmc-git/hmc/topo.lua
-##loading: /home/osborn/lqcd/install/qhmc-git/hmc/Util.lua
+##loading: /home/josborn/lqcd/install/qhmc-git/lua/topo.lua
+##loading: /home/josborn/lqcd/install/qhmc-git/lua/Util.lua
 #ndim = 4
 #numsites = 256
 #len = 4 4 4 4
@@ -10,14 +11,14 @@
 plaq ss: 1         st: 1         tot: 1       
 plaq ss: -0.00706186  st: 0.00717831  tot: 5.82252e-05
 plaq ss: 0.772315  st: 0.770638  tot: 0.771476
-#time: 0.002253055573
-se: 1.345187853
-sq: -0.04651211527
-#time: 0.01119184494
-se: 2.858319896
-sq: -0.06939025814
-#time: 0.01124215126
-1  se: 0.70072462  sq: 0.04176363296
-2  se: 0.7404494227  sq: -0.05141780433
-3  se: 0.6980360075  sq: -0.02492262688
-4  se: 0.7191098458  sq: -0.03481345989
+#time: 0.0015809536
+se: 1.3451879
+sq: -0.046512115
+#time: 0.007349968
+se: 2.8583199
+sq: -0.069390258
+#time: 0.0074138641
+1  se: 0.7007246  sq: 0.04176363
+2  se: 0.7404494  sq: -0.0514178
+3  se: 0.698036  sq: -0.02492263
+4  se: 0.7191098  sq: -0.03481346
