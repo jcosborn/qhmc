@@ -10,14 +10,6 @@ qopqdp_wilson_check(lua_State *L, int idx)
 {
   luaL_checkudata(L, idx, mtname);
   wilson_t *w = lua_touserdata(L, idx);
-#if 0
-  int hasmt = lua_getmetatable(L, idx);
-  qassert(hasmt==1);
-  luaL_getmetatable(L, mtname);
-  int eq = lua_equal(L, -1, -2);
-  qassert(eq==1);
-  lua_pop(L, 2);
-#endif
   return w;
 }
 
@@ -186,7 +178,6 @@ qopqdp_wilson_set(lua_State *L)
   qassert(nargs>=2 && nargs<=4);
   wilson_t *w = qopqdp_wilson_check(L, 1);
   gauge_t *g = qopqdp_gauge_check(L, 2);
-  w->coeffs = QOP_WILSON_COEFFS_ZERO;
   double prec = 0;
   if(lua_type(L,3)==LUA_TTABLE) {
     tableLoopKeys(L, 3) {
@@ -403,6 +394,7 @@ qopqdp_wilson_solve(lua_State *L)
     nextarg++;
   }
   //printf("precNE = %i\n", precNE);
+
   if(nargs>=nextarg && !lua_isnil(L,nextarg)) {
     if(!lua_istable(L,nextarg)) {
       qlerror0(L,1,"expecting solver paramter table\n");
@@ -733,9 +725,13 @@ static struct luaL_Reg wilson_reg[] = {
 wilson_t *
 qopqdp_wilson_create(lua_State *L, int nc, lattice_t *lat)
 {
-  //if(lat==NULL) lat = qopqdp_get_default_lattice(L);
-  //if(nc==0) nc = lat->defaultNc;
   wilson_t *w = lua_newuserdata(L, sizeof(wilson_t));
+  w->time = 0;
+  w->flops = 0;
+  w->its = 0;
+  w->nc = nc;
+  w->lat = lat;
+  w->coeffs = QOP_WILSON_COEFFS_ZERO;
   w->fl = NULL;
   w->ffl = NULL;
   w->mg = NULL;

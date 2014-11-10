@@ -330,11 +330,13 @@ qopqdp_verbosity(lua_State *L)
   BEGIN_ARGS;
   OPT_INT(v, 0);
   END_ARGS;
-  int r = QOP_verbose(v);
+  int qop = QOP_verbose(v);
+  int qdp = QDP_verbose(v);
   if(nargs==0) {
-    QOP_verbose(r);
+    QOP_verbose(qop);
+    QDP_verbose(qdp);
   }
-  lua_pushinteger(L, r);
+  lua_pushinteger(L, qop);
   return 1;
 }
 

@@ -7,6 +7,7 @@ cg_prec = 1e-8
 
 TESTON()
 require 'staggeredObservablesConn'
+qopqdp.verbosity(1);
 require 'staggeredObservablesDisc'
 TESTOFF()
 

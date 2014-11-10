@@ -3,30 +3,58 @@ James C. Osborn
 =========================================================================
 Quick Build Instructions
 
-Edit CC, COPT and SciDAC library directories in
- qopqdp/make-qopqdp.inc
+QHMC uses autoconf and follows similar conventions to the rest of the
+USQCD SciDAC libraries.  You will first need to install its dependencies:
+qmp, qio, qla, qdp, and qopqdp.  The recommended versions of these
+libraries are:
 
-Do "make"
+qmp-2.5.0
+qio-2.4.1
+qla-1.9.0
+qdp-1.11.0
+qopqdp-0.20.0
 
-You should now have main/qhmc
+An example configure command is:
 
-You can test it by going into test/milc, modifying
-runtest to run a job, and running it
+/home/osborn/lqcd/src/qhmc-0.1.4/configure \
+ --prefix=/home/osborn/lqcd/install/qhmc-0.1.4 \
+ --with-qmp=/home/osborn/lqcd/install/qmp \
+ --with-qio=/home/osborn/lqcd/install/qio \
+ --with-qla=/home/osborn/lqcd/install/qla \
+ --with-qdp=/home/osborn/lqcd/install/qdp \
+ --with-qopqdp=/home/osborn/lqcd/install/qopqdp \
+ --enable-nc=all \
+ --enable-colors=n \
+ CFLAGS="-Wall -std=gnu99 -O3 -g -DQDP_PROFILE"
+
+CC will default to the same as used by QMP and can be overriden.
+
+The "--enable-nc=" flag should match what was used to compile QOPQDP.
+The default is "all".
+
+The "--enable-colors=" is used to force the all fields to have the
+specified color at compile time.  This may be faster in some cases,
+but can prevent using any code that uses multiple Nc.  The allowed
+values are 1,2,3, and n where "n" specifies that the fields can have
+any Nc and can be specified at runtime.  This is the default.
 =========================================================================
-directory structure:
+Directory structure:
 
-hmc
-  scripts for running hmc
+bin
+  where final qhmc executable is built
 
-lua-5.2.1
-  Lua source tree
+examples
+  some random, possibly old, examples
 
-main
-  main qhmc source
+include
+  headers for Lua bindings in lib directory
 
-qopqdp
-  wrappers for QOPQDP
+lib
+  Lua bindings for libraries (and the Lua source itself)
+
+lua
+  Lua scripts for running configuration generation and analysis
 
 test
-  some test inputs
+  regression tests
 =========================================================================

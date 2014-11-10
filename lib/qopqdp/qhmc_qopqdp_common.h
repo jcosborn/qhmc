@@ -602,27 +602,6 @@ hisq_t *qopqdp_hisq_check(lua_State *L, int idx);
 #define GET_HISQ(a) hisq_t *a = qopqdp_hisq_check(L,nextarg++)
 
 
-#if 0
-typedef struct {
-  lattice_t *lat;
-  QDP_Lattice *qlat;
-  QDP_ColorVector *cv;
-  int nc;
-} squark_t;
-squark_t *qopqdp_squark_create(lua_State *L, int nc, lattice_t *lat);
-squark_t *qopqdp_squark_create_unset(lua_State *L, int nc, lattice_t *lat);
-squark_t *qopqdp_squark_check(lua_State *L, int idx);
-void qopqdp_squark_array_check(lua_State *L, int idx, int n, squark_t *q[n]);
-#define GET_SQUARK(s) squark_t *s = qopqdp_squark_check(L,nextarg++)
-#else
-typedef qopqdp_cvectorD_t squark_t;
-#define qopqdp_squark_create qopqdp_cvectorD_create
-#define qopqdp_squark_create_unset qopqdp_cvectorD_create_unset
-#define qopqdp_squark_check qopqdp_cvector_check
-#define qopqdp_squark_array_check(L,i,n,q) qopqdp_cvectorD_as_array_opt(L,(int[1]){i},1,n,q,0,NULL)
-#define cv field
-#endif
-
 void asqtadInvert(QOP_info_t *info, QOP_FermionLinksAsqtad *fla,
 		  QOP_invert_arg_t *invarg, QOP_resid_arg_t *residarg[],
 		  QLA_Real *masses, int nm, QDP_ColorVector *prop[],
@@ -633,6 +612,8 @@ typedef struct {
   double time;
   double flops;
   int its;
+  int nc;
+  lattice_t *lat;
   QOP_wilson_coeffs_t coeffs;
   QOP_FermionLinksWilson *fl;
   QOP_F_FermionLinksWilson *ffl;

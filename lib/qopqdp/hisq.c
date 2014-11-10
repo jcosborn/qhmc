@@ -212,41 +212,35 @@ qopqdp_hisq_set(lua_State *L)
 static int
 qopqdp_hisq_D(lua_State *L)
 {
-  int narg = lua_gettop(L);
-  qassert(narg==4 || narg==6);
-  hisq_t *h = qopqdp_hisq_check(L, 1);
-  squark_t *qd = qopqdp_squark_check(L, 2);
-  squark_t *qs = qopqdp_squark_check(L, 3);
-  double mass = luaL_checknumber(L, 4);
-  QOP_evenodd_t eod=QOP_EVENODD, eos=QOP_EVENODD;
-  if(narg!=4) {
-    eod = qopqdp_check_evenodd(L, 5);
-    eos = qopqdp_check_evenodd(L, 6);
-  }
+  BEGIN_ARGS;
+  GET_HISQ(h);
+  GET_QOPQDP_CVECTOR(qd);
+  GET_QOPQDP_CVECTOR(qs);
+  GET_DOUBLE(mass);
+  OPT_EVENODD(eod, QOP_EVENODD);
+  OPT_EVENODD(eos, QOP_EVENODD);
+  END_ARGS;
   hisq_set(h, 2);
   QOP_FermionLinksAsqtad *fla = QOP_get_asqtad_links_from_hisq(h->fl)[0];
-  QOP_asqtad_dslash_qdp(NULL, fla, mass, qd->cv, qs->cv, eod, eos);
+  QOP_asqtad_dslash_qdp(NULL, fla, mass, qd->field, qs->field, eod, eos);
   return 0;
 }
 
 static int
 qopqdp_hisq_Ddag(lua_State *L)
 {
-  int narg = lua_gettop(L);
-  qassert(narg==4 || narg==6);
-  hisq_t *h = qopqdp_hisq_check(L, 1);
-  squark_t *qd = qopqdp_squark_check(L, 2);
-  squark_t *qs = qopqdp_squark_check(L, 3);
-  double mass = luaL_checknumber(L, 4);
-  QOP_evenodd_t eod=QOP_EVENODD, eos=QOP_EVENODD;
-  if(narg!=4) {
-    eod = qopqdp_check_evenodd(L, 5);
-    eos = qopqdp_check_evenodd(L, 6);
-  }
+  BEGIN_ARGS;
+  GET_HISQ(h);
+  GET_QOPQDP_CVECTOR(qd);
+  GET_QOPQDP_CVECTOR(qs);
+  GET_DOUBLE(mass);
+  OPT_EVENODD(eod, QOP_EVENODD);
+  OPT_EVENODD(eos, QOP_EVENODD);
+  END_ARGS;
   hisq_set(h, 2);
   QOP_FermionLinksAsqtad *fla = QOP_get_asqtad_links_from_hisq(h->fl)[0];
-  QOP_asqtad_dslash_qdp(NULL, fla, -mass, qd->cv, qs->cv, eod, eos);
-  QDP_V_eqm_V(qd->cv, qd->cv, QDP_all);
+  QOP_asqtad_dslash_qdp(NULL, fla, -mass, qd->field, qs->field, eod, eos);
+  QDP_V_eqm_V(qd->field, qd->field, QDP_all);
   return 0;
 }
 
@@ -263,17 +257,15 @@ C_eq_1_div_C(QDP_Complex *r, QDP_Complex *a)
 static int
 qopqdp_hisq_solve(lua_State *L)
 {
-#define NC QDP_get_nc(qs->cv)
-  int narg = lua_gettop(L);
-  qassert(narg>=5 && narg<=7);
-  hisq_t *h = qopqdp_hisq_check(L, 1);
-  int nqd; get_table_len(L, 2, &nqd);
-  squark_t *qd[nqd]; qopqdp_squark_array_check(L, 2, nqd, qd);
-  squark_t *qs = qopqdp_squark_check(L, 3);
-  int nm; get_table_len(L, 4, &nm);
+#define NC QDP_get_nc(qs->field)
+  BEGIN_ARGS;
+  GET_HISQ(h);
+  GET_AS_QOPQDP_CVECTOR_ARRAY(nqd, qd);
+  GET_QOPQDP_CVECTOR(qs);
+  GET_DOUBLE_ARRAY(nm, mass);
   qassert(nqd==nm);
-  double mass[nm]; qhmc_get_double_array(L, 4, nm, mass);
-  double resid = luaL_checknumber(L, 5);
+  GET_DOUBLE(resid);
+
   QOP_evenodd_t eo=QOP_EVENODD;
   //int prec = 1;
   int max_iter = -1;
@@ -281,12 +273,13 @@ qopqdp_hisq_solve(lua_State *L)
   int max_restarts = 5;
   int use_prev_soln = 0;
   double mixed_rsq = 0;
-  int nextarg = 6;
-  if(narg>=nextarg && lua_isstring(L, nextarg)) {
+
+  if(nargs>=nextarg && lua_isstring(L, nextarg)) {
     eo = qopqdp_check_evenodd(L, nextarg);
     nextarg++;
   }
-  if(narg>=nextarg && !lua_isnil(L,nextarg)) {
+
+  if(nargs>=nextarg && !lua_isnil(L,nextarg)) {
     if(!lua_istable(L,nextarg)) {
       qlerror0(L,1,"expecting solver paramter table\n");
     }
@@ -300,8 +293,11 @@ qopqdp_hisq_solve(lua_State *L)
     setd(mixed_rsq);
 #undef seti
 #undef setd
+    nextarg++;
   }
   if(max_iter<0) max_iter = restart*max_restarts;
+
+  END_ARGS;
 
   hisq_set(h, 2);
   QOP_FermionLinksAsqtad *fla = QOP_get_asqtad_links_from_hisq(h->fl)[0];
@@ -321,30 +317,30 @@ qopqdp_hisq_solve(lua_State *L)
   }
   QDP_ColorVector *qqd[nqd];
   for(int i=0; i<nqd; i++) {
-    qqd[i] = qd[i]->cv;
+    qqd[i] = qd[i]->field;
     if(!use_prev_soln) {
       QDP_V_eq_zero(qqd[i], QDP_all);
     }
   }
 #if 0
   {
-    //QLA_ColorVector *v = QDP_expose_V(qs->cv);
+    //QLA_ColorVector *v = QDP_expose_V(qs->field);
     //for(int i=0; i<QDP_subset_len(QDP_all); i++) {
     int i;
     QDP_loop_sites(i, QDP_all, {
 	if(i==0) {
 	  printf("%4i", i);
 	  for(int j=0; j<QLA_Nc; j++) {
-	    QLA_ColorVector *v = QDP_site_ptr_readonly_V(qs->cv, i);
+	    QLA_ColorVector *v = QDP_site_ptr_readonly_V(qs->field, i);
 	    printf(" %10g", QLA_real(QLA_elem_V(*v, j)));
 	    printf(" %10g", QLA_imag(QLA_elem_V(*v, j)));
 	  }
 	  printf("\n");
 	} else {
-	  QLA_V_eq_zero(QDP_site_ptr_readwrite_V(qs->cv,i));
+	  QLA_V_eq_zero(QDP_site_ptr_readwrite_V(qs->field,i));
 	}
       });
-    //QDP_reset_V(qs->cv);
+    //QDP_reset_V(qs->field);
   }
 #endif
 
@@ -353,7 +349,7 @@ qopqdp_hisq_solve(lua_State *L)
   if(eo!=QOP_EVENODD) {
     invarg.mixed_rsq = mixed_rsq;
     QDP_ColorVector *srcs[nm];
-    for(int i=0; i<nm; i++) srcs[i] = qs->cv;
+    for(int i=0; i<nm; i++) srcs[i] = qs->field;
     //QOP_verbose(QOP_VERB_MED);
     switch(QOP_Nc) {
 #ifdef HAVE_NC1
@@ -374,7 +370,7 @@ qopqdp_hisq_solve(lua_State *L)
   } else
 #endif
     {
-      asqtadInvert(&info, fla, &invarg, rap, mass, nm, qqd, qs->cv);
+      asqtadInvert(&info, fla, &invarg, rap, mass, nm, qqd, qs->field);
     }
 
 #if 0
@@ -427,16 +423,13 @@ static int
 qopqdp_hisq_force(lua_State *L)
 {
 #define NC QDP_get_nc(f->links[0])
-  int narg = lua_gettop(L);
-  qassert(narg>=4 && narg<=5);
-  hisq_t *h = qopqdp_hisq_check(L, 1);
-  gauge_t *f = qopqdp_gauge_check(L, 2);
-  int nq; get_table_len(L, 3, &nq);
-  squark_t *q[nq]; qopqdp_squark_array_check(L, 3, nq, q);
-  int ne; get_table_len(L, 4, &ne);
-  qassert(nq==ne);
-  double eps[ne]; qhmc_get_double_array(L, 4, ne, eps);
-  int prec = luaL_optint(L, 5, 1);
+  BEGIN_ARGS;
+  GET_HISQ(h);
+  GET_GAUGE(f);
+  GET_AS_QOPQDP_CVECTOR_ARRAY(nq, q);
+  GET_DOUBLE_ARRAY(ne, eps);
+  OPT_INT(prec, 1);
+  END_ARGS;
 
   QOP_info_t info;
   if(prec==1) {
@@ -446,7 +439,7 @@ qopqdp_hisq_force(lua_State *L)
     QDP_F_ColorVector *qcv[nq];
     for(int i=0; i<nq; i++) {
       qcv[i] = QDP_F_create_V();
-      QDP_FD_V_eq_V(qcv[i], q[i]->cv, QDP_all);
+      QDP_FD_V_eq_V(qcv[i], q[i]->field, QDP_all);
     }
     QDP_F_ColorMatrix *fforce[f->nd];
     for(int i=0; i<f->nd; i++) {
@@ -471,7 +464,7 @@ qopqdp_hisq_force(lua_State *L)
     hisq_set(h, 2);
     // factor of 4 normalizes force to that of phi^+ [s-4*Deo*Doe]^-1 phi
     QLA_Real qeps[ne]; for(int i=0; i<ne; i++) qeps[i] = 4*eps[i];
-    QDP_ColorVector *qcv[nq]; for(int i=0; i<nq; i++) qcv[i] = q[i]->cv;
+    QDP_ColorVector *qcv[nq]; for(int i=0; i<nq; i++) qcv[i] = q[i]->field;
     for(int i=0; i<f->nd; i++) QDP_M_eq_zero(f->links[i], QDP_all);
     switch(QOP_Nc) {
 #ifdef HAVE_NC3
@@ -494,7 +487,7 @@ qopqdp_hisq_squark(lua_State *L)
   BEGIN_ARGS;
   GET_HISQ(h);
   END_ARGS;
-  qopqdp_squark_create(L, h->nc, h->lat);
+  qopqdp_cvector_create(L, h->nc, h->lat);
   return 1;
 }
 
