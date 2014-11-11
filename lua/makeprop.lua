@@ -3,12 +3,12 @@ require 'gaugeact'
 require 'wilsonObservables'
 
 --trace(true)
-nx = 4
-nt = 8
+nx = nx or 4
+nt = nt or 8
 latsize = { nx, nx, nx, nt }
 --aniso = 1/2.38
 aniso = 1
-mass = -0.4125
+mass = mass or -0.4125
 --rsmear = 0.6
 --nsmear = 30
 rsmear = 0
@@ -19,7 +19,8 @@ resid = 1e-12
 opts = { prec=prec, restart=restart }
 
 --qopqdp.defaultNc(4); fn = nil
-Nc = qopqdp.defaultNc()
+Nc = Nc or qopqdp.defaultNc()
+qopqdp.defaultNc(Nc)
 Ns = 4
 
 L = qopqdp.lattice(latsize)
@@ -119,6 +120,16 @@ function spectrum()
   --for i=1,#dest do
   --printf("%i norm2: %g\n", i, dest[i]:norm2())
   --end
+  --[[
+  local d11 = dest2[1][1]
+  for i=0,Nc-1 do
+    for j=0,Nc-1 do
+      local s = d11:point(pt,i,j)
+      printf("%i %i\t%s\n", i, j, s)
+    end
+  end
+  os.exit(1)
+  ]]
 
   --mesons = wilsonMesons(dest)
   --mesons = wilsonMesons2(dest2)

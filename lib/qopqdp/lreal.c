@@ -15,8 +15,9 @@
 #define NREAL 1
 #define GET_COLOR_SPIN(i) (void)0
 #define OPT_COLOR_SPIN(i) (void)0
-#define IS_SET_COLOR_SPIN(i) (0)
 #define OPT_COLOR_SPIN_ZERO(i) (void)0
+#define IS_SET_COLOR_SPIN(i) (0)
+#define CHECK_VALID_COLOR_SPIN(i) (void)0
 #define QLAELEM(x,i) (x)
 #define QLAELEMEQC(x,i,z) (x) = (z).r
 #define SPUR(d,f,s) QDP_R_eq_R(d,f,s)

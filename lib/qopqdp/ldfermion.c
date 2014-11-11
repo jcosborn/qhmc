@@ -18,8 +18,9 @@
 #define NREAL ((NC)*QLA_Ns*2)
 #define GET_COLOR_SPIN(i) GET_INT(S2(i,c)); GET_INT(S2(i,s))
 #define OPT_COLOR_SPIN(i) OPT_INT(S2(i,c),-1); OPT_INT(S2(i,s),-1)
-#define IS_SET_COLOR_SPIN(i) (S2(i,c)>=0 && S2(i,s)>=0)
 #define OPT_COLOR_SPIN_ZERO(i) OPT_INT(S2(i,c),0); OPT_INT(S2(i,s),0)
+#define IS_SET_COLOR_SPIN(i) (S2(i,c)>=0 && S2(i,s)>=0)
+#define CHECK_VALID_COLOR_SPIN(i) checkColorSpin(L,S2(i,c),S2(i,s),QLA_Nc)
 #define QLAELEM(x,i) QLA_elem_D(x,S2(i,c),S2(i,s))
 #define QLAELEMEQC(x,i,z) QLA_c_eq_r_plus_ir(QLAELEM(x,i),(z).r,(z).i)
 
@@ -30,7 +31,7 @@
 #define END_LOOP_FTYPE_ELEM } }
 
 #define GET_QLA_CONST2(x,zr,zi)						\
-  QLA_DiracFermion x;							\
+  QLA_DiracFermion(x);							\
   for(int ic=0; ic<QLA_Nc; ic++) {					\
     for(int is=0; is<QLA_Ns; is++) {					\
       QLA_c_eq_r_plus_ir(QLA_elem_D(x,ic,is),zr,zi);			\
@@ -42,7 +43,7 @@
 
 #define GET_QLA_CONST_ARRAY(x,z,n)					\
   qassert(n==(NC)*QLA_Ns);						\
-  QLA_DiracFermion x;							\
+  QLA_DiracFermion(x);							\
   for(int ic=0; ic<QLA_Nc; ic++) {					\
     for(int is=0; is<QLA_Ns; is++) {					\
       qhmc_complex_t *_pz = &(z)[ic*QLA_Ns+is];				\
@@ -51,13 +52,26 @@
   }
 
 static void
+checkColorSpin(lua_State *L, int ic, int is, int nc)
+{
+  if(ic<0 || ic>=nc) {
+    qlerror(L, 1, "dirac fermion color index (%i) out of range 0..%i\n",
+	    ic, nc-1);
+  }
+  if(is<0 || is>=4) {
+    qlerror(L, 1, "dirac fermion spin index (%i) out of range 0..%i\n",
+	    is, 3);
+  }
+}
+
+static void
 SPUR(QDP_Complex *d, QDP_DiracFermion *f, QDP_Subset sub)
 {
 #define NC QDP_get_nc(f)
   int s;
   QDP_loop_sites(s, sub, {
       QLA_Complex *ds = QDP_site_ptr_readwrite_C(d,s);
-      QLA_DiracFermion *fs = QDP_site_ptr_readonly_D(f,s);
+      QLA_DiracFermion(*fs) = QDP_site_ptr_readonly_D(f,s);
       QLA_Complex z;
       QLA_c_eq_r(z, 0);
       for(int ic=0; ic<QLA_Nc; ic++) {
@@ -77,7 +91,7 @@ DET(QDP_Complex *d, QDP_DiracFermion *f, QDP_Subset sub)
   int s;
   QDP_loop_sites(s, sub, {
       QLA_Complex *ds = QDP_site_ptr_readwrite_C(d,s);
-      QLA_DiracFermion *fs = QDP_site_ptr_readonly_D(f,s);
+      QLA_DiracFermion(*fs) = QDP_site_ptr_readonly_D(f,s);
       QLA_Complex z;
       QLA_Complex z2;
       QLA_c_eq_r(z, 1);
@@ -94,7 +108,7 @@ DET(QDP_Complex *d, QDP_DiracFermion *f, QDP_Subset sub)
 
 // treat vector as diagonal matrix
 static void
-qlamakegroup(int NC, QLA_DiracFermion *x, int g)
+qlamakegroup(int NC, QLA_DiracFermion(*x), int g)
 {
   switch(g&GROUP_TYPE) {
   case GROUP_GL: break;
@@ -127,7 +141,7 @@ qlamakegroup(int NC, QLA_DiracFermion *x, int g)
   }
   if(g&GROUP_S) {
     QLA_D_Complex d1, d2;
-    QLA_DiracFermion y;
+    QLA_DiracFermion(y);
     QLA_Complex c;
     QLA_c_eq_r(c, 1);
     for(int ic=0; ic<QLA_Nc; ic++) {
@@ -163,7 +177,7 @@ qlamakegroup(int NC, QLA_DiracFermion *x, int g)
 }
 
 static void
-pushqlatype(lua_State *L, int NC, QLA_DiracFermion *m)
+pushqlatype(lua_State *L, int NC, QLA_DiracFermion(*m))
 {
   //qhmc_complex_create(L, QLA_real(c), QLA_imag(c));
 }

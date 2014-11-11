@@ -95,7 +95,7 @@ typedef S2(QDP_,QDPT) qdptype;
 typedef S2(QDP_F_,QDPT) qdptypeF;
 typedef S2(QDP_D_,QDPT) qdptypeD;
 #endif
-#define qlatype S2(QLA_,QDPT)
+#define qlatype(x) S2(QLA_,QDPT)(x)
 #define qlazero(f) SP3x(QLA_,A,_eq_zero,Cl,f)
 #define qlaeq(f1,f2) SP4x(QLA_,A,_eq_,A,Cll,f1,f2)
 #define qdpcreate(l) S3(QDP_create_,A,_L)(l)
@@ -414,10 +414,11 @@ ftype_set(lua_State *L)
   if(abs(nz)>0) { // set from constant (array)
     if(abs(nz)==1) {
       if(IS_SET_COLOR_SPIN(i)) {
+	CHECK_VALID_COLOR_SPIN(i);
 	int s;
 	QDP_loop_sites(s, sub, {
-	  qlatype *ts = qdpptrreadwrite(t1->field,s);
-	  QLAELEMEQC(*ts,i,z[0]);
+	    qlatype(*ts) = qdpptrreadwrite(t1->field,s);
+	    QLAELEMEQC(*ts,i,z[0]);
 	  });
       } else {
 	GET_QLA_CONST(c, z);
@@ -610,19 +611,21 @@ ftype_unit(lua_State *L)
 static int
 ftype_point(lua_State *L)
 {
+#define NC QDP_get_nc(t->field)
   BEGIN_ARGS;
   GET_FTYPE(t);
   GET_TABLE_LEN_INDEX(nd,ip);
   GET_COLOR_SPIN(i);
   OPT_AS_COMPLEX_PTR(z,NULL);
   END_ARGS;
+  CHECK_VALID_COLOR_SPIN(i);
   int rv = 0;
   int site[nd]; qhmc_get_int_array(L, ip, nd, site);
   int node = QDP_node_number(site);
   if(z) {
     if(node==QDP_this_node) {
       int index = QDP_index(site);
-      qlatype *q = qdpptrreadwrite(t->field, index);
+      qlatype(*q) = qdpptrreadwrite(t->field, index);
 #ifdef ISREAL
       *q = z->r;
 #else
@@ -639,11 +642,14 @@ ftype_point(lua_State *L)
 #endif
     if(node==QDP_this_node) {
       int index = QDP_index(site);
-      qlatype *p = qdpptrreadonly(t->field, index);
+      qlatype(*p) = qdpptrreadonly(t->field, index);
 #ifdef ISREAL
       q = *p;
 #else
       q = QLAELEM(*p,i);
+#ifdef COLORED2
+      //{int j=ic1*QLA_Nc+ic2;printf("%i: %g\n", j, ((QLA_Real*)p)[2*j]);}
+#endif
 #endif
     }
 #ifdef ISREAL
@@ -655,6 +661,7 @@ ftype_point(lua_State *L)
 #endif
   }
   return rv;
+#undef NC
 }
 
 static int
@@ -673,16 +680,16 @@ ftype_site(lua_State *L)
   if(v) {
     if(node==QDP_this_node) {
       int index = QDP_index(site);
-      qlatype *q = qdpptrreadwrite(t->field, index);
+      qlatype(*q) = qdpptrreadwrite(t->field, index);
       qlaeq(*q, v);
     }
   } else {
 #endif
     rv = 1;
-    qlatype q;
+    qlatype(q);
     if(node==QDP_this_node) {
       int index = QDP_index(site);
-      qlatype *p = qdpptrreadonly(t->field, index);
+      qlatype(*p) = qdpptrreadonly(t->field, index);
 #ifdef ISREAL
       q = *p;
 #else
@@ -730,6 +737,8 @@ ftype_momentum(lua_State *L)
   OPT_SUBSET(sub, t->lat, QDP_all_L(t->qlat));
   END_ARGS;
   qassert(nd==t->lat->nd);
+  CHECK_VALID_COLOR_SPIN(p);
+  CHECK_VALID_COLOR_SPIN(o);
   QLA_Complex a, b;
   QLA_c_eq_r_plus_ir(a, aa.r, aa.i);
   QLA_c_eq_r_plus_ir(b, bb.r, bb.i);
@@ -769,7 +778,7 @@ ftype_momentum(lua_State *L)
   int mynode = QDP_this_node;
   int s;
   QDP_loop_sites(s, sub, {
-      qlatype *ts = qdpptrreadwrite(t->field,s);
+      qlatype(*ts) = qdpptrreadwrite(t->field,s);
       int x[nd];
       QDP_get_coords(x, mynode, s);
       QLA_Complex px0;
@@ -819,7 +828,7 @@ ftype_latticeCoord(lua_State *L)
   int s;
   QDP_loop_sites(s, sub, {
       QDP_get_coords_L(t->qlat, x, QDP_this_node, s);
-      qlatype *ts = qdpptrreadwrite(t->field, s);
+      qlatype(*ts) = qdpptrreadwrite(t->field, s);
       *ts = x[mu];
     });
   return 0;
@@ -878,12 +887,12 @@ ftype_lnormalize(lua_State *L)
   int i;
 #ifdef ISREAL
   QDP_loop_sites(i, sub, {
-      qlatype *x = qdpptrreadwrite(t->field, i);
+      qlatype(*x) = qdpptrreadwrite(t->field, i);
       *x = (*x>=0) ? s : -s;
     });
 #else
   QDP_loop_sites(i, sub, {
-      qlatype *x = qdpptrreadwrite(t->field, i);
+      qlatype(*x) = qdpptrreadwrite(t->field, i);
       LOOP_FTYPE_ELEM {
 	QLA_Complex z = QLAELEM(*x,i);
 	QLA_Real n = QLA_norm2_c(z);
@@ -905,7 +914,7 @@ projectGroup(NCPROTT qdptype *t, int g, QDP_Subset sub)
 {
   int i;
   QDP_loop_sites(i, sub, {
-      qlatype *x = qdpptrreadwrite(t, i);
+      qlatype(*x) = qdpptrreadwrite(t, i);
       qlamakegroup(NCARGT x, g);
     });
 }
@@ -1011,12 +1020,12 @@ ftype_randomU1(lua_State *L)
   int i;
 #ifdef ISREAL
   QDP_loop_sites(i, sub, {
-      qlatype *x = qdpptrreadwrite(t->field, i);
+      qlatype(*x) = qdpptrreadwrite(t->field, i);
       *x = (*x>=0) ? 1 : -1;
     });
 #else
   QDP_loop_sites(i, sub, {
-      qlatype *x = qdpptrreadwrite(t->field, i);
+      qlatype(*x) = qdpptrreadwrite(t->field, i);
       LOOP_FTYPE_ELEM {
 	QLA_Complex z = QLAELEM(*x,i);
 	QLA_Real n = QLA_norm2_c(z);
@@ -1092,11 +1101,11 @@ ftype_sum(lua_State *L)
   OPT_AS_QSUBSET_ARRAY(ns, subs, t->lat, -1, QDP_all_and_empty_L(t->qlat));
   END_ARGS;
   if(ns==-1) {
-    qlatype r;
+    qlatype(r);
     qdpsum(&r, t->field, subs[0]);
     pushqlatype(L, NCARGT &r);
   } else {
-    qlatype r[ns];
+    qlatype(r[ns]);
     qdpsummulti(r, t->field, subs, ns);
     lua_createtable(L, ns, 0);
     for(int i=0; i<ns; i++) {
@@ -1560,8 +1569,8 @@ ftype_cross(lua_State *L)
   case 2: {
     int s;
     QDP_loop_sites(s, sub, {
-	qlatype *ts = qdpptrreadwrite(t->field,s);
-	qlatype *a0 = qdpptrreadonly(a[0]->field,s);
+	qlatype(*ts) = qdpptrreadwrite(t->field,s);
+	qlatype(*a0) = qdpptrreadonly(a[0]->field,s);
 	QLA_c_eq_c(QLA_elem_M(*ts,1,1),QLA_elem_M(*a0,0,0));
 	QLA_c_eqm_c(QLA_elem_M(*ts,1,0),QLA_elem_M(*a0,0,1));
 	QLA_c_eqm_c(QLA_elem_M(*ts,0,1),QLA_elem_M(*a0,1,0));
@@ -1571,9 +1580,9 @@ ftype_cross(lua_State *L)
   case 3: {
     int s;
     QDP_loop_sites(s, sub, {
-	qlatype *ts = qdpptrreadwrite(t->field,s);
-	qlatype *a0 = qdpptrreadonly(a[0]->field,s);
-	qlatype *a1 = qdpptrreadonly(a[1]->field,s);
+	qlatype(*ts) = qdpptrreadwrite(t->field,s);
+	qlatype(*a0) = qdpptrreadonly(a[0]->field,s);
+	qlatype(*a1) = qdpptrreadonly(a[1]->field,s);
 	for(int ic=0; ic<3; ic++) {
 	  int i0 = (ic+1)%3;
 	  int i1 = (ic+2)%3;
@@ -1612,8 +1621,8 @@ ftype_transcross(lua_State *L)
   case 2: {
     int s;
     QDP_loop_sites(s, sub, {
-	qlatype *ts = qdpptrreadwrite(t->field,s);
-	qlatype *a0 = qdpptrreadonly(a[0]->field,s);
+	qlatype(*ts) = qdpptrreadwrite(t->field,s);
+	qlatype(*a0) = qdpptrreadonly(a[0]->field,s);
 	QLA_c_eq_c(QLA_elem_M(*ts,1,1),QLA_elem_M(*a0,0,0));
 	QLA_c_eqm_c(QLA_elem_M(*ts,0,1),QLA_elem_M(*a0,0,1));
 	QLA_c_eqm_c(QLA_elem_M(*ts,1,0),QLA_elem_M(*a0,1,0));
@@ -1623,9 +1632,9 @@ ftype_transcross(lua_State *L)
   case 3: {
     int s;
     QDP_loop_sites(s, sub, {
-	qlatype *ts = qdpptrreadwrite(t->field,s);
-	qlatype *a0 = qdpptrreadonly(a[0]->field,s);
-	qlatype *a1 = qdpptrreadonly(a[1]->field,s);
+	qlatype(*ts) = qdpptrreadwrite(t->field,s);
+	qlatype(*a0) = qdpptrreadonly(a[0]->field,s);
+	qlatype(*a1) = qdpptrreadonly(a[1]->field,s);
 	for(int ic=0; ic<3; ic++) {
 	  int i0 = (ic+1)%3;
 	  int i1 = (ic+2)%3;
@@ -1645,10 +1654,10 @@ ftype_transcross(lua_State *L)
   case 4: {
     int s;
     QDP_loop_sites(s, sub, {
-	qlatype *ts = qdpptrreadwrite(t->field,s);
-	qlatype *a0 = qdpptrreadonly(a[0]->field,s);
-	qlatype *a1 = qdpptrreadonly(a[1]->field,s);
-	qlatype *a2 = qdpptrreadonly(a[2]->field,s);
+	qlatype(*ts) = qdpptrreadwrite(t->field,s);
+	qlatype(*a0) = qdpptrreadonly(a[0]->field,s);
+	qlatype(*a1) = qdpptrreadonly(a[1]->field,s);
+	qlatype(*a2) = qdpptrreadonly(a[2]->field,s);
 	for(int ic=0; ic<4; ic++) {
 	  for(int jc=0; jc<4; jc++) {
 	    QLA_Complex z;
@@ -1690,7 +1699,7 @@ ftype_transcross(lua_State *L)
 
 struct squark_wall_info
 {
-  QLA_ColorVector *value;
+  QLA_ColorVector *value; // FIXME not Nc safe
   int timeslice;
   int td;
 };
@@ -1751,7 +1760,7 @@ static int *relative_loc_esw;
 // Here's a function used to modify the source field with vectors.
 // Based on void point_V in qdp-1.9.1/examples/sample_ks.c
 static void
-private_squark_rephase(NCPROT QLA_ColorVector *s, int coords[])
+private_squark_rephase(NCPROT QLA_ColorVector(*s), int coords[])
 {
   // Build up the phase.
   int phase = 0;
@@ -1985,11 +1994,11 @@ qopqdp_squark_s4_ferm_observables(lua_State *L)
 
 // Value must be a pointer to a QLA_ColorVector
 static void
-private_squark_wall_gaussian(NCPROT QLA_ColorVector *s, int coords[], void *value)
+private_squark_wall_gaussian(NCPROT QLA_ColorVector(*s), int coords[], void *value)
 {
   struct squark_wall_info data = *(struct squark_wall_info*)value;
   if (coords[data.td] == data.timeslice) { // normalize it
-    QLA_ColorVector vec;
+    QLA_ColorVector(vec);
     QLA_Real norm_val;
     QLA_V_eq_V(&vec, s);
     QLA_R_eq_norm2_V(&norm_val, &vec);
@@ -2040,13 +2049,13 @@ qopqdp_squark_norm2_wallsink(lua_State *L)
   OPT_SUBSETS(subs, ns, q->lat, QDP_all_and_empty_L(q->qlat), 1);
   END_ARGS;
   if(ns==1) { // I mean, this doesn't really make sense, but whatever!
-    QLA_ColorVector thesum;
+    QLA_ColorVector(thesum);
     QDP_v_eq_sum_V(&thesum, q->field, subs[0]);
     QLA_Real nrm2;
     QLA_R_eq_norm2_V(&nrm2, &thesum);
     lua_pushnumber(L, nrm2);
   } else { // This is a wall sink contraction.
-    QLA_ColorVector thesums[ns];
+    QLA_ColorVector(thesums[ns]);
     QDP_v_eq_sum_V_multi(thesums, q->field, subs, ns);
     double nrm2[ns];
     for(int i=0; i<ns; i++) {

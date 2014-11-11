@@ -16,8 +16,9 @@
 #define NREAL (2*(NC)*(NC))
 #define GET_COLOR_SPIN(i) GET_INT(S2(i,c1)); GET_INT(S2(i,c2))
 #define OPT_COLOR_SPIN(i) OPT_INT(S2(i,c1),-1); OPT_INT(S2(i,c2),-1)
-#define IS_SET_COLOR_SPIN(i) (S2(i,c1)>=0 && S2(i,c2)>=0)
 #define OPT_COLOR_SPIN_ZERO(i) OPT_INT(S2(i,c1),0); OPT_INT(S2(i,c2),0)
+#define IS_SET_COLOR_SPIN(i) (S2(i,c1)>=0 && S2(i,c2)>=0)
+#define CHECK_VALID_COLOR_SPIN(i) checkColorSpin(L,S2(i,c1),S2(i,c2),QLA_Nc)
 #define QLAELEM(x,i) QLA_elem_M(x,S2(i,c1),S2(i,c2))
 #define QLAELEMEQC(x,i,z) QLA_c_eq_r_plus_ir(QLAELEM(x,i),(z).r,(z).i)
 #define SPUR(d,f,s) QDP_C_eq_trace_M(d,f,s)
@@ -30,7 +31,7 @@
 #define END_LOOP_FTYPE_ELEM } }
 
 #define GET_QLA_CONST2(x,zr,zi)						\
-  QLA_ColorMatrix x;							\
+  QLA_ColorMatrix(x);							\
   for(int ic1=0; ic1<QLA_Nc; ic1++) {					\
     for(int ic2=0; ic2<QLA_Nc; ic2++) {					\
       if(ic1==ic2) { QLA_c_eq_r_plus_ir(QLA_elem_M(x,ic1,ic2),zr,zi); }	\
@@ -43,7 +44,7 @@
 
 #define GET_QLA_CONST_ARRAY(x,z,n)					\
   qassert(n==(NC)*(NC));						\
-  QLA_ColorMatrix x;							\
+  QLA_ColorMatrix(x);							\
   for(int ic1=0; ic1<QLA_Nc; ic1++) {					\
     for(int ic2=0; ic2<QLA_Nc; ic2++) {					\
       qhmc_complex_t *_pz = &(z)[ic1*(NC)+ic2];				\
@@ -52,12 +53,26 @@
   }
 
 static void
-qlamakegroup(int NC, QLA_ColorMatrix *x, int g)
+checkColorSpin(lua_State *L, int ic1, int ic2, int nc)
+{
+  if(ic1<0 || ic1>=nc) {
+    qlerror(L, 1, "first color matrix index (%i) out of range 0..%i\n",
+	    ic1, nc-1);
+  }
+  if(ic2<0 || ic2>=nc) {
+    qlerror(L, 1, "second color matrix index (%i) out of range 0..%i\n",
+	    ic2, nc-1);
+  }
+}
+
+static void
+qlamakegroup(int NC, QLA_ColorMatrix(*x), int g)
 {
   switch(g&GROUP_TYPE) {
   case GROUP_GL: break;
   case GROUP_U: {
-    QLA_ColorMatrix x2, n;
+    QLA_ColorMatrix(x2);
+    QLA_ColorMatrix(n);
     QLA_Complex d;
     QLA_M_eq_Ma_times_M(&x2, x, x);
     QLA_C_eq_det_M(&d, &x2);
@@ -71,14 +86,14 @@ qlamakegroup(int NC, QLA_ColorMatrix *x, int g)
     }
   } break;
   case GROUP_H: {
-    QLA_ColorMatrix y;
+    QLA_ColorMatrix(y);
     QLA_M_eq_M(&y, x);
     QLA_M_peq_Ma(&y, x);
     QLA_Real half = 0.5;
     QLA_M_eq_r_times_M(x, &half, &y);
   } break;
   case GROUP_AH: {
-    QLA_ColorMatrix y;
+    QLA_ColorMatrix(y);
     QLA_M_eq_M(&y, x);
     QLA_M_meq_Ma(&y, x);
     QLA_Real half = 0.5;
@@ -93,7 +108,7 @@ qlamakegroup(int NC, QLA_ColorMatrix *x, int g)
   }
   if(g&GROUP_S) {
     QLA_D_Complex d1, d2;
-    QLA_ColorMatrix y;
+    QLA_ColorMatrix(y);
     QLA_Complex c;
     QLA_C_eq_det_M(&c, x);
     QLA_c_eq_r_plus_ir(d1, QLA_real(c), QLA_imag(c));
@@ -112,7 +127,7 @@ qlamakegroup(int NC, QLA_ColorMatrix *x, int g)
 }
 
 static void
-pushqlatype(lua_State *L, int NC, QLA_ColorMatrix *m)
+pushqlatype(lua_State *L, int NC, QLA_ColorMatrix(*m))
 {
   qlerror(L, 1, "%s %s unimplemented\n", __FILE__, __func__);
   //qhmc_complex_create(L, QLA_real(c), QLA_imag(c));

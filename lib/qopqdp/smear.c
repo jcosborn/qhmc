@@ -169,17 +169,19 @@ qopqdp_smear(lua_State *L)
     for(int mu=0; mu<nd; mu++) {
       int i;
       QDP_loop_sites(i, all, ({
-	  QLA_ColorMatrix t1, t2, t3;
-	  QLA_ColorMatrix *gmui = QDP_site_ptr_readonly_M(g[0]->links[mu], i);
-	  QLA_ColorMatrix *sgmui= QDP_site_ptr_readwrite_M(sg[0]->links[mu],i);
-	  QLA_M_eq_r_times_M(&t1, &b, gmui);
-	  QLA_M_eq_r_times_M(&t2, &d, gmui);
-	  for(int ic=0; ic<QLA_Nc; ic++) {
-	    QLA_c_peq_r(QLA_elem_M(t1,ic,ic), a);
-	    QLA_c_peq_r(QLA_elem_M(t2,ic,ic), c);
-	  }
-	  QLA_M_eq_inverse_M(&t3, &t2);
-	  QLA_M_eq_M_times_M(sgmui, &t1, &t3);
+	    QLA_ColorMatrix(t1);
+	    QLA_ColorMatrix(t2);
+	    QLA_ColorMatrix(t3);
+	    QLA_ColorMatrix(*gmui) = QDP_site_ptr_readonly_M(g[0]->links[mu], i);
+	    QLA_ColorMatrix(*sgmui) = QDP_site_ptr_readwrite_M(sg[0]->links[mu],i);
+	    QLA_M_eq_r_times_M(&t1, &b, gmui);
+	    QLA_M_eq_r_times_M(&t2, &d, gmui);
+	    for(int ic=0; ic<QLA_Nc; ic++) {
+	      QLA_c_peq_r(QLA_elem_M(t1,ic,ic), a);
+	      QLA_c_peq_r(QLA_elem_M(t2,ic,ic), c);
+	    }
+	    QLA_M_eq_inverse_M(&t3, &t2);
+	    QLA_M_eq_M_times_M(sgmui, &t1, &t3);
 	  }));
     }
   } else
@@ -459,17 +461,19 @@ qopqdp_smearChain(lua_State *L)
     for(int mu=0; mu<nd; mu++) {
       int i;
       QDP_loop_sites(i, all, ({
-	  QLA_ColorMatrix t1, t2, t3;
-	  QLA_ColorMatrix *fmui = QDP_site_ptr_readwrite_M(f[0]->links[mu], i);
-	  QLA_ColorMatrix *fcmui = QDP_site_ptr_readonly_M(fc[0]->links[mu],i);
-	  QLA_ColorMatrix *sgmui = QDP_site_ptr_readonly_M(sg[0]->links[mu],i);
-	  QLA_M_eq_r_times_M(&t1, &d, sgmui);
-	  for(int ic=0; ic<QLA_Nc; ic++) {
-	    QLA_c_meq_r(QLA_elem_M(t1,ic,ic), b);
-	  }
-	  QLA_M_eq_Ma_times_M(&t2, &t1, fcmui);
-	  QLA_M_eq_M_times_Ma(&t3, &t2, &t1);
-	  QLA_M_peq_r_times_M(fmui, &detinv, &t3);
+	    QLA_ColorMatrix(t1);
+	    QLA_ColorMatrix(t2);
+	    QLA_ColorMatrix(t3);
+	    QLA_ColorMatrix(*fmui) = QDP_site_ptr_readwrite_M(f[0]->links[mu], i);
+	    QLA_ColorMatrix(*fcmui) = QDP_site_ptr_readonly_M(fc[0]->links[mu],i);
+	    QLA_ColorMatrix(*sgmui) = QDP_site_ptr_readonly_M(sg[0]->links[mu],i);
+	    QLA_M_eq_r_times_M(&t1, &d, sgmui);
+	    for(int ic=0; ic<QLA_Nc; ic++) {
+	      QLA_c_meq_r(QLA_elem_M(t1,ic,ic), b);
+	    }
+	    QLA_M_eq_Ma_times_M(&t2, &t1, fcmui);
+	    QLA_M_eq_M_times_Ma(&t3, &t2, &t1);
+	    QLA_M_peq_r_times_M(fmui, &detinv, &t3);
 	  }));
     }
   } else

@@ -161,16 +161,16 @@ projectU_deriv(QDP_ColorMatrix *deriv, QDP_ColorMatrix *proj,
   int i;
   QDP_loop_sites(i, sub, {
       // F = C z - z (Cd U + Ud C) z (dy/du)
-      QLA_ColorMatrix *d = (QLA_ColorMatrix(*))QDP_site_ptr_readwrite_M(deriv,i);
-      QLA_ColorMatrix *p = (QLA_ColorMatrix(*))QDP_site_ptr_readonly_M(proj,i);
-      QLA_ColorMatrix *m = (QLA_ColorMatrix(*))QDP_site_ptr_readonly_M(mat,i);
-      QLA_ColorMatrix *c = (QLA_ColorMatrix(*))QDP_site_ptr_readonly_M(chain,i);
-      //QLA_ColorMatrix x;
-      QLA_ColorMatrix y;
-      QLA_ColorMatrix z;
-      //QLA_ColorMatrix cz;
-      QLA_ColorMatrix t1;
-      QLA_ColorMatrix t2;
+      QLA_ColorMatrix(*d)=(QLA_ColorMatrix(*))QDP_site_ptr_readwrite_M(deriv,i);
+      QLA_ColorMatrix(*p)=(QLA_ColorMatrix(*))QDP_site_ptr_readonly_M(proj,i);
+      QLA_ColorMatrix(*m)=(QLA_ColorMatrix(*))QDP_site_ptr_readonly_M(mat,i);
+      QLA_ColorMatrix(*c)=(QLA_ColorMatrix(*))QDP_site_ptr_readonly_M(chain,i);
+      //QLA_ColorMatrix(x);
+      QLA_ColorMatrix(y);
+      QLA_ColorMatrix(z);
+      //QLA_ColorMatrix(cz);
+      QLA_ColorMatrix(t1);
+      QLA_ColorMatrix(t2);
       //QLA_M_eq_Ma_times_M(&x, m, m);
       QLA_M_eq_Ma_times_M(&y, m, p);
       QLA_M_eq_inverse_M(&z, &y);
@@ -195,12 +195,12 @@ projectU_deriv(QDP_ColorMatrix *deriv, QDP_ColorMatrix *proj,
 #ifdef HAVE_NC3
 #define NC 3
 void 
-traceless_herm_M_evalues(QLA_ColorMatrix *Q, double _Complex *u, double _Complex *w, 
-			   double _Complex *q1, double _Complex *q2, double _Complex *q3) {
-  
+traceless_herm_M_evalues(QLA_ColorMatrix(*Q), double _Complex *u,
+			 double _Complex *w, double _Complex *q1,
+			 double _Complex *q2, double _Complex *q3)
+{
   QLA_Complex c0, c1;
-
-  QLA_ColorMatrix Q2;
+  QLA_ColorMatrix(Q2);
   QLA_M_eq_M_times_M(&Q2, Q, Q);
 
   QLA_C_eq_det_M    (&c0, Q);       // c0 = det(Q)
@@ -224,8 +224,8 @@ traceless_herm_M_evalues(QLA_ColorMatrix *Q, double _Complex *u, double _Complex
 }
 
 static void
-get_Bs(QLA_ColorMatrix *Q, QLA_ColorMatrix *Q2, QLA_ColorMatrix *B1,
-       QLA_ColorMatrix *B2, double _Complex *f0, double _Complex *f1,
+get_Bs(QLA_ColorMatrix(*Q), QLA_ColorMatrix(*Q2), QLA_ColorMatrix(*B1),
+       QLA_ColorMatrix(*B2), double _Complex *f0, double _Complex *f1,
        double _Complex *f2)
 {
   double _Complex u, w, q1, q2, q3;
@@ -326,11 +326,11 @@ get_Bs(QLA_ColorMatrix *Q, QLA_ColorMatrix *Q2, QLA_ColorMatrix *B1,
 #endif
 
 void
-exp_deriv_site(NCPROT QLA_ColorMatrix *deriv, QLA_Real *r, 
-	       QLA_ColorMatrix *M, QLA_ColorMatrix *chain)
+exp_deriv_site(NCPROT QLA_ColorMatrix(*deriv), QLA_Real *r, 
+	       QLA_ColorMatrix(*M), QLA_ColorMatrix(*chain))
 {
-  QLA_ColorMatrix tmp;
-  QLA_ColorMatrix A;
+  QLA_ColorMatrix(tmp);
+  QLA_ColorMatrix(A);
   QLA_M_eq_r_times_M(&A, r, M);
   
 #ifdef HAVE_NC3
@@ -339,12 +339,14 @@ exp_deriv_site(NCPROT QLA_ColorMatrix *deriv, QLA_Real *r,
     QLA_Complex minus_i;
     QLA_c_eq_r_plus_ir(minus_i, 0, -1);
 
-    QLA_ColorMatrix Q, Q2;
+    QLA_ColorMatrix(Q);
+    QLA_ColorMatrix(Q2);
     QLA_M_eq_C_times_M(&Q, &minus_i, &A);
     QLA_M_eq_M_times_M(&Q2, &Q, &Q);
 
     double _Complex f0, f1, f2;
-    QLA_ColorMatrix B1, B2;
+    QLA_ColorMatrix(B1);
+    QLA_ColorMatrix(B2);
     get_Bs(&Q, &Q2, &B1, &B2, &f0, &f1, &f2);
 
     QLA_Complex /*qf0,*/ qf1, qf2;
@@ -354,7 +356,8 @@ exp_deriv_site(NCPROT QLA_ColorMatrix *deriv, QLA_Real *r,
  
     // derivative  
     QLA_Complex trB1M, trB2M;
-    QLA_ColorMatrix prod, mat;
+    QLA_ColorMatrix(prod);
+    QLA_ColorMatrix(mat);
     QLA_M_eq_Ma (&mat, chain);
 
     //tr(B_1 M)
@@ -429,7 +432,8 @@ exp_deriv_site(NCPROT QLA_ColorMatrix *deriv, QLA_Real *r,
       f0t2 = f1;
 
       QLA_Complex qf1;
-      QLA_ColorMatrix B, AB;
+      QLA_ColorMatrix(B);
+      QLA_ColorMatrix(AB);
       QLA_c_eq_r_plus_ir(qf1, creal(f1), cimag(f1));
 
       QLA_M_eq_Ma(&B, chain);
@@ -497,7 +501,8 @@ exp_deriv_site(NCPROT QLA_ColorMatrix *deriv, QLA_Real *r,
       QLA_Complex qf1;
       QLA_c_eq_r_plus_ir(qf1, creal(f1), cimag(f1));
 
-      QLA_ColorMatrix B, AB;
+      QLA_ColorMatrix(B);
+      QLA_ColorMatrix(AB);
       QLA_M_eq_Ma(&B, chain);
       QLA_M_eq_M_times_M(&AB, &A, &B);
       QLA_M_eq_c_times_M(&tmp, &qf1, &B); //f1 * B

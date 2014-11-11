@@ -4,12 +4,11 @@
 
 // This is a private function to extract the SU(2) submatrix V from an SU(3) matrix.
 // Taken from Chroma function "su2Extract_t". The submatrix correspond with sunFill.
-#define NC nc
 static void
-su2Extract_local(NCPROT QLA_Real* r, QLA_ColorMatrix* v, int su2_index)
+su2Extract_local(NCPROT QLA_Real *r, QLA_ColorMatrix(*v), int su2_index)
 {
-	// Determine the SU(3) indices corresponding to the SU(2) indices
-	// of the SU(2) subgroup 'su2_index'
+  // Determine the SU(3) indices corresponding to the SU(2) indices
+  // of the SU(2) subgroup 'su2_index'
 	int i1=0, i2;
 	int found = 0;
 	int del_i = 0;
@@ -48,13 +47,11 @@ su2Extract_local(NCPROT QLA_Real* r, QLA_ColorMatrix* v, int su2_index)
 	
 	return;
 }
-#undef NC
 
 // This is a private function to fill an SU(3) matrix V with a submatrix.
 // Taken from Chroma function "sunFill", specified for SU(3).
-#define NC nc
 static void
-sunFill_local(NCPROT QLA_ColorMatrix* v, QLA_Real* a, int su2_index)
+sunFill_local(NCPROT QLA_ColorMatrix(*v), QLA_Real *a, int su2_index)
 {
 	// Determine the SU(3) indices corresponding to the SU(2) indices
 	// of the SU(2) subgroup 'su2_index'
@@ -116,7 +113,6 @@ sunFill_local(NCPROT QLA_ColorMatrix* v, QLA_Real* a, int su2_index)
 	
 	return;
 }
-#undef NC
 
 struct grelax_params
 {
@@ -129,7 +125,6 @@ struct grelax_params
 static double fuzz = 1e-12;
 
 // Local function to perform the relaxation on the SU(2) subcomponents. 
-#define NC nc
 static void
 private_local_grelax(NCPROT QLA_ColorMatrix(*v), int site, void *args)
 {
@@ -209,7 +204,6 @@ private_local_grelax(NCPROT QLA_ColorMatrix(*v), int site, void *args)
 	QLA_M_eq_M(v, &v2);
 
 }
-#undef NC
 
 // This is a private gauge relaxation function for gauge fixing.
 // Based directly on the Chroma function of the name "grelax"
@@ -432,7 +426,7 @@ qopqdp_gauge_coulomb(lua_State *L)
       if ( mu != j_decay )
 	{
 	  //double tgf_tmp = sum(real(trace(u[mu])));
-	  QLA_ColorMatrix link_sum;
+	  QLA_ColorMatrix(link_sum);
 	  QDP_m_eq_sum_M(&link_sum, u->links[mu], QDP_all);
 	  QLA_Real tgf_tmp;
 	  QLA_R_eq_re_trace_M(&tgf_tmp, &link_sum);
@@ -508,7 +502,7 @@ qopqdp_gauge_coulomb(lua_State *L)
 	      QDP_M_eq_M_times_M(new_links, g, new_links2, QDP_all);
 	      
 	      // Now get the real trace >_<
-	      QLA_ColorMatrix link_sum;
+	      QLA_ColorMatrix(link_sum);
 	      QDP_m_eq_sum_M(&link_sum, new_links, QDP_all);
 	      QLA_Real tgf_tmp;
 	      QLA_R_eq_re_trace_M(&tgf_tmp, &link_sum);

@@ -32,7 +32,7 @@ CC will default to the same as used by QMP and can be overriden.
 The "--enable-nc=" flag should match what was used to compile QOPQDP.
 The default is "all".
 
-The "--enable-colors=" is used to force the all fields to have the
+The "--enable-colors=" flag is used to force all fields to have the
 specified color at compile time.  This may be faster in some cases,
 but can prevent using any code that uses multiple Nc.  The allowed
 values are 1,2,3, and n where "n" specifies that the fields can have

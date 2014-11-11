@@ -99,6 +99,7 @@ function pointProp(L, w, pt, smearsrc, smeardest, mass, resid, opts, oldprop)
       src:zero()
       -- point({coord},color,spin,value)
       src:point(pt,color-1,spin-1,1)
+
       if smearsrc then
 	printf("src norm2: %g\n", src:norm2())
 	smearsrc(src)

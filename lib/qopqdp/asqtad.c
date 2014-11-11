@@ -467,14 +467,14 @@ qopqdp_asqtad_solve(lua_State *L)
   }
 #if 0
   {
-    //QLA_ColorVector *v = QDP_expose_V(qs->field);
+    //QLA_ColorVector(*v) = QDP_expose_V(qs->field);
     //for(int i=0; i<QDP_subset_len(QDP_all); i++) {
     int i;
     QDP_loop_sites(i, QDP_all_L(qs->qlat), {
 	if(i==0) {
 	  printf("%4i", i);
 	  for(int j=0; j<QLA_Nc; j++) {
-	    QLA_ColorVector *v = QDP_site_ptr_readonly_V(qs->field, i);
+	    QLA_ColorVector(*v) = QDP_site_ptr_readonly_V(qs->field, i);
 	    printf(" %10g", QLA_real(QLA_elem_V(*v, j)));
 	    printf(" %10g", QLA_imag(QLA_elem_V(*v, j)));
 	  }
@@ -529,7 +529,7 @@ qopqdp_asqtad_solve(lua_State *L)
 	  QDP_get_coords(x, 0, i);
 	  printf(" %i %i %i %i", x[0], x[1], x[2], x[3]);
 	  for(int j=0; j<QLA_Nc; j++) {
-	    QLA_ColorVector *v = QDP_site_ptr_readonly_V(*qqd, i);
+	    QLA_ColorVector(*v) = QDP_site_ptr_readonly_V(*qqd, i);
 	    printf(" %10g", QLA_real(QLA_elem_V(*v, j)));
 	    printf(" %10g", QLA_imag(QLA_elem_V(*v, j)));
 	  }
