@@ -1,5 +1,5 @@
--- this example is part of the regression test suite, functions starting
--- with TEST are part of the test framework and can be ignored
+-- This example is part of the regression test suite.  Functions starting
+-- with TEST are part of the test framework and can be ignored.
 
 require 'topo'
 

@@ -12,7 +12,7 @@ QHMC is an application for Lattice Field Theory using the
 scripting language on top of the
 [USQCD SciDAC libraries](http://usqcd-software.github.io).  
 ** This documentation is still very incomplete. **  
-** For now, refer to the source or these and other examples for a more complete
+** Refer to the source and the scripts included with it for a more complete
 reference. **
 ]]
 
