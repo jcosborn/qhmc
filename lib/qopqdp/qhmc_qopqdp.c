@@ -1,3 +1,5 @@
+/// Base routines for QOPQDP library support.
+// @module qopqdp
 #include "qhmc_qopqdp_common.h"
 #include <unistd.h>
 #include <fcntl.h>
@@ -278,6 +280,11 @@ qopqdp_defaultLattice(lua_State *L)
   return 1;
 }
 
+/// Create lattice object (or return size of default lattice).
+//  @function lattice
+//  @param[opt] dimensions array of lattice dimensions
+//  @return lattice object if dimensions given, dimensions of default lattice
+//  otherwise
 static int
 qopqdp_lattice(lua_State *L)
 {
@@ -687,4 +694,7 @@ qhmc_open_qopqdp(lua_State *L)
   QDP_set_read_group_size(64);
   QDP_set_write_group_size(64);
   open_qopqdp_smear(L);
+#ifdef _OPENMP
+  QDP_set_block_size(1024*1024);
+#endif
 }

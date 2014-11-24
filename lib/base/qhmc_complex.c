@@ -1,3 +1,12 @@
+/// Complex number type.
+// The constructor (complex) is in the global namespace (@{global.complex}).
+//
+// Complex numbers support basic operations +,-,*,/ among themselves or with
+// regular numbers.
+//
+// The real or imaginary part can be accessed with .r or .i (i.e. z.r or z.i).
+// This works for setting and getting the value.
+// @classmod complex
 #include "qhmc_internal.h"
 #include <math.h>
 
@@ -327,6 +336,10 @@ qhmc_complex_tostring(lua_State *L)
   return 1;
 }
 
+/// Set complex number from another, or 1 or 2 real numbers.
+//  @function set
+//  @tparam ?number|complex x real part or complex value
+//  @tparam[opt=0] number y imaginary part (only if x is not complex)
 static int
 qhmc_complex_set(lua_State *L)
 {
@@ -335,6 +348,9 @@ qhmc_complex_set(lua_State *L)
   return 0;
 }
 
+/// Return complex conjugate.
+//  @function conj
+//  @treturn complex conjugate of self
 static int
 qhmc_complex_conj(lua_State *L)
 {
@@ -343,6 +359,9 @@ qhmc_complex_conj(lua_State *L)
   return 1;
 }
 
+/// Add another number to this one (+=).
+//  @function peq
+//  @tparam ?real|complex z number to add to self
 static int
 qhmc_complex_peq(lua_State *L)
 {
@@ -354,6 +373,9 @@ qhmc_complex_peq(lua_State *L)
   return 0;
 }
 
+/// Subtract another number from this one (-=).
+//  @function meq
+//  @tparam ?real|complex z number to subtract from self
 static int
 qhmc_complex_meq(lua_State *L)
 {
@@ -365,6 +387,9 @@ qhmc_complex_meq(lua_State *L)
   return 0;
 }
 
+/// Return square root.
+//  @function sqrt
+//  @treturn complex square root of self
 static int
 qhmc_complex_sqrt(lua_State *L)
 {
@@ -378,6 +403,9 @@ qhmc_complex_sqrt(lua_State *L)
   return 1;
 }
 
+/// Return absolute value squared.
+//  @function norm2
+//  @treturn complex absolute value squared of self
 static int
 qhmc_complex_norm2(lua_State *L)
 {
@@ -424,6 +452,12 @@ qhmc_complex_create(lua_State* L, double re, double im)
   return c;
 }
 
+// doc in global.cdoc
+/// Create complex number.
+//  @function complex
+//  @tparam ?number|complex x real part or complex value
+//  @tparam[opt=0] number y imaginary part (only if x is not complex)
+//  @treturn complex
 static int
 qhmc_complex(lua_State* L)
 {

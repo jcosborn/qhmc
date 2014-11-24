@@ -16,10 +16,11 @@ function TESTOFF()
   printf("!TESTOFF\n")
 end
 local numpat = "[%+%-]?%d+%.?%d*[eE]?[%+%-]?%d*"
+local numpatspace = "[%+%- ]?%d+%.?%d*[eE]?[%+%-]?%d*"
 local zerotol = 0
 local function zerotolfunc(x)
   local n = tonumber(x)
-  if n and math.abs(n) < zerotol then x = 0 end
+  if n and math.abs(n) < zerotol then x = " 0" end
   return x
 end
 function TESTZEROTOL(t)
@@ -45,6 +46,16 @@ function TESTPATFMT(s, f)
     return r
   end
   TESTPAT(s, numpat,
+	  function(x) return string.format(fmt(),x) end)
+end
+function TESTPATFMTSPACE(s, f)
+  local n = 1
+  local function fmt()
+    local r = f[n] or f
+    if f[n+1] then n=n+1 end
+    return r
+  end
+  TESTPAT(s, numpatspace,
 	  function(x) return string.format(fmt(),x) end)
 end
 local patrange = {}

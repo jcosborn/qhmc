@@ -68,9 +68,29 @@
 #define GET_AS_DOUBLE_ARRAY(n,t) int n=qhmc_opt_as_double_array_len(L,nextarg,1,0); double t[n==0?1:abs(n)]; qhmc_opt_as_double_array(L,&nextarg,1,n,t,0,NULL)
 #define OPT_AS_DOUBLE_ARRAY(n,t,dn,dt) int n=qhmc_opt_as_double_array_len(L,nextarg,0,dn); double t[n==0?1:abs(n)]; qhmc_opt_as_double_array(L,&nextarg,0,n,t,dn,dt)
 
+#define QHMC_NEWUSERDATA(t, v) \
+  t *v = lua_newuserdata(L, sizeof(t)); \
+  QHMC_USERTABLE_CREATE(L, -1); \
+  QHMC_PTRTABLE_SET(L, -1, v);
+
 #define QHMC_USERTABLE_CREATE(L,i) { int _i=lua_absindex(L,i); lua_newtable(L); lua_setuservalue(L,_i); }
 #define QHMC_USERTABLE_GETFIELD(L,i,k) lua_getuservalue(L,i); lua_getfield(L,-1,k); lua_remove(L,-2)
 #define QHMC_USERTABLE_SETFIELD(L,i,k) lua_getuservalue(L,i); lua_insert(L,-2); lua_setfield(L,-2,k); lua_pop(L,1)
+
+#define QHMC_PTRTABLE_SET(L, i, p) {			\
+	int _i = lua_absindex(L, i);			\
+	lua_getfield(L, LUA_REGISTRYINDEX, "ptrtable"); \
+	lua_pushvalue(L, _i);				\
+	lua_rawsetp(L, -2, p);				\
+	lua_pop(L, 1);					\
+      }
+
+#define QHMC_PTRTABLE_GET(L, p) {			\
+    lua_getfield(L, LUA_REGISTRYINDEX, "ptrtable");	\
+    lua_rawgetp(L, -1, p);				\
+    lua_remove(L, -2);					\
+  }
+
 
 const char *qhmc_opt_string(lua_State *L, int *idx, int required, char *def);
 int qhmc_opt_int(lua_State *L, int *idx, int required, int def);

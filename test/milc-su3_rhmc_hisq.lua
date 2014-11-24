@@ -13,8 +13,9 @@ infh:close()
 _G.infile = infile
 require 'milc'
 
+TESTZEROTOL(1e-16)
 TESTPAT("^plaq")
-TESTPATFMT("^S","%.5f")
-TESTPAT("deltaS")
-TESTPAT("^1")
+TESTPATFMTSPACE("^S","%.4f")
+TESTPATFMT("deltaS","%.5f")
+TESTPATFMT("^1","%.5g")
 TESTPAT("MEAS")

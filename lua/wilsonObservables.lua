@@ -104,7 +104,8 @@ function pointProp(L, w, pt, smearsrc, smeardest, mass, resid, opts, oldprop)
 	printf("src norm2: %g\n", src:norm2())
 	smearsrc(src)
       end
-      printf("src norm2: %g\n", src:norm2())
+      printf("src norm2: %g\n", src:norm2());
+      io.stdout:flush();
 
       dest:combineSpin(cvCS[color])
       t0 = qopqdp.dtime()

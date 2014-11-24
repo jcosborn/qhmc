@@ -128,6 +128,7 @@ typedef struct {
   int ref;
   char *defaultPrecision;
   int defaultNc;
+  int doGC;
 } lattice_t;
 lattice_t *qopqdp_lattice_wrap(lua_State *L, QDP_Lattice *qlat, char *defPrec, int defNc, int doGC);
 lattice_t *qopqdp_create_lattice(lua_State *L, int nd, int size[], char *defPrec, int defNc);

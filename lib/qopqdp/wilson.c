@@ -1,5 +1,17 @@
 #include <string.h>
 #include "qhmc_qopqdp_common.h"
+#ifdef HAVE_NC1
+#include <qdp_d1.h>
+#include <qop_d1.h>
+#endif
+#ifdef HAVE_NC2
+#include <qdp_d2.h>
+#include <qop_d2.h>
+#endif
+#ifdef HAVE_NC3
+#include <qdp_d3.h>
+#include <qop_d3.h>
+#endif
 
 static char *mtname = "qopqdp.wilson";
 
@@ -508,7 +520,14 @@ qopqdp_wilson_solve(lua_State *L)
       }
     } else {
       //wilsonInvert(&info, fla, &invarg, rap, mass, nm, qqd, qs->field);
-      QOP_D_wilson_invert_qdp(&info, w->fl, &invarg, &resarg,k,qd->field,qs->field);
+      switch(QOP_Nc) {
+#ifdef HAVE_NC3
+      case 3: QOP_D3_wilson_invert_qdp(&info,(QOP_3_FermionLinksWilson*)w->fl,&invarg,&resarg,k,(QDP_3_DiracFermion*)qd->field,(QDP_3_DiracFermion*)qs->field);
+	break;
+#endif
+      default:
+	QOP_D_wilson_invert_qdp(&info, w->fl, &invarg, &resarg,k,qd->field,qs->field);
+      }
     }
     if(precNE==2) {
       QLA_Real s = 0.5/k;

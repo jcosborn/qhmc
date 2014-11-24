@@ -1,3 +1,5 @@
+/// Base routines for QOPQDP library support.
+// @module qopqdp
 #include "qhmc_qopqdp_common.h"
 
 static void
@@ -26,9 +28,11 @@ get_asqtad_coeffs(lua_State *L, int idx, QOP_asqtad_coeffs_t *coeffs)
   }
 }
 
-// 1: table of output (smeared) gauge fields
-// 2: table of input gauge fields
-// 3: smearing parameters
+/// Gauge smearing.
+// @function smear
+// @param sg table of output (smeared) gauge fields
+// @param g  table of input gauge fields
+// @param p smearing parameters
 static int
 qopqdp_smear(lua_State *L)
 {
@@ -317,6 +321,8 @@ qopqdp_smear(lua_State *L)
   return 0;
 }
 
+/// Derivative of gauge smearing.
+// @function smearChain
 static int
 qopqdp_smearChain(lua_State *L)
 {

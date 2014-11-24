@@ -1,3 +1,5 @@
+/// Defines physical hypercubic lattice.
+// @classmod lattice
 #include "qhmc_qopqdp_common.h"
 
 static char *mtname = "qopqdp.lattice";
@@ -21,28 +23,30 @@ static int
 qopqdp_lattice_gc(lua_State *L)
 {
   lattice_t *lat = qopqdp_check_lattice(L, -1);
-  if(lat->timeslices) {
-    QDP_destroy_subset(lat->timeslices);
-    lat->timeslices = NULL;
-  }
-  if(lat->staggered) {
-    QDP_destroy_subset(lat->staggered);
-    lat->staggered = NULL;
-  }
-  for(int i=0; i<=lat->nd; i++) {
-    if(lat->eodir[i]) {
-      QDP_destroy_subset(lat->eodir[i]);
-      lat->eodir[i] = NULL;
+  if(lat->doGC) {
+    if(lat->timeslices) {
+      QDP_destroy_subset(lat->timeslices);
+      lat->timeslices = NULL;
     }
-  }
-  free(lat->eodir);
-  //if(lat->rs) {
-  //QDP_destroy_S(lat->rs);
-  //lat->rs = NULL;
-  //}
-  if(lat->qlat!=QDP_get_default_lattice()) {
-    QDP_destroy_lattice(lat->qlat);
-    lat->qlat = NULL;
+    if(lat->staggered) {
+      QDP_destroy_subset(lat->staggered);
+      lat->staggered = NULL;
+    }
+    for(int i=0; i<=lat->nd; i++) {
+      if(lat->eodir[i]) {
+	QDP_destroy_subset(lat->eodir[i]);
+	lat->eodir[i] = NULL;
+      }
+    }
+    free(lat->eodir);
+    //if(lat->rs) {
+    //QDP_destroy_S(lat->rs);
+    //lat->rs = NULL;
+    //}
+    if(lat->qlat!=QDP_get_default_lattice()) {
+      QDP_destroy_lattice(lat->qlat);
+      lat->qlat = NULL;
+    }
   }
   return 0;
 }
@@ -77,6 +81,9 @@ qopqdp_lattice_call(lua_State *L)
   return 1;
 }
 
+/// Lattice volume.
+// @function volume
+// @treturn number volume of lattice
 static int
 qopqdp_lattice_volume(lua_State *L)
 {
@@ -395,9 +402,10 @@ lattice_t *
 qopqdp_lattice_wrap(lua_State *L, QDP_Lattice *qlat,
 		    char *defPrec, int defNc, int doGC)
 {
+  //lattice_t *lat = lua_newuserdata(L, sizeof(lattice_t));
+  //QHMC_USERTABLE_CREATE(L, -1);
+  QHMC_NEWUSERDATA(lattice_t, lat);
   int nd = QDP_ndim_L(qlat);
-  lattice_t *lat = lua_newuserdata(L, sizeof(lattice_t));
-  QHMC_USERTABLE_CREATE(L, -1);
   lat->qlat = qlat;
   lat->timeslices = NULL;
   lat->staggered = NULL;
@@ -408,6 +416,7 @@ qopqdp_lattice_wrap(lua_State *L, QDP_Lattice *qlat,
   lat->ref = -1;
   lat->defaultPrecision = defPrec;
   lat->defaultNc = defNc;
+  lat->doGC = doGC;
   if(luaL_newmetatable(L, mtname)) {
     lua_pushvalue(L, -1);
     lua_setfield(L, -2, "__index");

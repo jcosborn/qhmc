@@ -104,8 +104,7 @@ qopqdp_gauge_lattice(lua_State *L)
   BEGIN_ARGS;
   GET_GAUGE(g);
   END_ARGS;
-  lattice_t *lat = g->lat;
-  qopqdp_lattice_wrap(L, lat->qlat, lat->defaultPrecision, lat->defaultNc, 0);
+  QHMC_PTRTABLE_GET(L, g->lat);
   return 1;
 }
 
@@ -135,18 +134,20 @@ qopqdp_gauge_unit(lua_State *L)
 
 // 1: gauge
 // 2: number or table of numbers
+// 3: subset (optional)
 static int
 qopqdp_gauge_scale(lua_State *L)
 {
   BEGIN_ARGS;
   GET_GAUGE(g);
   GET_AS_DOUBLE_ARRAY(n,sa);
+  OPT_SUBSET(sub, g->lat, QDP_all_L(g->qlat));
   END_ARGS;
   int nd = g->nd;
   QLA_Real s = 1;
   for(int i=0; i<nd; i++) {
     if(i<abs(n)) s = sa[i];
-    if(s!=1) QDP_M_eq_r_times_M(g->links[i],&s,g->links[i],QDP_all_L(g->qlat));
+    if(s!=1) QDP_M_eq_r_times_M(g->links[i],&s,g->links[i],sub);
   }
   return 0;
 }

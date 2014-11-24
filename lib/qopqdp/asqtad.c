@@ -260,12 +260,12 @@ qopqdp_asqtad_set_opts(void)
   opt[0].value = 0;
   opt[1].value = 8;
   opt[2].value = 8;
-  QDP_set_block_size(1024);
+  //QDP_set_block_size(1024);
 #else
   opt[0].value = 1;
   opt[1].value = 8;
   opt[2].value = 16;
-  QDP_set_block_size(1024);
+  //QDP_set_block_size(1024);
 #endif
   QOP_asqtad_invert_set_opts(opt, 3);
   opt[0].tag = "fnmat_src_min";

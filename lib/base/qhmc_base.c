@@ -1,3 +1,5 @@
+/// Base functions.
+// @module qhmc
 #include "qhmc_internal.h"
 #ifndef _POSIX_C_SOURCE
 #define _POSIX_C_SOURCE 199309L
@@ -206,6 +208,9 @@ qhmc_tableGetString(lua_State *L, int idx, char *key)
   return s;
 }
 
+/// Is this the master node?
+//  @function isMaster
+//  @treturn boolean true if master node
 static int
 qhmc_isMaster(lua_State *L)
 {
@@ -215,6 +220,9 @@ qhmc_isMaster(lua_State *L)
   return 1;
 }
 
+/// Return time in seconds since arbitrary point in past.
+//  @function dtime
+//  @treturn number time in seconds
 static int
 qhmc_dtime(lua_State *L)
 {
@@ -235,6 +243,9 @@ qhmc_dtime(lua_State *L)
 
 static int fdout, fderr;
 
+/// Remap stdout and stderr to file.
+//  @function remapout
+//  @string filename
 static int
 qhmc_remapout(lua_State *L)
 {
@@ -253,6 +264,8 @@ qhmc_remapout(lua_State *L)
   return 0;
 }
 
+/// Restore stdout and stderr to original file descriptors.
+//  @function restoreout
 static int
 qhmc_restoreout(lua_State *L)
 {
@@ -278,4 +291,10 @@ void
 qhmc_open_qhmc(lua_State *L)
 {
   luaL_register(L, "qhmc", qhmc_reg);
+  lua_newtable(L); // ptrtable
+  lua_newtable(L); // its metatable
+  lua_pushstring(L, "v");
+  lua_setfield(L, -2, "__mode");
+  lua_setmetatable(L, -2);
+  lua_setfield(L, LUA_REGISTRYINDEX, "ptrtable");
 }

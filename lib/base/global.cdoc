@@ -1,0 +1,8 @@
+/// Global namespace.
+// @module global
+
+/// Create complex number.
+//  @function complex
+//  @tparam ?number|complex x real part or complex value
+//  @tparam[opt=0] number y imaginary part (only if x is not complex)
+//  @treturn complex

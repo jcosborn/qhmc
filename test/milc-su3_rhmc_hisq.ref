@@ -382,10 +382,10 @@
 #  }
 #  tau = 0.2
 #}
-Sgq:            -0.00000  Sgp:          -113.78556  Sfq:          7913.29186
-Sgq:          7694.62071  Sgp:         -7835.11468  Sfq:          7939.88371
-Sold:          7799.50629  Snew:          7799.38974
-ACCEPT deltaS = -0.116557  p = 1.12362  r = 0.498384
+Sgq:             0  Sgp:          -113.7856  Sfq:         7913.2919
+Sgq:         7694.6207  Sgp:         -7835.1147  Sfq:         7939.8837
+Sold:         7799.5063  Snew:         7799.3897
+ACCEPT deltaS = -0.11656  p = 1.12362  r = 0.49838
 #unitarity deviation avg: 1.8203e-11  max: 1.5161e-10
 #new unitarity deviation avg: 1.1385e-16  max: 2.85376e-16
 #traj 1 secs: 3.22622
@@ -411,7 +411,7 @@ ACCEPT deltaS = -0.116557  p = 1.12362  r = 0.498384
 #CG[12] secs:    0.087   3% calls:   10 mflops:  4034 avgits:    21 max:    25
 #CGtot  secs:    0.785  24% calls:   52 mflops:  4483 avgits:    31 max:    87
 #other  secs:    0.122   4%
-1,2,3,4  0.00393007   0.00998243  
+1,2,3,4  0.0039301   0.0099824  
 MEASplaq ss: 0.847076  st: 0.84822   tot: 0.847648
 MEASploop: spatial: 0.760221 0.00120629 temporal: 0.7618 0.00259778
 MEASpbp mass 0.0018 : 0.00288152

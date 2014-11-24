@@ -1,21 +1,41 @@
-QHMC (aka FUEL)
+# QHMC (FUEL)
+
 James C. Osborn
-=========================================================================
-Quick Build Instructions
+
+QHMC is an application for Lattice Field Theory using the Lua
+scripting language on top of USQCD SciDAC libraries.
+It is also commonly referred to by the name FUEL
+(Framework for Unified Evolution of Lattices).
+Though originally targeted for configuration generation,
+it now has fairly extensive analysis capabilities.
+
+## Quick Build Instructions
 
 QHMC uses autoconf and follows similar conventions to the rest of the
-USQCD SciDAC libraries.  You will first need to install its dependencies:
-qmp, qio, qla, qdp, and qopqdp.  The recommended versions of these
-libraries are:
+[USQCD SciDAC libraries](http://usqcd-software.github.io).
+You will first need to install its dependencies:
+[QMP](http://usqcd-software.github.io/qmp),
+[QIO](http://usqcd-software.github.io/qio),
+[QLA](http://usqcd-software.github.io/qla),
+[QDP](http://usqcd-software.github.io/qdp), and
+[QOPQDP](http://usqcd-software.github.io/qopqdp).
+The recommended versions of these libraries are
 
-qmp-2.5.0
-qio-2.4.1
-qla-1.9.0
-qdp-1.11.0
-qopqdp-0.20.0
+* qmp-2.5.0
+* qio-2.4.1
+* qla-1.9.0
+* qdp-1.11.0
+* qopqdp-0.20.0
 
-An example configure command is:
+Source tarballs for these libraries and QHMC are available
+[here](http://usqcd-software.github.io/downloads).
+The [qinstall](https://github.com/usqcd-software/qinstall)
+script provides a convienent way to install these libraries
+and QHMC.
 
+An example configure command for QHMC is:
+
+```
 /home/osborn/lqcd/src/qhmc-0.1.4/configure \
  --prefix=/home/osborn/lqcd/install/qhmc-0.1.4 \
  --with-qmp=/home/osborn/lqcd/install/qmp \
@@ -26,6 +46,7 @@ An example configure command is:
  --enable-nc=all \
  --enable-colors=n \
  CFLAGS="-Wall -std=gnu99 -O3 -g -DQDP_PROFILE"
+```
 
 CC will default to the same as used by QMP and can be overriden.
 
@@ -37,24 +58,21 @@ specified color at compile time.  This may be faster in some cases,
 but can prevent using any code that uses multiple Nc.  The allowed
 values are 1,2,3, and n where "n" specifies that the fields can have
 any Nc and can be specified at runtime.  This is the default.
-=========================================================================
-Directory structure:
 
+## Directory structure
+
+```
 bin
-  where final qhmc executable is built
-
+  where the final qhmc executable is built
 examples
   some random, possibly old, examples
-
 include
   headers for Lua bindings in lib directory
-
 lib
   Lua bindings for libraries (and the Lua source itself)
-
 lua
   Lua scripts for running configuration generation and analysis
-
 test
   regression tests
-=========================================================================
+```
+

@@ -255,7 +255,7 @@ ftype_lattice(lua_State *L)
   BEGIN_ARGS;
   GET_FTYPE(t);
   END_ARGS;
-  qopqdp_lattice_wrap(L,t->qlat,t->lat->defaultPrecision,t->lat->defaultNc,0);
+  QHMC_PTRTABLE_GET(L, t->lat);
   return 1;
 }
 
@@ -1265,6 +1265,7 @@ ftype_dot(lua_State *L)
 #undef NC
 }
 
+// does sum(trace(t1*t2))
 static int
 ftype_contract(lua_State *L)
 {
@@ -2287,7 +2288,7 @@ ftype_create_unset(lua_State *L, NCPROTT lattice_t *lat)
 {
   if(lat==NULL) lat = qopqdp_get_default_lattice(L);
 #ifdef COLORED
-  if(NC<0) NC = lat->defaultNc;
+  if(NC<=0) NC = lat->defaultNc;
 #if QDP_Colors != 'N'
   if(NC!=QDP_Colors) {
     qlerror(L, 1, "requested Nc %i but built for %i\n", NC, QDP_Colors);
