@@ -1,0 +1,252 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>QHMC (FUEL) API documentation</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>QHMC (FUEL)</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Methods">Methods</a></li>
+</ul>
+
+
+<h2>Classes</h2>
+<ul class="$(kind=='Topics' and '' or 'nowrap'">
+  <li><strong>complex</strong></li>
+</ul>
+<h2>Modules</h2>
+<ul class="$(kind=='Topics' and '' or 'nowrap'">
+  <li><a href="../modules/global.html">global</a></li>
+  <li><a href="../modules/qhmc.html">qhmc</a></li>
+  <li><a href="../modules/qopqdp.html">qopqdp</a></li>
+</ul>
+<h2>Topics</h2>
+<ul class="$(kind=='Topics' and '' or 'nowrap'">
+  <li><a href="../topics/README.html">README</a></li>
+  <li><a href="../topics/AUTHORS.html">AUTHORS</a></li>
+  <li><a href="../topics/NEWS.html">NEWS</a></li>
+</ul>
+<h2>Examples</h2>
+<ul class="$(kind=='Topics' and '' or 'nowrap'">
+  <li><a href="../examples/point.lua.html">point.lua</a></li>
+  <li><a href="../examples/norm2.lua.html">norm2.lua</a></li>
+  <li><a href="../examples/subset.lua.html">subset.lua</a></li>
+  <li><a href="../examples/random.lua.html">random.lua</a></li>
+  <li><a href="../examples/fieldIO.lua.html">fieldIO.lua</a></li>
+  <li><a href="../examples/gauge.lua.html">gauge.lua</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Class <code>complex</code></h1>
+<p>Complex number type.</p>
+<p> The constructor (complex) is in the global namespace (<a href="../modules/global.html#complex">global.complex</a>).</p>
+
+<p> Complex numbers support basic operations +,-,*,/ among themselves or with
+ regular numbers.</p>
+
+<p> The real or imaginary part can be accessed with .r or .i (i.e. z.r or z.i).
+ This works for setting and getting the value.</p>
+
+
+<h2><a href="#Methods">Methods</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#complex:set">complex:set (x[, y=0])</a></td>
+	<td class="summary">Set complex number from another, or 1 or 2 real numbers.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#complex:conj">complex:conj ()</a></td>
+	<td class="summary">Return complex conjugate.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#complex:peq">complex:peq (z)</a></td>
+	<td class="summary">Add another number to this one (+=).</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#complex:meq">complex:meq (z)</a></td>
+	<td class="summary">Subtract another number from this one (-=).</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#complex:sqrt">complex:sqrt ()</a></td>
+	<td class="summary">Return square root.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#complex:norm2">complex:norm2 ()</a></td>
+	<td class="summary">Return absolute value squared.</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2><a name="Methods"></a>Methods</h2>
+    <dl class="function">
+    <dt>
+    <a name = "complex:set"></a>
+    <strong>complex:set (x[, y=0])</strong>
+    </dt>
+    <dd>
+    Set complex number from another, or 1 or 2 real numbers.
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">x</span>
+            <span class="types"><span class="type">number</span> or <a class="type" href="../classes/complex.html#">complex</a></span>
+         real part or complex value
+        </li>
+        <li><span class="parameter">y</span>
+            <span class="types"><span class="type">number</span></span>
+         imaginary part (only if x is not complex)
+         (<em>default</em> 0)
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "complex:conj"></a>
+    <strong>complex:conj ()</strong>
+    </dt>
+    <dd>
+    Return complex conjugate.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/complex.html#">complex</a></span>
+        conjugate of self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "complex:peq"></a>
+    <strong>complex:peq (z)</strong>
+    </dt>
+    <dd>
+    Add another number to this one (+=).
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">z</span>
+            <span class="types"><span class="type">real</span> or <a class="type" href="../classes/complex.html#">complex</a></span>
+         number to add to self
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "complex:meq"></a>
+    <strong>complex:meq (z)</strong>
+    </dt>
+    <dd>
+    Subtract another number from this one (-=).
+
+
+    <h3>Parameters:</h3>
+    <ul>
+        <li><span class="parameter">z</span>
+            <span class="types"><span class="type">real</span> or <a class="type" href="../classes/complex.html#">complex</a></span>
+         number to subtract from self
+        </li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "complex:sqrt"></a>
+    <strong>complex:sqrt ()</strong>
+    </dt>
+    <dd>
+    Return square root.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/complex.html#">complex</a></span>
+        square root of self
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "complex:norm2"></a>
+    <strong>complex:norm2 ()</strong>
+    </dt>
+    <dd>
+    Return absolute value squared.
+
+
+
+    <h3>Returns:</h3>
+    <ol>
+
+           <span class="types"><a class="type" href="../classes/complex.html#">complex</a></span>
+        absolute value squared of self
+    </ol>
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.4.2</a></i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>
