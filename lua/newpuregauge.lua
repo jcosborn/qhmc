@@ -1,9 +1,9 @@
 require 'Lattice'
-require 'GaugeAction'
-require 'Integrator'
+require 'Action'
+require 'Evolver'
 
-profile(0)
-verbosity(0)
+qopqdp.profile(0)
+qopqdp.verbosity(0)
 
 nx = nx or 4
 nt = nt or 8
@@ -15,42 +15,43 @@ L = Lattice{nx,nx,nx,nt}
 L:Set{defaultNc=Nc}
 L:Seed(seed)
 
-G = L:GaugeField()
+G = L:GaugeField{group="SU",nc=Nc}
 --printf("%s", G)
-G:set("unit")
+G:Set("unit")
 
-GA = GaugeAction{type="plaquette",beta=6,field=G}
+GA = Action{kind="gauge",style="plaquette",beta=6,field=G}
 --printf(GA._type)
 --GA.printForce = true
 --myprint(GA,"\n")
 printf("%s", GA)
 
-F = G:Force()
+M = G:Momentum()
 
-I = Integrator{type="leapfrog",action=GA,field=G,force=F,tau=1,nSteps=40}
-I.tostringRecurse = true
-I.tostringPrintAll = true
+MD = Evolver{kind="md",style="leapfrog",action=GA,field=G,momentum=M,
+	     tau=0.1,nSteps=20}
+MD.tostringRecurse = true
+MD.tostringPrintAll = true
 local function stepHook(t, fs, int)
-  local a = GA:action()
-  local b = 0.5*F.force:norm2()
-  printf("%g: %g\t%g\t%g\t%g\n", t, fs.eps[1], a, b, a+b)
+  local a = GA:Action()
+  local b = 0.5*M.field:norm2()
+  printf("%6g: %6g\t%8g\t%8g\t%8g\n", t, fs and fs.eps[1] or 0, a, b, a+b)
 end
---I.stepHook = stepHook
-print(I)
+MD.stepHook = stepHook
+print(MD)
 
-I:reset()
-F.force:random()
-f2 = F.force:norm2()
+MD:Reset()
+M:Random()
+f2 = M.field:norm2()
 --f2 = 0.5*f2 - 16*L.vol
 f2 = 0.5*f2
 printf("f2: %g\n", f2)
 
-ga = GA:action()
+ga = GA:Action()
 printf("ga: %g\n", ga)
 
-I:run()
+MD:Run()
 
-ga = GA:action()
+ga = GA:Action()
 printf("ga: %g\n", ga)
 
 

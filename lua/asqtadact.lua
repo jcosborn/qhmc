@@ -261,7 +261,9 @@ function actmt.refresh(a, g)
         else
 	  t.qt2:random(math.sqrt(0.5), "all")
         end
+	--printf("t.qt2 norm2: %g\n", t.qt2:norm2("all"))
         a.h:D(t.qt, t.qt2, t.allmass, "even", "all")
+	--printf("t.qt norm2: %g\n", t.qt:norm2("even"))
       else
 	t.qt:random(math.sqrt(0.5), "even")
       end
@@ -277,9 +279,13 @@ function actmt.action(a, g)
   a:set(g, 2)
   local act = 0
   for i,r in ipairs(a.rhmc) do
+    --printf("a.pseudo[%i] norm2: %g\n", i, a.pseudo[i]:norm2("even"))
     local fa = r.FA
     if fa.pt then
       a:solve(fa.pt, a.pseudo[i], fa.masses, fa.resid, "even", fa.solveopts, fa.cgnum)
+      --for ii=1,#fa.pt do
+      --printf("fa.pt[%i] norm2: %g\n", ii, fa.pt[ii]:norm2("even"))
+      --end
     end
     for j,t in ipairs(fa) do
       t.qt:combine(t.pt0, t.coeffs, "even")

@@ -1,3 +1,4 @@
+//#include <omp.h>
 #include <string.h>
 #include "qhmc_qopqdp_common.h"
 #ifdef HAVE_NC1
@@ -410,6 +411,9 @@ qopqdp_asqtad_solve(lua_State *L)
   qassert(nqd==nm);
   GET_DOUBLE(resid);
 
+  //int ompnt = omp_get_max_threads();
+  //omp_set_num_threads(1);
+
   QOP_evenodd_t eo=QOP_EVENODD;
   //int prec = 1;
   int max_iter = -1;
@@ -560,6 +564,7 @@ qopqdp_asqtad_solve(lua_State *L)
   a->flops = info.final_flop;
   a->its = resarg[0].final_iter;
   a->rsq = resarg[0].final_rsq;
+  //omp_set_num_threads(ompnt);
   return 0;
 #undef NC
 }

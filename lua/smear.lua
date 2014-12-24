@@ -165,7 +165,8 @@ end
 function dosmear.staples(sg, g, p)
   if not p.steps then
     p.steps = {}
-    setupSmear.staples(p.steps, 1, 2, p)
+    p.ng = 2
+    setupSmear.staples(p, 1, 2, p)
   end
   execSmear(sg, g, p)
 end

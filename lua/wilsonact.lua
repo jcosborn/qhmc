@@ -190,7 +190,9 @@ function actmt.refresh(a, g)
     local t = r.GR
     --t.qt2:random("even") -- t.qt2 holds the random Gaussian vector
     t.qt2:random(math.sqrt(0.5), "even") -- t.qt2 holds random Gaussian vector
+    --printf("t.qt2 norm2: %g\n", t.qt2:norm2("even"))
     a.w:precD(t.qt, t.qt2, t.mass) -- t.qt holds the pseudofermion vector
+    --printf("t.qt norm2: %g\n", t.qt:norm2("even"))
     if t.mass2 then
       a:solve(t.pt, t.qt, t.mass2, t.resid, "prec", t.solveopts, t.cgnum)
     --[[ not sure if this is needed

@@ -11,6 +11,8 @@ QHMC is an application for Lattice Field Theory using the
 [Lua](http://www.lua.org)
 scripting language on top of the
 [USQCD SciDAC libraries](http://usqcd-software.github.io).  
+The main website is [here](http://jcosborn.github.io/qhmc).  
+
 ** This documentation is still very incomplete. **  
 ** Refer to the source and the scripts included with it for a more complete
 reference. **

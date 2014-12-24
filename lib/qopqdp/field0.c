@@ -1,3 +1,4 @@
+//#include <omp.h>
 #include <string.h>
 #include <math.h>
 #include <qdp_df.h>
@@ -532,7 +533,10 @@ qhmc_qopqdp_seed_func(QDP_RandomState *r, int seed, int uniform, QDP_Subset s)
   } else {
     QDP_I_eq_funca(li, lex_int, (void*)qlat, s);
   }
+  //int ompnt = omp_get_max_threads();
+  //omp_set_num_threads(1);
   QDP_S_eq_seed_i_I(r, seed, li, s);
+  //omp_set_num_threads(ompnt);
   QDP_destroy_I(li);
 }
 
@@ -971,11 +975,14 @@ ftype_random(lua_State *L)
   OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
   END_ARGS;
   if(rs==NULL) qlerror(L, 1, "lattice random state not initialized!\n");
+  //int ompnt = omp_get_max_threads();
+  //omp_set_num_threads(1);
   qdpgaussian(t->field, rs, sub);
   if(s!=1) {
     QLA_Real r = s;  
     qdprtimes(t->field, &r, t->field, sub);
   }
+  //omp_set_num_threads(ompnt);
   return 0;
 #undef NC
 }
@@ -1052,22 +1059,30 @@ ftype_combine(lua_State *L)
   GET_TABLE_LEN_INDEX(cl,ci);
   OPT_QSUBSET(sub, td->lat, QDP_all_L(td->qlat));
   END_ARGS;
+  int first = 1;
   for(int i=0; i<ns; i++) {
     lua_pushinteger(L, i+1);
     lua_gettable(L, ci);
     if(lua_type(L,-1)==LUA_TNUMBER) {
       QLA_Real r = lua_tonumber(L, -1);
-      if(i==0) { qdprtimes(td->field, &r, ts[0]->field, sub); }
-      else { qdppeqrtimes(td->field, &r, ts[i]->field, sub); }
+      if(r) {
+	if(first) { qdprtimes(td->field, &r, ts[i]->field, sub); first=0; }
+	else { qdppeqrtimes(td->field, &r, ts[i]->field, sub); }
+      }
 #ifndef ISREAL
     } else { // complex
       qhmc_complex_t *c = qhmc_complex_check(L, -1);
-      QLA_Complex z;
-      QLA_c_eq_r_plus_ir(z, c->r, c->i);
-      if(i==0) { qdpctimes(td->field, &z, ts[0]->field, sub); }
-      else { qdppeqctimes(td->field, &z, ts[i]->field, sub); }
+      if(c->r || c->i) {
+	QLA_Complex z;
+	QLA_c_eq_r_plus_ir(z, c->r, c->i);
+	if(first) { qdpctimes(td->field, &z, ts[i]->field, sub); first=0; }
+	else { qdppeqctimes(td->field, &z, ts[i]->field, sub); }
+      }
 #endif
     }
+  }
+  if(first) { // was never set, set to zero
+    qdpzero(td->field, sub);
   }
   return 0;
 #undef NC

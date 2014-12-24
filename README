@@ -8,6 +8,7 @@ It is also commonly referred to by the name FUEL
 (Framework for Unified Evolution of Lattices).
 Though originally targeted for configuration generation,
 it now has fairly extensive analysis capabilities.
+The main website is [here](http://jcosborn.github.io/qhmc).
 
 ## Quick Build Instructions
 

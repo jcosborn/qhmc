@@ -195,11 +195,28 @@ qhmc_qopqdp_qsubset_from_string(lua_State *L, lattice_t *lat,
     else *n = 2;
     break;
   case 'e':
+    *n = 1;
+    if(strncmp(s,"evenodd",7)==0 || strncmp(s,"evenandodd",10)==0) *n = 2;
     subs = QDP_even_and_odd_L(qlat);
-    if(strcmp(s,"even")==0) *n = 1;
-    else *n = 2;
+    {
+      int t=0;
+      int nn = sscanf(s,"%*[^0-9]%i",&t);
+      if(nn && t>=1 && t<=lat->nd) {
+	subs = qhmcqdp_get_eodir(lat, t-1);
+      }
+    }
     break;
-  case 'o': subs = 1+QDP_even_and_odd_L(qlat); *n = 1; break;
+  case 'o':
+    *n = 1;
+    subs = 1 + QDP_even_and_odd_L(qlat);
+    {
+      int t=0;
+      int nn = sscanf(s,"%*[^0-9]%i",&t);
+      if(nn && t>=1 && t<=lat->nd) {
+	subs = 1 + qhmcqdp_get_eodir(lat, t-1);
+      }
+    }
+    break;
   case 's':
     if(strncmp(s,"staggered",9)==0) {
       int ns = 1 << QDP_ndim_L(qlat);
@@ -207,7 +224,7 @@ qhmc_qopqdp_qsubset_from_string(lua_State *L, lattice_t *lat,
 	subs = qhmcqdp_get_staggered(lat);
 	*n = ns;
       } else {
-	int t;
+	int t=0;
 	int nn = sscanf(s+9,"%i",&t);
 	if(nn && t>=0 && t<ns) {
 	  subs = &qhmcqdp_get_staggered(lat)[t];
@@ -223,7 +240,7 @@ qhmc_qopqdp_qsubset_from_string(lua_State *L, lattice_t *lat,
 	subs = qhmcqdp_get_timeslices(lat);
 	*n = nt;
       } else {
-	int t;
+	int t=0;
 	int nn = sscanf(s+9,"%i",&t);
 	if(nn && t>=0 && t<nt) {
 	  subs = &qhmcqdp_get_timeslices(lat)[t];

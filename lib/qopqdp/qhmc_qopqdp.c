@@ -317,6 +317,10 @@ qopqdp_lattice(lua_State *L)
   return 1;
 }
 
+/// QDP function profiling.
+//  @function profile
+//  @tparam[opt] integer level value to set (omit if just getting value)
+//  @return previous value
 static int
 qopqdp_profile(lua_State *L)
 {

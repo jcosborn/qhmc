@@ -2,8 +2,8 @@ require 'Lattice'
 require 'Action'
 require 'Evolver'
 
-profile(0)
-verbosity(0)
+qopqdp.profile(0)
+qopqdp.verbosity(0)
 --trace(1)
 
 nx = 4
