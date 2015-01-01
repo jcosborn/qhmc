@@ -279,6 +279,35 @@ local function prop(v)
   end
   return p
 end
+function ppropClone(v)
+  local p = {}
+  for i=1,Ns do
+    local pi = {}
+    p[i] = pi
+    for j=1,Ns do
+      local e = v[i][j]
+      pi[j] = e:clone()
+    end
+  end
+  return p
+end
+function ppropSet(p,v)
+  for i=1,Ns do
+    for j=1,Ns do
+      local ep = p[i][j]
+      local ev = v[i][j]
+      ep:set(ev)
+    end
+  end
+end
+function ppropMomentum(p,...)
+  for i=1,Ns do
+    for j=1,Ns do
+      local ep = p[i][j]
+      ep:momentum(...)
+    end
+  end
+end
 
 --local function 
 
