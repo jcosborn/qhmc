@@ -396,7 +396,7 @@ qhmc_complex_sqrt(lua_State *L)
   qhmc_complex_t *c = qhmc_complex_check(L, 1);
   double r = c->r;
   double i = c->i;
-  double n = r*r + i*i;
+  double n = sqrt(r*r + i*i);
   double sr = sqrt(fabs(0.5*(n+r)));
   double si = copysign(sqrt(fabs(0.5*(n-r))), i);
   qhmc_complex_create(L, sr, si);

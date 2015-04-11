@@ -50,36 +50,54 @@ end
 
 getplaq(g)
 
-
-t0 = clock()
-se,sq = symmEQ(g)
-t0 = clock() - t0
-printf("time: %.10g\n", t0)
-printf("se: %.10g\n", se)
-printf("sq: %.10g\n", sq)
 pe = plaqE(g)
-printf("pe: %.10g\n", pe)
+printf("#pe: %.10g\n", pe)
 
 t0 = clock()
-se,sq = symmEQ(g, 1)
+ses,set,sq = symmEQ(g)
 t0 = clock() - t0
-printf("time: %.10g\n", t0)
-printf("se: %.10g\n", se)
-printf("sq: %.10g\n", sq)
+printf("#time: %.10g\n", t0)
+printf("WFLOW 0 %g %g %g\n", set, ses, sq)
 
+--[[
 t0 = clock()
-se,sq = symmEQ(g, 1, "timeslices")
+ses,set,sq = symmEQ(g, 1)
 t0 = clock() - t0
 printf("time: %.10g\n", t0)
-for i=1,#se do
-  printf("%i  se: %.10g  sq: %.10g\n", i, se[i], sq[i])
+printf("set1: %.10g\n", set)
+printf("ses1: %.10g\n", ses)
+printf("sq1: %.10g\n", sq)
+--]]
+
+--[[
+t0 = clock()
+ses,set,sq = symmEQ(g, 1, "timeslices")
+t0 = clock() - t0
+printf("time: %.10g\n", t0)
+for i=1,#ses do
+  printf("%i  set: %.10g  ses: %.10g  sq: %.10g\n", i, set[i], ses[i], sq[i])
 end
+--]]
 
-eps = 0.01
-for i=1,100 do
+eps = eps or 0.02
+tmax = tmax or 0
+t2e = 0
+i = 1
+while true do
   wflow(g, {plaq=1}, eps, 1)
-  se,sq = symmEQ(g, 1)
+  ses,set,sq = symmEQ(g)
   t = eps * i
-  printf("t: %-5g  se: %-15.10g  se*t^2: %-15.10g  sq: %-15.10g\n",
-	 t, se, t*t*se, sq)
+  printf("WFLOW %g %g %g %g\n", t, set, ses, sq)
+  if tmax>0 then
+    if t>(tmax-0.5*eps) then break end
+  else
+    t2eo = t2e
+    t2e = t*t*(ses+set)
+    t2ed = (t2e-t2eo)/eps
+    --printf("t2e: %g  t2ed: %g\n", t2e, t2ed)
+    if t>1 and i%20==0 then
+      if t2e>0.45 and t2ed>0.35 then break end
+    end
+  end
+  i = i + 1
 end

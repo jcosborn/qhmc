@@ -161,6 +161,7 @@ function wflow(u, coeffs, eps, nsteps)
   -- u3 = exp((eps*3/4)f2-(eps*8/9)f1+(eps*17/36)f0) u2
   local f = qopqdp.force()
   local ft = qopqdp.force()
+  eps = u:nc() * eps -- compensate for 1/Nc convention in force
   for i=1,nsteps do
     --[[
     u:force(f, coeffs)
@@ -174,13 +175,18 @@ function wflow(u, coeffs, eps, nsteps)
     f:update(ft, 2*alpha-1-2*alpha*alpha)
     u:update(f, eps*0.5/alpha)
     --]]
+    --f:zero()
     u:force(f, coeffs)
+    --for i=1,4 do
+    --printf("f[%i]: %s\n", i, (17*eps/36)^2*f(i):norm2())
+    --end
     u:update(f, eps/4)
+    ft:zero()
     u:force(ft, coeffs)
-    f:update(ft, -32/17)
+    f:fupdate(ft, -32/17)
     u:update(f, eps*-17/36)
     u:force(ft, coeffs)
-    f:update(ft, 27/17)
+    f:fupdate(ft, 27/17)
     u:update(f, eps*17/36)
   end
 end
@@ -204,6 +210,7 @@ function fmunu(f, g, mu, nu, order)
 	       {  nu, -mu, -nu,  mu },
 	       {  mu,  nu, -mu, -nu },
 	       { -nu,  mu,  nu, -mu } }
+  --local ps = { { -mu,  -nu,  mu, nu } }
   local f0 = f:clone()
   f:zero()
   for i=1,#ps do
@@ -224,6 +231,9 @@ function fmunu(f, g, mu, nu, order)
       f:combine({f,f0},{1,1/540})
     end
   end
+  --local t = f:trace():sum()/f:lattice():volume()
+  --printf("trace: %s\n", t)
+  --local AH = 3 -- should be globally set
   local TAH = 11 -- should be globally set
   f:makeGroup(TAH)
   if order>0 then
@@ -273,10 +283,14 @@ function symmEQ(g, order, subsets)
   end
   -- First, get symmetric E!
   -- E = 1/4 F_{mu nu}^a F_{mu nu}^a
-  local se = {}
+  local ses,set = {},{}
   local sef = 1/L:volume()
   for i=1,n do
-    contract(se, sef, f[i], f[i], subsets)
+    if i<=3 then
+      contract(ses, sef, f[i], f[i], subsets)
+    else
+      contract(set, sef, f[i], f[i], subsets)
+    end
   end
   -- Next, get symmQ!
   -- Q = 1/(32 pi^2) eps_uvrs F_uv^a F_rs^a
@@ -285,7 +299,8 @@ function symmEQ(g, order, subsets)
   contract(sq,  sqf, f[1], f[6], subsets)
   contract(sq, -sqf, f[2], f[5], subsets)
   contract(sq,  sqf, f[3], f[4], subsets)
-  if #se == 1 then se = se[1] end
+  if #ses == 1 then ses = ses[1] end
+  if #set == 1 then set = set[1] end
   if #sq == 1 then sq = sq[1] end
-  return se, sq
+  return ses, set, sq
 end
