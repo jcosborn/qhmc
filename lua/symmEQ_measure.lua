@@ -87,16 +87,18 @@ while true do
   wflow(g, {plaq=1}, eps, 1)
   ses,set,sq = symmEQ(g)
   t = eps * i
-  printf("WFLOW %g %g %g %g\n", t, set, ses, sq)
+  t2eo = t2e
+  t2e = t*t*(ses+set)
+  t2ed = (t2e-t2eo)/eps
+  --printf("WFLOW %g %g %g %g\n", t, set, ses, sq)
+  printf("WFLOW %g %g %g %g %g %g\n", t, set, ses, sq, t2e, t*t2ed)
+  io.flush(stdout)
   if tmax>0 then
     if t>(tmax-0.5*eps) then break end
   else
-    t2eo = t2e
-    t2e = t*t*(ses+set)
-    t2ed = (t2e-t2eo)/eps
     --printf("t2e: %g  t2ed: %g\n", t2e, t2ed)
     if t>1 and i%20==0 then
-      if t2e>0.45 and t2ed>0.35 then break end
+      if t2e>0.45 and t*t2ed>0.35 then break end
     end
   end
   i = i + 1
