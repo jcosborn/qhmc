@@ -38,25 +38,25 @@ g:heatbath(nrep, nhb, nor, beta, coeffs)
 getplaq(g)
 
 t0 = clock()
-se,sq = symmEQ(g)
+ses,set,sq = symmEQ(g)
 t0 = clock() - t0
 printf("#time: %.8g\n", t0)
-printf("se: %.8g\n", se)
+printf("se: %.8g\n", ses+set)
 printf("sq: %.8g\n", sq)
 
 t0 = clock()
-se,sq = symmEQ(g,1)
+ses,set,sq = symmEQ(g,1)
 t0 = clock() - t0
 printf("#time: %.8g\n", t0)
-printf("se: %.8g\n", se)
+printf("se: %.8g\n", ses+set)
 printf("sq: %.8g\n", sq)
 
 t0 = clock()
-se,sq = symmEQ(g,1,"timeslices")
+ses,set,sq = symmEQ(g,1,"timeslices")
 t0 = clock() - t0
 printf("#time: %.8g\n", t0)
-for i=1,#se do
-  printf("%i  se: %.7g  sq: %.7g\n", i, se[i], sq[i])
+for i=1,#ses do
+  printf("%i  se: %.7g  sq: %.7g\n", i, ses[i]+set[i], sq[i])
 end
 
 TESTOFF()

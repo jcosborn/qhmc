@@ -125,6 +125,7 @@ typedef S2(QDP_D_,QDPT) qdptypeD;
 #define qdppeqctimes(f1,c,f2,s) SP4(QDP_,A,_peq_c_times_,A,C1x1x,f1,c,f2,s)
 #define qdpMtimes(f1,m,f2,s) SP4x(QDP_,A,_eq_M_times_,A,C1m1x,f1,m,f2,s)
 #define qdpMatimes(f1,m,f2,s) SP4x(QDP_,A,_eq_Ma_times_,A,C1m1x,f1,m,f2,s)
+#define qdppeqMtimes(f1,m,f2,s) SP4x(QDP_,A,_peq_M_times_,A,C1m1x,f1,m,f2,s)
 #define qdpveqMatimes(f1,m,f2,s,n) SP4x(QDP_,A,_veq_Ma_times_,A,C1m1xx,f1,m,f2,s,n)
 #define qdpvpeqMtimes(f1,m,f2,s,n) SP4x(QDP_,A,_vpeq_M_times_,A,C1m1xx,f1,m,f2,s,n)
 #define qdpsum(r,f,s) SP4x(QDP_,AL,_eq_sum_,A,Cl1x,r,f,s)
@@ -1525,6 +1526,69 @@ ftype_transport(lua_State *L)
   return 0;
 #undef NC
 }
+
+// 1: dest field
+// 2: src field
+// 3: gauge field
+// 4: axis
+// 5: (opt) cd (default 0)
+// 6: (opt) c0 (default 0)
+// 7: (opt) c1 (default 1)
+// 8: (opt) c-1 (default c1)
+// 9: (opt) subset (default all)
+// calculates dest = cd*dest + c0*src + c1*shift(src,mu) + c-1*shift(src,-mu)
+static int
+ftype_symshift(lua_State *L)
+{
+#define NC QDP_get_nc(src->field)
+  BEGIN_ARGS;
+  GET_FTYPE(dest);
+  GET_FTYPE(src);
+  GET_GAUGE(g);
+  GET_INT(mu); mu--;
+  OPT_DOUBLE(cd,0);
+  OPT_DOUBLE(c0,0);
+  OPT_DOUBLE(c1,1);
+  OPT_DOUBLE(cm1,c1);
+  OPT_QSUBSET(sub, dest->lat, QDP_all_L(dest->qlat));
+  END_ARGS;
+  qdptype *tf, *tb1, *tb2=NULL;
+  QDP_Shift *nbr = QDP_neighbor_L(dest->qlat);
+  if(c1) {
+    tf = qdpcreate(dest->qlat);
+    qdpeqs(tf, src->field, nbr[mu], QDP_forward, sub);
+    cd /= c1;
+    c0 /= c1;
+  }
+  if(cm1) {
+    tb1 = qdpcreate(dest->qlat);
+    tb2 = qdpcreate(dest->qlat);
+    qdpMatimes(tb1, g->links[mu], src->field, sub);
+    qdpeqs(tb2, tb1, nbr[mu], QDP_backward, sub);
+  }
+  {
+    QLA_Real qc = cd;
+    qdprtimes(dest->field, &qc, dest->field, sub);
+  }
+  if(c0) {
+    QLA_Real qc = c0;
+    qdppeqrtimes(dest->field, &qc, src->field, sub);
+  }
+  if(c1) {
+    QLA_Real qc = c1;
+    qdppeqMtimes(dest->field, g->links[mu], tf, sub);
+    qdprtimes(dest->field, &qc, dest->field, sub);
+    qdpdestroy(tf);
+  }
+  if(cm1) {
+    QLA_Real qc = cm1;
+    qdppeqrtimes(dest->field, &qc, tb2, sub);
+    qdpdestroy(tb1);
+    qdpdestroy(tb2);
+  }
+  return 0;
+#undef NC
+}
 #endif // COLORED
 
 #ifdef COLORED2
@@ -1824,6 +1888,7 @@ qopqdp_squark_rephase(lua_State *L)
   return 0;
 }
 
+#if 0
 static int
 qopqdp_squark_symshift(lua_State *L)
 {
@@ -1848,6 +1913,7 @@ qopqdp_squark_symshift(lua_State *L)
   return 0;
 #undef NC
 }
+#endif
 
 // ESW addition for computing baryon correlators.
 // 1: first quark
@@ -2047,7 +2113,7 @@ qopqdp_squark_wall_gaussian(lua_State *L)
   QLA_ColorVector(v);
   data.value = &v;
   QLA_V_eq_zero(&v);
-  QDP_V_eq_gaussian_S(q->field, qopqdp_srs, QDP_all);
+  QDP_V_eq_gaussian_S(q->field, q->lat->rs, QDP_all);
   //QLA_c_eq_r_plus_ir(QLA_elem_V(&v,0), 0.0, 0.0); // doesn't matter since it gets a random fill.
   data.timeslice = timeslice;
  data.td = q->lat->nd-1;
@@ -2248,6 +2314,7 @@ static struct luaL_Reg ftype_reg[] = {
 #ifdef COLORED
   { "smearGauss",    ftype_smearGauss },
   { "transport",     ftype_transport },
+  { "symshift",      ftype_symshift },
 #endif
 #ifdef COLORED2
   { "combineColor",  ftype_combineColor },
@@ -2258,7 +2325,7 @@ static struct luaL_Reg ftype_reg[] = {
 #ifdef ISCVECTOR
   { "wall",        qopqdp_squark_wall }, // ESW addition 10/8/2013
   { "rephase",     qopqdp_squark_rephase }, // ESW addition 8/23/2013
-  { "symshift",    qopqdp_squark_symshift },
+  //{ "symshift",    qopqdp_squark_symshift },
   { "epsContract", qopqdp_squark_epscontr }, // ESW addition 11/15/2013
   { "s4Ferm",      qopqdp_squark_s4_ferm_observables }, // ESW addition 12/18/2013
   { "wall_gaussian", qopqdp_squark_wall_gaussian }, // ESW addition 2/12/2014

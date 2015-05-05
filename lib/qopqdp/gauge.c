@@ -809,7 +809,7 @@ qopqdp_gauge_heatbath(lua_State *L)
   END_ARGS;
   QOP_info_t info;
   QOP_symanzik_1loop_gauge_heatbath_qdp(&info, g->links, beta, &coeffs,
-					qopqdp_srs, nrep, nhb, nor);
+					g->lat->rs, nrep, nhb, nor);
   return 0;
 }
 
