@@ -1547,7 +1547,7 @@ ftype_symshift(lua_State *L)
   GET_GAUGE(g);
   GET_INT(mu); mu--;
   OPT_DOUBLE(cd,0);
-  OPT_DOUBLE(c0,0);
+  OPT_AS_COMPLEX_DEF_REAL(c0,0);
   OPT_DOUBLE(c1,1);
   OPT_DOUBLE(cm1,c1);
   OPT_QSUBSET(sub, dest->lat, QDP_all_L(dest->qlat));
@@ -1558,7 +1558,9 @@ ftype_symshift(lua_State *L)
     tf = qdpcreate(dest->qlat);
     qdpeqs(tf, src->field, nbr[mu], QDP_forward, sub);
     cd /= c1;
-    c0 /= c1;
+    //c0 /= c1;
+    c0.r /= c1;
+    c0.i /= c1;
   }
   if(cm1) {
     tb1 = qdpcreate(dest->qlat);
@@ -1570,8 +1572,12 @@ ftype_symshift(lua_State *L)
     QLA_Real qc = cd;
     qdprtimes(dest->field, &qc, dest->field, sub);
   }
-  if(c0) {
-    QLA_Real qc = c0;
+  if(c0.i) {
+    QLA_Complex qc;
+    QLA_c_eq_r_plus_ir(qc, c0.r, c0.i);
+    qdppeqctimes(dest->field, &qc, src->field, sub);
+  } else if(c0.r) {
+    QLA_Real qc = c0.r;
     qdppeqrtimes(dest->field, &qc, src->field, sub);
   }
   if(c1) {

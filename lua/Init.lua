@@ -4,10 +4,19 @@ function printfAll(...)
   io.write(string.format(...))
 end
 
+function eprintfAll(...)
+  io.stderr:write(string.format(...))
+end
+
 if qopqdp and qopqdp.master then
   function printf(...)
     if(qopqdp.master()) then
       printfAll(...)
+    end
+  end
+  function eprintf(...)
+    if(qopqdp.master()) then
+      eprintfAll(...)
     end
   end
 else

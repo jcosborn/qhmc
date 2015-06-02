@@ -94,6 +94,9 @@ qopqdp_hisq_set_opts(void)
   opt[2].tag = "nm";
   opt[2].value = 16;
   QOP_asqtad_invert_set_opts(opt, 3);
+  //opt[0].tag = "cg";
+  //opt[0].value = 0;
+  //QOP_asqtad_invert_set_opts(opt, 1);
   opt[0].tag = "fnmat_src_min";
   opt[0].value = 0;
   QOP_hisq_force_set_opts(opt, 1);
