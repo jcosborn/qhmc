@@ -1859,14 +1859,12 @@ private_squark_rephase(NCPROT QLA_ColorVector(*s), int coords[])
       // and if the phase flag is not set, add 0.
       // if the coordinate minus the relative coordinate is even,
       // always add 0.
-
       if(bits&1) {
 	phase += coords[i] - relative_loc_esw[i];
       }
       bits >>= 1;
     }
-
-  if ((phase%2) == 1) // if the overall phase exponent is odd
+  if ((abs(phase)%2) == 1) // if the overall phase exponent is odd
     {
       QLA_V_eqm_V(s, s);
     }
