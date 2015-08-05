@@ -341,16 +341,19 @@ function wilsonMesons2(dest)
   return mesons
 end
 
-function wilsonMesons3(destu, destd)
+function wilsonMesons3(destu, destd, gs)
   local mesons = {}
   local pu = prop(destu)
   local pd = pu
   if destd then pd = prop(destd) end
-  for g = 0,15 do
+  local g0,g1 = 0,15
+  if gs then g0,g1 = gs,gs end
+  for g = g0,g1 do
     mesons[g] = {}
     local p2 = gammaDagger(15-g) * pu * gamma(15-g)
     local t = pd:dot(p2,"timeslices")
-    for i=1,t.nr do mesons[g][i] = t(i,1).r end
+    --for i=1,t.nr do mesons[g][i] = t(i,1).r end
+    for i=1,t.nr do mesons[g][i] = t(i,1) end
   end
   return mesons
 end
