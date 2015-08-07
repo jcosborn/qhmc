@@ -63,6 +63,65 @@ local function gammaDagger(g)
 end
 --print(gamma(15))
 
+function genericProp(L, w, makesrc, smeardest, mass, resid, opts, oldprop)
+  local src = w:quark()
+  local dest = w:quark()
+  local Nc = src:nc()
+  local Ns = 4
+  local dest2 = oldprop
+  if not dest2 then
+    dest2 = {}
+    for spin2 = 1,Ns do
+      dest2[spin2] = {}
+      for spin = 1,Ns do
+	local tcm = L:colorMatrix()
+	dest2[spin2][spin] = tcm
+	tcm:zero()
+      end
+    end
+  end
+  local cvCS = {}
+  local cvSC = {}
+  for spin = 1,Ns do
+    cvSC[spin] = {}
+    for color = 1,Nc do
+      if spin==1 then cvCS[color] = {} end
+      cvCS[color][spin] = L:colorVector()
+      cvSC[spin][color] = cvCS[color][spin]
+    end
+  end
+  for spin = 1,Ns do
+    for spin2 = 1,Ns do
+      dest2[spin2][spin]:splitColor(cvSC[spin2])
+    end
+    for color = 1,Nc do
+      printf("source spin: %i  color: %i\n", spin, color)
+      src:zero()
+      makesrc(src, color-1, spin-1)
+      printf("src norm2: %g\n", src:norm2());
+      io.stdout:flush();
+
+      dest:combineSpin(cvCS[color])
+      t0 = qopqdp.dtime()
+      w:solve(dest, src, mass, resid, "all", opts) 
+      dt = qopqdp.dtime() - t0
+      mf = 1e-6 * w:flops() / dt
+      printf("its: %g  secs: %g  Mflops: %g\n", w:its(), dt, mf)
+      printf("dest norm2: %.16g\n", dest:norm2())
+      if smeardest then
+	smeardest(dest)
+	printf("smeared dest norm2: %.16g\n", dest:norm2())
+      end
+      io.stdout:flush();
+      dest:splitSpin(cvCS[color])
+    end
+    for spin2 = 1,Ns do
+      dest2[spin2][spin]:combineColor(cvSC[spin2])
+    end
+  end
+  return dest2
+end
+
 function pointProp(L, w, pt, smearsrc, smeardest, mass, resid, opts, oldprop)
   local src = w:quark()
   local dest = w:quark()
