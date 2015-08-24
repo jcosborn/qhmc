@@ -1536,6 +1536,7 @@ ftype_transport(lua_State *L)
 // 7: (opt) c1 (default 1)
 // 8: (opt) c-1 (default c1)
 // 9: (opt) subset (default all)
+// 10: (opt) array of temp fields
 // calculates dest = cd*dest + c0*src + c1*shift(src,mu) + c-1*shift(src,-mu)
 static int
 ftype_symshift(lua_State *L)
@@ -1551,11 +1552,13 @@ ftype_symshift(lua_State *L)
   OPT_DOUBLE(c1,1);
   OPT_DOUBLE(cm1,c1);
   OPT_QSUBSET(sub, dest->lat, QDP_all_L(dest->qlat));
+  OPT_AS_FTYPE_ARRAY(ntmp, tmp, 0, NULL);
   END_ARGS;
   qdptype *tf, *tb1, *tb2=NULL;
   QDP_Shift *nbr = QDP_neighbor_L(dest->qlat);
   if(c1) {
-    tf = qdpcreate(dest->qlat);
+    if(ntmp<1) { tf = qdpcreate(dest->qlat); }
+    else { tf = tmp[0]->field; }
     qdpeqs(tf, src->field, nbr[mu], QDP_forward, sub);
     cd /= c1;
     //c0 /= c1;
@@ -1563,8 +1566,10 @@ ftype_symshift(lua_State *L)
     c0.i /= c1;
   }
   if(cm1) {
-    tb1 = qdpcreate(dest->qlat);
-    tb2 = qdpcreate(dest->qlat);
+    if(ntmp<2) { tb1 = qdpcreate(dest->qlat); }
+    else { tb1 = tmp[1]->field; }
+    if(ntmp<3) { tb2 = qdpcreate(dest->qlat); }
+    else { tb2 = tmp[2]->field; }
     qdpMatimes(tb1, g->links[mu], src->field, sub);
     qdpeqs(tb2, tb1, nbr[mu], QDP_backward, sub);
   }
@@ -1584,13 +1589,13 @@ ftype_symshift(lua_State *L)
     QLA_Real qc = c1;
     qdppeqMtimes(dest->field, g->links[mu], tf, sub);
     qdprtimes(dest->field, &qc, dest->field, sub);
-    qdpdestroy(tf);
+    if(ntmp<1) { qdpdestroy(tf); }
   }
   if(cm1) {
     QLA_Real qc = cm1;
     qdppeqrtimes(dest->field, &qc, tb2, sub);
-    qdpdestroy(tb1);
-    qdpdestroy(tb2);
+    if(ntmp<2) { qdpdestroy(tb1); }
+    if(ntmp<3) { qdpdestroy(tb2); }
   }
   return 0;
 #undef NC
