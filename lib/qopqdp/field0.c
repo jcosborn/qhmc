@@ -1554,7 +1554,7 @@ ftype_symshift(lua_State *L)
   OPT_QSUBSET(sub, dest->lat, QDP_all_L(dest->qlat));
   OPT_AS_FTYPE_ARRAY(ntmp, tmp, 0, NULL);
   END_ARGS;
-  qdptype *tf, *tb1, *tb2=NULL;
+  qdptype *tf=NULL, *tb1=NULL, *tb2=NULL;
   QDP_Shift *nbr = QDP_neighbor_L(dest->qlat);
   if(c1) {
     if(ntmp<1) { tf = qdpcreate(dest->qlat); }
@@ -1589,11 +1589,14 @@ ftype_symshift(lua_State *L)
     QLA_Real qc = c1;
     qdppeqMtimes(dest->field, g->links[mu], tf, sub);
     qdprtimes(dest->field, &qc, dest->field, sub);
+    qdpdiscard(tf);
     if(ntmp<1) { qdpdestroy(tf); }
   }
   if(cm1) {
     QLA_Real qc = cm1;
     qdppeqrtimes(dest->field, &qc, tb2, sub);
+    qdpdiscard(tb1);
+    qdpdiscard(tb2);
     if(ntmp<2) { qdpdestroy(tb1); }
     if(ntmp<3) { qdpdestroy(tb2); }
   }
