@@ -81,6 +81,16 @@ for i=1,#weights do
   getplaq(g);                      -- Print plaquettes.
 end
 
+-- As a sanity check, I made sure unitarity is preserved after updating.
+-- Worked like a charm unsurprisingly, but to be thorough, the check code is here:
 
-
+--[[
+do
+  local devavg,devmax = g:checkSU()
+  printf("unitarity deviation avg: %g  max: %g\n", devavg, devmax)
+  g:makeSU()
+  devavg,devmax = g:checkSU()
+  printf("new unitarity deviation avg: %g  max: %g\n", devavg, devmax)
+end
+]]---
 
