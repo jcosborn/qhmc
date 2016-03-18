@@ -1,5 +1,12 @@
 require 'Util'
 
+function weakfield(g, w)
+  local f = g:lattice():force()
+  f:randomTAH()     -- Generate a random traceless antihermitian matrix.
+  g:unit()          -- Reset to the unit gauge.
+  g:update(f, w);   -- Multiply the unit gauge by exp(wt*force).
+end
+
 --[[ old stuff, not working yet
 -- changed sign convention on paths
 paths0 = {

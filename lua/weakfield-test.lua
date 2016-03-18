@@ -12,6 +12,7 @@
 require 'common'
 require 'smear'
 require 'run'
+require 'topo'
 
 -- lattice size
 local nx = nx or 8;
@@ -61,9 +62,9 @@ g:unit();
 --       the weight is, the hotter the configuration is.
 
 -- Create a force.
-force = L:force();
-force:randomTAH(); -- Generate a random traceless antihermitian matrix.
-printf("Norm2 of force: %15.20e\n", force:norm2())
+--force = L:force();
+--force:randomTAH(); -- Generate a random traceless antihermitian matrix.
+--printf("Norm2 of force: %15.20e\n", force:norm2())
 
 
 -- Look at the unit gauge.
@@ -75,8 +76,9 @@ weights = {1e-5, 1e-4, 1e-3,
            1e-1, 2e-1, 3e-1, 4e-1, 5e-1, 6e-1, 7e-1, 8e-1, 9e-1, 1};
 
 for i=1,#weights do
-  g:unit();                        -- Reset to the unit gauge.
-  g:update(force, {weights[i]});   -- Multiply the unit gauge by exp(wt*force).
+  --g:unit();                      -- Reset to the unit gauge.
+  --g:update(force, {weights[i]}); -- Multiply the unit gauge by exp(wt*force).
+  weakfield(g, weights[i])
   printf("wt %+.8e ", weights[i]); -- Print weight.
   getplaq(g);                      -- Print plaquettes.
 end

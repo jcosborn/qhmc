@@ -612,7 +612,6 @@ ftype_unit(lua_State *L)
 // 2: coords table
 // 3: color/spin values (if type has)
 // 4: (optional) real or complex value
-// FIXME: only returns value on node containing site
 static int
 ftype_point(lua_State *L)
 {
