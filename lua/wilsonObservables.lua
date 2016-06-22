@@ -201,9 +201,9 @@ function randMomSource(L, chiral)
   local Nc = src:nc()
   local Ns = 4
   local mom = randomPoint(L)
-  local cmom = Nc * qopqdp.random()
+  local cmom = math.floor(Nc * qopqdp.random())
   assert(cmom>=0 and cmom<Nc)
-  local smom = Ns * qopqdp.random()
+  local smom = math.floor(Ns * qopqdp.random())
   assert(smom>=0 and smom<Ns)
   src:momentum(mom, cmom, smom)
   local ch = 0
