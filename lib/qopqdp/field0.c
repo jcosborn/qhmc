@@ -1050,6 +1050,85 @@ ftype_randomU1(lua_State *L)
 }
 
 static int
+ftype_randomZ2(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  OPT_QOPQDP_QRSTATE(rs, t->lat->rs);
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  END_ARGS;
+  qdpgaussian(t->field, rs, sub);
+  int i;
+#ifdef ISREAL
+  QDP_loop_sites(i, sub, {
+      qlatype(*x) = qdpptrreadwrite(t->field, i);
+      *x = (*x>=0) ? 1 : -1;
+    });
+#else
+  QDP_loop_sites(i, sub, {
+      qlatype(*x) = qdpptrreadwrite(t->field, i);
+      LOOP_FTYPE_ELEM {
+	QLA_Complex z = QLAELEM(*x,i);
+	QLA_Real n = QLA_real(z);
+	if(n>=0) {
+	  QLA_c_eq_r(QLAELEM(*x,i), 1);
+	} else { // n<0
+    QLA_c_eq_r(QLAELEM(*x,i), -1);
+  }
+      } END_LOOP_FTYPE_ELEM;
+    });
+#endif
+  return 0;
+#undef NC
+}
+
+static int
+ftype_randomZ4(lua_State *L)
+{
+#define NC QDP_get_nc(t->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t);
+  OPT_QOPQDP_QRSTATE(rs, t->lat->rs);
+  OPT_QSUBSET(sub, t->lat, QDP_all_L(t->qlat));
+  END_ARGS;
+  qdpgaussian(t->field, rs, sub);
+  int i;
+#ifdef ISREAL
+  QDP_loop_sites(i, sub, {
+      qlatype(*x) = qdpptrreadwrite(t->field, i);
+      *x = (*x>=0) ? 1 : -1;
+    });
+#else
+  QDP_loop_sites(i, sub, {
+      qlatype(*x) = qdpptrreadwrite(t->field, i);
+      LOOP_FTYPE_ELEM {
+	QLA_Complex z = QLAELEM(*x,i);
+	QLA_Real n = QLA_real(z);
+  QLA_Real o = QLA_imag(z);
+	if(n>=0) {
+    if (o>=0) {
+      QLA_c_eq_r_plus_ir(QLAELEM(*x,i), 1, 0);
+    }
+    else { // o< 0
+      QLA_c_eq_r_plus_ir(QLAELEM(*x,i), 0, 1);
+    }
+	} else { // n<0
+    if (o>=0) {
+      QLA_c_eq_r_plus_ir(QLAELEM(*x,i), -1, 0);
+    }
+    else { // o< 0
+      QLA_c_eq_r_plus_ir(QLAELEM(*x,i), 0, -1);
+    }
+  }
+      } END_LOOP_FTYPE_ELEM;
+    });
+#endif
+  return 0;
+#undef NC
+}
+
+static int
 ftype_combine(lua_State *L)
 {
 #define NC QDP_get_nc(td->field)
@@ -2294,6 +2373,8 @@ static struct luaL_Reg ftype_reg[] = {
   { "makeGroup",     ftype_makeGroup },
   { "random",        ftype_random },
   { "randomU1",      ftype_randomU1 },
+  { "randomZ2",      ftype_randomZ2 },
+  { "randomZ4",      ftype_randomZ4 },
   { "randomGroup",   ftype_randomGroup },
   { "combine",       ftype_combine },
 #if defined(ARITH) && !defined(ISVECTOR)
