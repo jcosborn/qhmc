@@ -301,7 +301,7 @@ function actmt.action(a, g)
   return act
 end
 
-function actmt.updateMomentum(a, f, g, teps, ti)
+function actmt.updateMomentum(a, f, g, teps, ti, fgeps)
   if type(teps) ~= "table" then teps = rep(teps, a.npseudo) end
   if not ti then
     ti = {}

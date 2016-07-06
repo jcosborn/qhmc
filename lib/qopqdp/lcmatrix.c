@@ -129,8 +129,17 @@ qlamakegroup(int NC, QLA_ColorMatrix(*x), int g)
 static void
 pushqlatype(lua_State *L, int NC, QLA_ColorMatrix(*m))
 {
-  qlerror(L, 1, "%s %s unimplemented\n", __FILE__, __func__);
-  //qhmc_complex_create(L, QLA_real(c), QLA_imag(c));
+  int ns = NC*NC;
+  qhmc_complex_t c[ns];
+  for(int i=0; i<NC; i++) {
+    for(int j=0; j<NC; j++) {
+      QLA_Complex *z = &QLA_elem_M(*m,i,j);
+      int k = i*NC + j;
+      c[k].r = QLA_real(*z);
+      c[k].i = QLA_imag(*z);
+    }
+  }
+  qhmc_push_complex_array(L, ns, c);
 }
 
 #include "field0.c"

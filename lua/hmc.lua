@@ -4,8 +4,12 @@ function hmcstep(fields, params)
   fields:save()
   local Sold = fields:action()
 
-  local intparams = setupint(fields, params)
-  integrate(fields, intparams)
+  if type(params.forceparams)=="function" then
+    params.forceparams(fields, params)
+  else
+    local intparams = setupint(fields, params)
+    integrate(fields, intparams)
+  end
 
   local Snew = fields:action()
 
@@ -64,6 +68,37 @@ intpat["2MNV"] = function(eps, p)
   ip.nforcesteps = 2
   ip.fieldstep = {  0, eps, eps }
   ip.forcestep = { s0,  s1,  s0 }
+  return ip
+end
+function intpat.fg1(eps, p)
+  local sigma = p.sigma or 0
+  local s0 = 2*eps/6
+  local s1 = 2*(eps-s0)
+  local e3 = 8*eps*eps*eps
+  local f0 = e3*sigma
+  local f1 = e3/72 - 2*f0
+  f0 = f0/(0.5*s0)
+  f1 = f1/(0.5*s1)
+  local ip = {}
+  ip.nsteps = 3
+  ip.nforcesteps = 2
+  ip.fieldstep = {  0, eps, eps }
+  ip.forcestep = { s0,  s1,  s0 }
+  ip.fgstep =    { f0,  f1,  f0 }
+  return ip
+end
+function intpat.fg2(eps, p)
+  local s0 = 2*eps*(3-math.sqrt(3))/6
+  local s1 = 2*(eps-s0)
+  local e3 = 8*eps*eps*eps
+  local f0 = e3*(2-math.sqrt(3))/48
+  f0 = f0/(0.5*eps)
+  local ip = {}
+  ip.nsteps = 3
+  ip.nforcesteps = 2
+  ip.fieldstep = {  s0,  s1, s0 }
+  ip.forcestep = { eps, eps,  0 }
+  ip.fgstep =    {  f0,  f0,  0 }
   return ip
 end
 
@@ -151,20 +186,23 @@ function integrate(f, p)
 	local k = 1
 	while(true) do
 	  if fj[k]==j then
+            local fek = fe[k]
 	    fe[k] = fe[k] + x.eps
+	    fg[k] = (fek*fg[k] + x.eps*x.fge)/fe[k]
 	    break
 	  end
 	  k = k + 1
 	  if k>#fj then
 	    fj[k] = j
 	    fe[k] = x.eps
+	    fg[k] = x.fge
 	    break
 	  end
 	end
       else
 	if fi>0 then
 	  --myprint("fi: ",fi,"  fj: ",fj,"  fe: ",fe,"\n")
-	  f:updateMomentum(fi, fj, fe)
+	  f:updateMomentum(fi, fj, fe, fg)
 	end
 	if s > teps then
 	  f:updateField(i, s)
@@ -173,6 +211,7 @@ function integrate(f, p)
 	fi = i
 	fj = { j }
 	fe = { x.eps }
+	fg = { x.fge }
       end
     end
     local n = x.n + 1
@@ -183,6 +222,7 @@ function integrate(f, p)
     if x.rep <= pff.nreps then
       x.t = x.t + pat.fieldstep[n]
       x.eps = pat.forcestep[n]
+      x.fge = (pat.fgstep and pat.fgstep[n]) or 0
       x.n = n
       sort(q, 1)
     else
@@ -194,7 +234,7 @@ function integrate(f, p)
     end
   end
   if fi>0 then
-    f:updateMomentum(fi, fj, fe)
+    f:updateMomentum(fi, fj, fe, fg)
   end
   for i=1,nf do
     local s = tfinal - fieldtime[i]

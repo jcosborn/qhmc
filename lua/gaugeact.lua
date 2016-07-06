@@ -116,6 +116,7 @@ function gaugeact(p)
   a.act0 = a.vol*(6*a.coeffs.plaq + 12*a.coeffs.rect + 16*a.coeffs.pgm + 6*a.coeffs.adjplaq)
   a.act0 = a.act0*(1+a.xi0*a.xi0)/(2*a.xi0)
   a.gf = actmt.forceNew(a)
+  a.g2 = actmt.gaugeNew(a)
   actmt.clearStats(a)
   return setmetatable(a, actmt)
 end
@@ -164,9 +165,16 @@ function actmt.force(a, f, g)
   a.GFn = a.GFn + 1
 end
 
-function actmt.updateMomentum(a, f, g, eps)
+function actmt.updateMomentum(a, f, g, eps, fgeps)
   local gf = a.gf
   a:force(gf, g)
+  fgeps = fgeps or 0
+  if fgeps ~= 0 then
+    local g2 = a.g2
+    g2.g:set(g.g)
+    g2.g:update(gf.f, fgeps)
+    a:force(gf, g2)
+  end
   local s = eps
   f.f:fupdate(gf.f, s)
   local gf2 = s*s*gf.f:norm2()

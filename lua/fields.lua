@@ -85,21 +85,28 @@ function fieldsmt.updateField(f, i, eps)
   --printf("plaq %g %g\n", 3*ss, 3*st);
 end
 
-function fieldsmt.updateMomentum(f, i, tj, teps)
+function fieldsmt.updateMomentum(f, i, tj, teps, fgeps)
   for k,j in ipairs(tj) do
-    if(j==1) then
+    if(j==1) then  -- gauge force
       --printf("begin GFupdate %g %g\n", eps, 0.5*f.F:norm2()-16*f.vol)
-      f.a.g:updateMomentum(f.F, f.G, teps[k])
+      f.a.g:updateMomentum(f.F, f.G, teps[k], fgeps[k])
       --printf("end   GFupdate %g %g\n", eps, 0.5*f.F:norm2()-16*f.vol)
       table.remove(tj, k)
       table.remove(teps, k)
+      table.remove(fgeps, k)
     end
   end
-  if #tj > 0 then
+  if #tj > 0 then  -- fermion forces
     for k=1,#tj do tj[k] = tj[k] - 1 end
     --myprint("forces ", tj, "\n")
     --printf("begin FFupdate[%i] %g %g\n", j-1, eps, 0.5*f.F:norm2()-16*f.vol)
-    f.a.f:updateMomentum(f.F, f.G, teps, tj)
+    local hasfg = false
+    for v in fgeps do if v~=0 then hasfg=true end end
+    if hasfg then
+      f.a.f:updateMomentum(f.F, f.G, teps, tj, fgeps)
+    else
+      f.a.f:updateMomentum(f.F, f.G, teps, tj)
+    end
     --printf("end   FFupdate[%i] %g %g\n", j-1, eps, 0.5*f.F:norm2()-16*f.vol)
   end
 end
