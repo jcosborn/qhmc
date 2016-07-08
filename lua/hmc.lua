@@ -44,6 +44,7 @@ function intpat.leapfrog(eps, p)
   local ip = {}
   ip.nsteps = 2
   ip.nforcesteps = 1
+  ip.sstep =     {  s0, s0 }
   ip.fieldstep = {  s0, s0 }
   ip.forcestep = { eps,  0 }
   return ip
@@ -55,6 +56,7 @@ function intpat.omelyan(eps, p)
   local ip = {}
   ip.nsteps = 3
   ip.nforcesteps = 2
+  ip.sstep =     {  s0,  s1, s0 }
   ip.fieldstep = {  s0,  s1, s0 }
   ip.forcestep = { eps, eps,  0 }
   return ip
@@ -66,11 +68,12 @@ intpat["2MNV"] = function(eps, p)
   local ip = {}
   ip.nsteps = 3
   ip.nforcesteps = 2
+  ip.sstep =     {  0, eps, eps }
   ip.fieldstep = {  0, eps, eps }
   ip.forcestep = { s0,  s1,  s0 }
   return ip
 end
-function intpat.fg1(eps, p)
+function intpat.fgv(eps, p)
   local sigma = p.sigma or 0
   local s0 = 2*eps/6
   local s1 = 2*(eps-s0)
@@ -82,12 +85,13 @@ function intpat.fg1(eps, p)
   local ip = {}
   ip.nsteps = 3
   ip.nforcesteps = 2
+  ip.sstep =     {  0, eps, eps }
   ip.fieldstep = {  0, eps, eps }
   ip.forcestep = { s0,  s1,  s0 }
   ip.fgstep =    { f0,  f1,  f0 }
   return ip
 end
-function intpat.fg2(eps, p)
+function intpat.fgp(eps, p)
   local s0 = 2*eps*(3-math.sqrt(3))/6
   local s1 = 2*(eps-s0)
   local e3 = 8*eps*eps*eps
@@ -96,9 +100,60 @@ function intpat.fg2(eps, p)
   local ip = {}
   ip.nsteps = 3
   ip.nforcesteps = 2
+  ip.sstep =     {  s0,  s1, s0 }
   ip.fieldstep = {  s0,  s1, s0 }
   ip.forcestep = { eps, eps,  0 }
   ip.fgstep =    {  f0,  f0,  0 }
+  return ip
+end
+function intpat.mn4f3(eps, p)
+  local e = 3*eps
+  local t = math.pow(4,1/3)
+  local a0 = e*(4+t*(1+t))/12
+  local a1 = 0.5*e - a0
+  local b0 = 2*a0
+  local b1 = e - 2*b0
+  local s1 = 2e-7
+  local s0 = 0.5*e - s1
+  local ip = {}
+  ip.nsteps = 4
+  ip.nforcesteps = 3
+  ip.sstep =     { s0, s1, s1, s0 }
+  ip.fieldstep = { a0, a1, a1, a0 }
+  ip.forcestep = { b0, b1, b0,  0 }
+  return ip
+end
+function intpat.mn4f3v(eps, p)
+  local e = 3*eps
+  local t = math.pow(4,1/3)
+  local a0 = e*(4+t*(1+t))/12
+  local a1 = 0.5*e - a0
+  local b0 = 2*a0
+  local b1 = e - 2*b0
+  local s1 = 2e-7
+  local s0 = 0.5*(e - s1)
+  local ip = {}
+  ip.nsteps = 4
+  ip.nforcesteps = 3
+  ip.sstep =     {  0, s0, s1, s0 }
+  ip.fieldstep = {  0, b0, b1, b0 }
+  ip.forcestep = { a0, a1, a1, a0 }
+  return ip
+end
+function intpat.f4(eps, p)
+  local e = 4*eps
+  local a0 = e*(p.a0 or 0.1)
+  local a1 = e*(p.a1 or (0.5-2*a0))
+  local a2 = e - 2*(a0+a1)
+  local b0 = e*(p.b0 or 0.25)
+  local b1 = 0.5*e - b0
+  local s0,s1,s2 = a0,a1,a2
+  local ip = {}
+  ip.nsteps = 5
+  ip.nforcesteps = 4
+  ip.sstep =     { s0, s1, s2, s1, s0 }
+  ip.fieldstep = { a0, a1, a2, a1, a0 }
+  ip.forcestep = { b0, b1, b1, b0,  0 }
   return ip
 end
 
@@ -108,10 +163,60 @@ function getintpat(tau, nsteps, p)
   local nfs = ip.nforcesteps
   local nreps = nsteps/nfs
   if nreps ~= math.floor(nreps) then
-    printf("intpat.omelyan: nsteps (%i) not multiple of %i\n", nsteps, nfs)
+    printf("getintpat(%s): nsteps (%i) not multiple of %i\n", p.type, nsteps, nfs)
     exit(1)
   end
   return ip, nreps, eps
+end
+
+local function mergeQ(q, qy)
+  local qx = {}
+  for i=1,#q do qx[i] = q[i] end
+  local i,ix,iy = 1,1,1
+  local x = qx[ix]
+  local y = qy[iy]
+  while true do
+    if y==nil then
+      if x==nil then break end
+      q[i] = x
+      ix = ix + 1
+      x = qx[ix]
+    else
+      if x==nil or y.s<x.s then
+        q[i] = y
+        iy = iy + 1
+        y = qy[iy]
+      else
+        q[i] = x
+        ix = ix + 1
+        x = qx[ix]
+      end
+    end
+    i = i + 1
+  end
+end
+
+local function addQ(q, ifield, iforce, pat, nreps, tau)
+  local q2 = {}
+  for i=0,nreps-1 do
+    local s = (tau*i)/nreps
+    local t = s
+    for j=1,pat.nsteps do
+      s = s + pat.sstep[j]
+      t = t + pat.fieldstep[j]
+      if pat.forcestep[j] ~= 0 then
+        local z = {}
+        z.s = s
+        z.t = t
+        z.ifield = ifield
+        z.iforce = iforce
+        z.eps = pat.forcestep[j]
+        z.fgeps = (pat.fgstep and pat.fgstep[j]) or 0
+        q2[#q2+1] = z
+      end
+    end
+  end
+  mergeQ(q, q2)
 end
 
 function setupint(f, p)
@@ -121,6 +226,8 @@ function setupint(f, p)
   local tau = p.tau
 
   ip.fields = {}
+  ip.tau = tau
+  ip.q = {}
   for i=1,nf do
     ip.fields[i] = {}
     local ipf = {}
@@ -131,29 +238,74 @@ function setupint(f, p)
       local intalg = fpij.intalg or {type="omelyan"}
       local pat,nreps,eps = getintpat(tau, nsteps, intalg)
       ipf[j] = {pat=pat,nreps=nreps,eps=eps}
+      addQ(ip.q, i, j, pat, nreps, tau)
     end
   end
+  --myprint("q: ", ip.q, "\n")
   return ip
 end
 
-local function remove(q, k)
-  for i=k,#q do
-    q[i] = q[i+1]
-  end
-end
-
-local function sort(q, k)
-  while q[k] and q[k+1] and q[k].t > q[k+1].t do
-    q[k],q[k+1] = q[k+1],q[k]
-    k = k + 1
-  end
-  while q[k] and q[k-1] and q[k].t < q[k-1].t do
-    q[k],q[k-1] = q[k-1],q[k]
-    k = k - 1
-  end
-end
-
 function integrate(f, p)
+  local seps = 1e-8
+  local teps = 1e-8
+  local pf = p.fields
+  local nf = #pf
+  local fieldtime = {}
+  local q = p.q
+  for i=1,nf do
+    fieldtime[i] = 0
+  end
+
+  local iq = 1
+  while iq<=#q do
+    local z = q[iq]
+    local s = z.s
+    local t = z.t
+    local ifield = z.ifield
+    local ff,fe,fg = {z.iforce},{z.eps},{z.fgeps}
+    local iq1 = iq + 1
+    while q[iq1] do
+      q1 = q[iq1]
+      if math.abs(s-q1.s)>seps then break end
+      if q1.ifield ~= ifield then break end
+      if math.abs(t-q1.t)>teps then
+        printf("inteagrate: t difference too large %g %g\n", t, q1.t)
+        exit(1)
+      end
+      local k = 1
+      while ff[k] and ff[k] ~= q1.iforce do k=k+1 end
+      if ff[k] then
+        local fek = fe[k]
+        fe[k] = fe[k] + q1.eps
+        fg[k] = (fek*fg[k] + q1.eps*q1.fgeps)/fe[k]
+      else
+        ff[k] = q1.iforce
+        fe[k] = q1.eps
+        fg[k] = q1.fgeps
+      end
+      iq = iq + 1
+      iq1 = iq + 1
+    end
+    iq = iq + 1
+
+    local d = t - fieldtime[ifield]
+    if math.abs(d)>teps then
+      --printf("updateField[%i]: %g\t%g\n", ifield, t, d)
+      f:updateField(ifield, d)
+      fieldtime[ifield] = t
+    end
+    f:updateMomentum(ifield, ff, fe, fg)
+  end
+  for i=1,nf do
+    local d = p.tau - fieldtime[i]
+    if math.abs(d)>teps then
+      --printf("updateField[%i]: %g\t%g\n", ifield, t, d)
+      f:updateField(i, d)
+    end
+  end
+end
+
+function integrateOld(f, p)
   local pf = p.fields
   local nf = #pf
   local fieldtime = {}

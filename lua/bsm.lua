@@ -10,12 +10,13 @@ local nf = nf or 4
 local mass = mass or 0.01
 local mass2 = mass2 or 0.1
 local prec = prec or 1
-local faresid = faresid or 1e-5
+local faresid = faresid or 1e-12
 local grresid = grresid or faresid
 local mdresid = mdresid or 1e-5
-local restart = restart or 2000
+local restart = restart or 5000
 local use_prev_soln = use_prev_soln or 0
 local mixedRsq = mixedRsq or 0
+local warmstart = warmstart or 0
 
 local doGfix = doGfix or false
 local doSpectrum = doSpectrum or false
@@ -164,6 +165,8 @@ local rhmc0 = copy(rhmc)
 local acts = setupacts(p)
 --myprint("rhmc0 = ", rhmc0, "\n")
 
+printf("warmstart = %g\n", warmstart)
+
 local r = {}
 r.ntraj = ntraj
 r.tau = tau
@@ -199,6 +202,7 @@ for j=1,npseudo do
   }
   rhmc1[j].MD.ffprec = ffprec
 end
+myprint("fp = ", fp, "\n")
 myprint("rhmc1 = ", rhmc1, "\n")
 copyto(rhmc, rhmc1)
 myprint("rhmc = ", rhmc, "\n")
@@ -282,10 +286,12 @@ else
       inlat = string.format(latpat, traj)
       acts:load(inlat)
     else
-      acts:unit()
+      --acts:unit()
+      acts:warm(warmstart)
     end
   else
-    acts:unit()
+    --acts:unit()
+    acts:warm(warmstart)
   end
 end
 if qopverb then qopqdp.verbosity(qopverb) end
@@ -301,7 +307,7 @@ rdr = L:reader("test.rs")
 rs = L:getRstate()
 rs:read(rdr)
 rdr:close()
---]]
+]]
 
 for nl=1,nlats do
   if warmup and traj<warmup then
@@ -327,4 +333,4 @@ rs = L:getRstate()
 w = L:writer("test.rs","metadata")
 rs:write(w,"metadata")
 w:close()
---]]
+]]

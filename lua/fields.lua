@@ -101,7 +101,7 @@ function fieldsmt.updateMomentum(f, i, tj, teps, fgeps)
     --myprint("forces ", tj, "\n")
     --printf("begin FFupdate[%i] %g %g\n", j-1, eps, 0.5*f.F:norm2()-16*f.vol)
     local hasfg = false
-    for v in fgeps do if v~=0 then hasfg=true end end
+    for _,v in ipairs(fgeps) do if v~=0 then hasfg=true end end
     if hasfg then
       f.a.f:updateMomentum(f.F, f.G, teps, tj, fgeps)
     else

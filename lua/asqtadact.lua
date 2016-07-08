@@ -98,7 +98,7 @@ local function setMD(a)
   for i=1,a.npseudo do
     local t = a.rhmc[i].MD
     t.resid = t.resid or 1e-5
-    a.ncg = a.ncg + 1; t.cgnum = a.ncg
+    a.ncg = a.ncg + 2; t.cgnum = a.ncg-1  -- '2' to save slot for fg solve
     t.ff = a.ff
     t.pt = {}
     t.masses = {}
@@ -301,19 +301,22 @@ function actmt.action(a, g)
   return act
 end
 
-function actmt.updateMomentum(a, f, g, teps, ti, fgeps)
-  if type(teps) ~= "table" then teps = rep(teps, a.npseudo) end
-  if not ti then
-    ti = {}
-    for k=1,a.npseudo do ti[#ti+1] = k end
-  end
-  a:set(g, 2)
-
+local function umSolve(a, teps, ti, reuse)
   local pt,c = {},{}
   local imin = a.npseudo
   for k,i in ipairs(ti) do
     local t = a.rhmc[i].MD
-    a:solve(t.pt, a.pseudo[i], t.masses, t.resid, "even", t.solveopts, t.cgnum)
+    local so = t.solveopts
+    local cgn = t.cgnum
+    if reuse then
+      so = {}
+      for j,v in pairs(t.solveopts) do
+        so[j] = v
+      end
+      so.use_prev_soln = 1
+      cgn = cgn + 1
+    end
+    a:solve(t.pt, a.pseudo[i], t.masses, t.resid, "even", so, cgn)
     for j=1,#t.pt do
       a.h:D(t.pt[j], t.pt[j], 0.5, "all", "even")
       pt[#pt+1] = t.pt[j]
@@ -321,8 +324,11 @@ function actmt.updateMomentum(a, f, g, teps, ti, fgeps)
     end
     if i<imin then imin = i end
   end
-  local tmin = a.rhmc[imin].MD
+  return {imin,pt,c}
+end
 
+local function umForce(a, g, ti, imin, pt, c)
+  local tmin = a.rhmc[imin].MD
   local t0 = clock()
   if a.smear then
     a.h:force(tmin.ff.f, pt, c, {prec=tmin.ffprec,deriv=1})
@@ -344,15 +350,54 @@ function actmt.updateMomentum(a, f, g, teps, ti, fgeps)
   a.FFnorm2[imin] = a.FFnorm2[imin] + ff2
   if a.FFmax[imin] < ffi then a.FFmax[imin] = ffi end
 
-  table.sort(ti)
-  local key = table.concat(ti, ",")
+  local ti2 = {}
+  for k,v in ipairs(ti) do ti2[k] = v end
+  table.sort(ti2)
+  local key = table.concat(ti2, ",")
   if not a.FFn[key] then a.FFn[key] = 0 end
   a.FFn[key] = a.FFn[key] + 1
   if not a.FFnorm2[key] then a.FFnorm2[key] = 0 end
   a.FFnorm2[key] = a.FFnorm2[key] + ff2
   if not a.FFmax[key] then a.FFmax[key] = 0 end
   if a.FFmax[key] < ffi then a.FFmax[key] = ffi end
+end
 
+function actmt.updateMomentum(a, f, g, teps, ti, fgeps)
+  if type(teps) ~= "table" then teps = rep(teps, a.npseudo) end
+  if not ti then
+    ti = {}
+    for k=1,a.npseudo do ti[#ti+1] = k end
+  end
+  a:set(g, 2)
+  local s, imin, pt, c
+
+  if fgeps then
+    s = umSolve(a, fgeps, ti, false)
+    imin = s[1]
+    pt = s[2]
+    c = s[3]
+    umForce(a, g, ti, imin, pt, c)
+
+    local tmin = a.rhmc[imin].MD
+    local g2 = a.ga.g2
+    g2.g:set(g.g)
+    g2.g:update(tmin.ff.f, 1)
+    a:set(g2, 2)
+
+    s = umSolve(a, teps, ti, true)
+    imin = s[1]
+    pt = s[2]
+    c = s[3]
+    umForce(a, g2, ti, imin, pt, c)
+  else
+    s = umSolve(a, teps, ti, false)
+    imin = s[1]
+    pt = s[2]
+    c = s[3]
+    umForce(a, g, ti, imin, pt, c)
+  end
+
+  local tmin = a.rhmc[imin].MD
   f.f:fupdate(tmin.ff.f, 1)
 end
 

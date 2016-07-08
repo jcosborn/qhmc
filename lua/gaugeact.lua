@@ -1,3 +1,5 @@
+require 'topo'
+
 function clock()
   --return os.clock()
   --return os.time()
@@ -194,6 +196,11 @@ end
 
 function gaugemt.unit(g)
   g.g:unit()
+  g.nupdate = g.nupdate + 1
+end
+
+function gaugemt.warm(g, w)
+  weakfield(g.g, w)
   g.nupdate = g.nupdate + 1
 end
 

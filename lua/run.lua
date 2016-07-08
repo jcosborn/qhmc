@@ -37,6 +37,10 @@ function actsmt.unit(a)
   a.fields.G:unit()
 end
 
+function actsmt.warm(a, w)
+  a.fields.G:warm(w)
+end
+
 function actsmt.load(a, fn)
   printf("loading lattice: %s\n", fn)
   local t0 = clock()
