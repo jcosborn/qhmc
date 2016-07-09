@@ -140,6 +140,47 @@ function intpat.mn4f3v(eps, p)
   ip.forcestep = { a0, a1, a1, a0 }
   return ip
 end
+function intpat.f3(eps, p)
+  local e = 3*eps
+  local a0 = e*(p.a0 or 1/6)
+  local a1 = 0.5*e - a0
+  local b0 = e*(p.b0 or 3/8)
+  local b1 = e - 2*b0
+  local g0 = e*e*e*(p.g0 or 0)/(0.5*b0)
+  local g1 = e*e*e*(p.g1 or 0)/(0.5*b1)
+  local s0 = a0
+  local s1 = a1
+  local ip = {}
+  ip.nsteps = 4
+  ip.nforcesteps = 3
+  ip.sstep =     { s0, s1, s1, s0 }
+  ip.fieldstep = { a0, a1, a1, a0 }
+  ip.forcestep = { b0, b1, b0,  0 }
+  ip.fgstep =    { g0, g1, g0,  0 }
+  return ip
+end
+function intpat.f3g(eps, p)
+  local a0 = p.a0 or 0.1
+  local b0 = p.b0 or 1/(6*(2*a0-1)^2)
+  local g0 = p.g0 or 0
+  local g1 = p.g1 or (48*a0^3-48*a0^2+12*a0-1)/(72*(2*a0-1)^3)
+  local e = 3*eps
+  a0,b0 = e*a0,e*b0
+  local a1 = 0.5*e - a0
+  local b1 = e - 2*b0
+  g0 = e*e*e*g0/(0.5*b0)
+  g1 = e*e*e*g1/(0.5*b1)
+  local s0 = a0
+  local s1 = a1
+  local ip = {}
+  ip.nsteps = 4
+  ip.nforcesteps = 3
+  ip.sstep =     { s0, s1, s1, s0 }
+  ip.fieldstep = { a0, a1, a1, a0 }
+  ip.forcestep = { b0, b1, b0,  0 }
+  ip.fgstep =    { g0, g1, g0,  0 }
+  return ip
+end
 function intpat.f4(eps, p)
   local e = 4*eps
   local a0 = e*(p.a0 or 0.1)
