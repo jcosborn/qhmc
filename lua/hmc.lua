@@ -113,7 +113,7 @@ function intpat.mn4f3(eps, p)
   local a1 = 0.5*e - a0
   local b0 = 2*a0
   local b1 = e - 2*b0
-  local s1 = 2e-7
+  local s1 = 1e-6*e
   local s0 = 0.5*e - s1
   local ip = {}
   ip.nsteps = 4
@@ -130,7 +130,7 @@ function intpat.mn4f3v(eps, p)
   local a1 = 0.5*e - a0
   local b0 = 2*a0
   local b1 = e - 2*b0
-  local s1 = 2e-7
+  local s1 = 1e-6*e
   local s0 = 0.5*(e - s1)
   local ip = {}
   ip.nsteps = 4
@@ -154,6 +154,26 @@ function intpat.f4(eps, p)
   ip.sstep =     { s0, s1, s2, s1, s0 }
   ip.fieldstep = { a0, a1, a2, a1, a0 }
   ip.forcestep = { b0, b1, b1, b0,  0 }
+  return ip
+end
+function intpat.f4v(eps, p)
+  local e = 4*eps
+  local a0 = e*(p.a0 or 0.1)
+  local a1 = e*(p.a1 or (0.5-2*a0))
+  local a2 = e - 2*(a0+a1)
+  local b0 = e*(p.b0 or 0.25)
+  local b1 = 0.5*e - b0
+  local g0 = e*e*e*(p.g0 or 0)/(0.5*a0)
+  local g1 = e*e*e*(p.g1 or 0)/(0.5*a1)
+  local g2 = e*e*e*(p.g2 or 0)/(0.5*a2)
+  local s0,s1 = b0,b1
+  local ip = {}
+  ip.nsteps = 5
+  ip.nforcesteps = 4
+  ip.sstep =     {  0, s0, s1, s1, s0 }
+  ip.fieldstep = {  0, b0, b1, b1, b0 }
+  ip.forcestep = { a0, a1, a2, a1, a0 }
+  ip.fgstep =    { g0, g1, g2, g1, g0 }
   return ip
 end
 
@@ -246,8 +266,8 @@ function setupint(f, p)
 end
 
 function integrate(f, p)
-  local seps = 1e-8
-  local teps = 1e-8
+  local seps = 1e-12
+  local teps = 1e-12
   local pf = p.fields
   local nf = #pf
   local fieldtime = {}
