@@ -38,41 +38,180 @@ function hmcstep(fields, params)
   end
 end
 
-local intpat = {}
-function intpat.leapfrog(eps, p)
-  local s0 = 0.5*eps
+local function sym(a, n)
+  local t,s = {},0
+  local h = #a
+  for i=1,h do
+    s = s + a[i]
+    t[i] = a[i]
+  end
+  local r = n - 2*h
+  s = (1-2*s)/r
+  for i=1,r do
+    t[h+i] = s
+  end
+  for i=1,h do
+    t[n-h+i] = a[h+1-i]
+  end
+  return t
+end
+
+local function fn(eps, nforce, as, bs, gs)
+  local nsteps = nforce + 1
+  local e = nforce*eps
+  local fld = sym(as, nsteps)
+  local frc = sym(bs, nforce)
   local ip = {}
-  ip.nsteps = 2
-  ip.nforcesteps = 1
-  ip.sstep =     {  s0, s0 }
-  ip.fieldstep = {  s0, s0 }
-  ip.forcestep = { eps,  0 }
+  ip.nsteps = nsteps
+  ip.nforcesteps = nforce
+  ip.sstep = {}
+  ip.fieldstep = {}
+  ip.forcestep = {}
+  ip.fgstep = {}
+  for i=1,nsteps do
+    local a = e*fld[i]
+    local b = e*(frc[i] or 0)
+    local g = gs[i] or gs[nsteps-i] or 0
+    ip.sstep[i] = a
+    ip.fieldstep[i] = a
+    ip.forcestep[i] = b
+    ip.fgstep[i] = (b==0 and 0) or e*e*e*g/(0.5*b)
+  end
   return ip
+end
+
+local function fnv(eps, nforce, as, bs, gs)
+  local nsteps = nforce + 1
+  local e = nforce*eps
+  local frc = sym(as, nsteps)
+  local fld = sym(bs, nforce)
+  local ip = {}
+  ip.nsteps = nsteps
+  ip.nforcesteps = nforce
+  ip.sstep = {}
+  ip.fieldstep = {}
+  ip.forcestep = {}
+  ip.fgstep = {}
+  for i=1,nsteps do
+    local a = e*frc[i]
+    local b = e*(fld[i-1] or 0)
+    local g = gs[i] or gs[nsteps+1-i] or 0
+    ip.sstep[i] = b
+    ip.fieldstep[i] = b
+    ip.forcestep[i] = a
+    ip.fgstep[i] = (a==0 and 0) or e*e*e*g/(0.5*a)
+  end
+  return ip
+end
+
+local intpat = {}
+function intpat.f1(eps, p) -- TVT
+  local g0 = p.g0 or 0
+  return fn(eps, 1, {}, {}, {g0})
+end
+function intpat.f1v(eps, p) -- VTV
+  local g0 = p.g0 or 0
+  return fnv(eps, 1, {}, {}, {g0})
+end
+function intpat.f2(eps, p) -- TVTVT
+  local a0 = p.a0 or 0.2
+  local g0 = p.g0 or 0
+  return fn(eps, 2, {a0}, {}, {g0})
+end
+function intpat.f2v(eps, p) -- VTVTV
+  local a0 = p.a0 or 0.2
+  local g0 = p.g0 or 0
+  local g1 = p.g1 or 0
+  return fnv(eps, 2, {a0}, {}, {g0,g1})
+end
+function intpat.f3(eps, p) -- TVTVTVT
+  local a0 = p.a0 or 1/6
+  local b0 = p.b0 or 3/8
+  local g0 = p.g0 or 0
+  local g1 = p.g1 or 0
+  return fn(eps, 3, {a0}, {b0}, {g0,g1})
+end
+function intpat.f3v(eps, p) -- VTVTVTV
+  local a0 = p.a0 or 1/6
+  local b0 = p.b0 or 3/8
+  local g0 = p.g0 or 0
+  local g1 = p.g1 or 0
+  return fnv(eps, 3, {a0}, {b0}, {g0,g1})
+end
+function intpat.f4(eps, p) -- TVTVTVTVT
+  local a0 = p.a0 or 0.1
+  local a1 = p.a1 or (0.5-2*a0)
+  local b0 = p.b0 or 0.25
+  local g0 = p.g0 or 0
+  local g1 = p.g1 or 0
+  return fn(eps, 4, {a0,a1}, {b0}, {g0,g1})
+end
+function intpat.f4v(eps, p) -- VTVTVTVTV
+  local a0 = p.a0 or 0.1
+  local a1 = p.a1 or (0.5-2*a0)
+  local b0 = p.b0 or 0.25
+  local g0 = p.g0 or 0
+  local g1 = p.g1 or 0
+  local g2 = p.g2 or 0
+  return fnv(eps, 4, {a0,a1}, {b0}, {g0,g1,g2})
+end
+function intpat.f2g(eps, p) -- VTGTV
+  local a0 = p.a0 or 1/6
+  local g0 = p.g0 or 0
+  local g1 = p.g1 or 1/72
+  return fnv(eps, 2, {a0}, {}, {g0,g1})
+end
+function intpat.f2h(eps, p) -- GTVTG
+  local a0 = p.a0 or 1/6
+  local g0 = p.g0 or 1/144
+  local g1 = p.g1 or 0
+  return fnv(eps, 2, {a0}, {}, {g0,g1})
+end
+function intpat.f3g(eps, p) -- TVTGTVT
+  local a0 = p.a0 or 0.1
+  local b0 = p.b0 or 1/(6*(2*a0-1)^2)
+  local g0 = p.g0 or 0
+  local g1 = p.g1 or (48*a0^3-48*a0^2+12*a0-1)/(72*(2*a0-1)^3)
+  return fn(eps, 3, {a0}, {b0}, {g0,g1})
+end
+function intpat.f3h(eps, p) -- GTVTVTG
+  local b0 = p.b0 or 0.18
+  local a0 = p.a0 or (6*b0^2-6*b0+1)/(12*(b0-1)*b0)
+  local g0 = p.g0 or -(6*b0^3-12*b0^2+6*b0-1)/(288*(b0-1)^2*b0)
+  local g1 = p.g1 or 0
+  return fnv(eps, 3, {a0}, {b0}, {g0,g1})
+end
+function intpat.f4g(eps, p) -- VTVTGTVTV
+  local a0 = p.a0 or 0.07
+  local b0 = p.b0 or 0.2
+  local a1 = p.a1 or (1-6*a0)/(6*(2*b0-1)^2)
+  local g0 = p.g0 or 0
+  local g1 = p.g1 or 0
+  local g2 = p.g2 or (576*a1^2*b0^4-576*a1^2*b0^3+96*a1*b0^2+72*a1^2*b0-48*a1*b0+1)/72
+  return fnv(eps, 4, {a0,a1}, {b0}, {g0,g1,g2})
+end
+function intpat.f4h(eps, p) -- GTVTVTVTG
+  local a0 = p.a0 or 0.05
+  local b0 = p.b0 or 0.2
+  local a1 = p.a1 or (1-6*a0)/(6*(2*b0-1)^2)
+  local g0 = p.g0 or (576*a1^2*b0^4-576*a1^2*b0^3+96*a1*b0^2+72*a1^2*b0-48*a1*b0+1)/144
+  local g1 = p.g1 or 0
+  local g2 = p.g2 or 0
+  return fnv(eps, 4, {a0,a1}, {b0}, {g0,g1,g2})
+end
+
+function intpat.leapfrog(eps, p)
+  return fn(eps, 1, {}, {}, {})
 end
 function intpat.omelyan(eps, p)
   local lambda = p.lambda or 0.1932
-  local s0 = 2*eps*lambda
-  local s1 = 2*(eps-s0)
-  local ip = {}
-  ip.nsteps = 3
-  ip.nforcesteps = 2
-  ip.sstep =     {  s0,  s1, s0 }
-  ip.fieldstep = {  s0,  s1, s0 }
-  ip.forcestep = { eps, eps,  0 }
-  return ip
+  return fn(eps, 2, {lambda}, {}, {})
 end
 intpat["2MNV"] = function(eps, p)
   local lambda = p.lambda or 0.1932
-  local s0 = 2*eps*lambda
-  local s1 = 2*(eps-s0)
-  local ip = {}
-  ip.nsteps = 3
-  ip.nforcesteps = 2
-  ip.sstep =     {  0, eps, eps }
-  ip.fieldstep = {  0, eps, eps }
-  ip.forcestep = { s0,  s1,  s0 }
-  return ip
+  return fnv(eps, 2, {lambda}, {}, {})
 end
+
 function intpat.fgv(eps, p)
   local sigma = p.sigma or 0
   local s0 = 2*eps/6
@@ -140,83 +279,6 @@ function intpat.mn4f3v(eps, p)
   ip.forcestep = { a0, a1, a1, a0 }
   return ip
 end
-function intpat.f3(eps, p)
-  local e = 3*eps
-  local a0 = e*(p.a0 or 1/6)
-  local a1 = 0.5*e - a0
-  local b0 = e*(p.b0 or 3/8)
-  local b1 = e - 2*b0
-  local g0 = e*e*e*(p.g0 or 0)/(0.5*b0)
-  local g1 = e*e*e*(p.g1 or 0)/(0.5*b1)
-  local s0 = a0
-  local s1 = a1
-  local ip = {}
-  ip.nsteps = 4
-  ip.nforcesteps = 3
-  ip.sstep =     { s0, s1, s1, s0 }
-  ip.fieldstep = { a0, a1, a1, a0 }
-  ip.forcestep = { b0, b1, b0,  0 }
-  ip.fgstep =    { g0, g1, g0,  0 }
-  return ip
-end
-function intpat.f3g(eps, p)
-  local a0 = p.a0 or 0.1
-  local b0 = p.b0 or 1/(6*(2*a0-1)^2)
-  local g0 = p.g0 or 0
-  local g1 = p.g1 or (48*a0^3-48*a0^2+12*a0-1)/(72*(2*a0-1)^3)
-  local e = 3*eps
-  a0,b0 = e*a0,e*b0
-  local a1 = 0.5*e - a0
-  local b1 = e - 2*b0
-  g0 = e*e*e*g0/(0.5*b0)
-  g1 = e*e*e*g1/(0.5*b1)
-  local s0 = a0
-  local s1 = a1
-  local ip = {}
-  ip.nsteps = 4
-  ip.nforcesteps = 3
-  ip.sstep =     { s0, s1, s1, s0 }
-  ip.fieldstep = { a0, a1, a1, a0 }
-  ip.forcestep = { b0, b1, b0,  0 }
-  ip.fgstep =    { g0, g1, g0,  0 }
-  return ip
-end
-function intpat.f4(eps, p)
-  local e = 4*eps
-  local a0 = e*(p.a0 or 0.1)
-  local a1 = e*(p.a1 or (0.5-2*a0))
-  local a2 = e - 2*(a0+a1)
-  local b0 = e*(p.b0 or 0.25)
-  local b1 = 0.5*e - b0
-  local s0,s1,s2 = a0,a1,a2
-  local ip = {}
-  ip.nsteps = 5
-  ip.nforcesteps = 4
-  ip.sstep =     { s0, s1, s2, s1, s0 }
-  ip.fieldstep = { a0, a1, a2, a1, a0 }
-  ip.forcestep = { b0, b1, b1, b0,  0 }
-  return ip
-end
-function intpat.f4v(eps, p)
-  local e = 4*eps
-  local a0 = e*(p.a0 or 0.1)
-  local a1 = e*(p.a1 or (0.5-2*a0))
-  local a2 = e - 2*(a0+a1)
-  local b0 = e*(p.b0 or 0.25)
-  local b1 = 0.5*e - b0
-  local g0 = e*e*e*(p.g0 or 0)/(0.5*a0)
-  local g1 = e*e*e*(p.g1 or 0)/(0.5*a1)
-  local g2 = e*e*e*(p.g2 or 0)/(0.5*a2)
-  local s0,s1 = b0,b1
-  local ip = {}
-  ip.nsteps = 5
-  ip.nforcesteps = 4
-  ip.sstep =     {  0, s0, s1, s1, s0 }
-  ip.fieldstep = {  0, b0, b1, b1, b0 }
-  ip.forcestep = { a0, a1, a2, a1, a0 }
-  ip.fgstep =    { g0, g1, g2, g1, g0 }
-  return ip
-end
 
 function getintpat(tau, nsteps, p)
   local eps = tau/nsteps
@@ -227,6 +289,7 @@ function getintpat(tau, nsteps, p)
     printf("getintpat(%s): nsteps (%i) not multiple of %i\n", p.type, nsteps, nfs)
     exit(1)
   end
+  --myprint("ip: ", ip, "\n")
   return ip, nreps, eps
 end
 
