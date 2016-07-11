@@ -141,7 +141,8 @@ function actsmt.run(a, r)
     for i=1,a.f.ncg do
       local ai = 0
       if a.f.CGn[i] > 0 then ai = a.f.CGits[i]/a.f.CGn[i] end
-      printf("CG[%02i] secs: %8.3f %3.0f%% calls: %4.0f mflops: %5.0f avgits: %5.0f max: %5.0f\n", i, a.f.CGtime[i], 100*a.f.CGtime[i]/t0, a.f.CGn[i], a.f.CGmflops[i], ai, a.f.CGmaxits[i])
+      --printf("CG[%02i] secs: %8.3f %3.0f%% calls: %4.0f mflops: %5.0f avgits: %5.0f max: %5.0f\n", i, a.f.CGtime[i], 100*a.f.CGtime[i]/t0, a.f.CGn[i], a.f.CGmflops[i], ai, a.f.CGmaxits[i])
+      printf("CG[%02i] secs: %8.3f %3.0f%% calls: %4.0f mflops: %5.0f avgits: %5.0f max: %5.0f maxres: %g\n", i, a.f.CGtime[i], 100*a.f.CGtime[i]/t0, a.f.CGn[i], a.f.CGmflops[i], ai, a.f.CGmaxits[i], a.f.CGmaxresid[i])
       cgt = cgt + a.f.CGtime[i]
       cgn = cgn + a.f.CGn[i]
       cgf = cgf + a.f.CGflops[i]

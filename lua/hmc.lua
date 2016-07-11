@@ -390,6 +390,7 @@ function integrate(f, p)
     local iq1 = iq + 1
     while q[iq1] do
       q1 = q[iq1]
+      if separateForces then break end
       if math.abs(s-q1.s)>seps then break end
       if q1.ifield ~= ifield then break end
       if math.abs(t-q1.t)>teps then

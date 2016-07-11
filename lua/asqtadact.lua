@@ -81,7 +81,7 @@ local function setFA(a)
 	   t.coeffs[#t.coeffs+1] = fac*t[k][1]
 	end
       end
-      printf("%i %i : %s\n", i, j, tostring(t.resid))
+      --printf("%i %i : %s\n", i, j, tostring(t.resid))
       fa.resid = fa.resid or 1e-5
     end
     if #fa.pt == 0 then
@@ -179,12 +179,16 @@ function actmt.clearStats(a)
   if not a.CGflops then a.CGflops = {} end
   if not a.CGits then a.CGits = {} end
   if not a.CGmaxits then a.CGmaxits = {} end
+  if not a.CGresid then a.CGresid = {} end
+  if not a.CGmaxresid then a.CGmaxresid = {} end
   if not a.CGn then a.CGn = {} end
   for i=1,a.ncg do
     a.CGtime[i] = 0
     a.CGflops[i] = 0
     a.CGits[i] = 0
     a.CGmaxits[i] = 0
+    a.CGresid[i] = 0
+    a.CGmaxresid[i] = 0
     a.CGn[i] = 0
   end
 end
@@ -236,9 +240,10 @@ end
 function actmt.solve(a, dest, src, m, res, sub, opts, n)
   local t0 = clock()
   a.h:solve(dest, src, m, res, sub, opts)
-  if a.h:rsq() > res*res then
-    printf("warning rsq: %g > %g  ratio: %g  its: %i\n",
-	   a.h:rsq(), res*res, a.h:rsq()/(res*res), a.h:its())
+  local resid = math.sqrt(a.h:rsq())
+  if resid > res then
+    printf("warning resid: %g > %g  ratio: %g  its: %i\n",
+	   resid, res, resid/res, a.h:its())
   end
   if n>0 then
     a.CGtime[n] = a.CGtime[n] + clock() - t0
@@ -246,6 +251,8 @@ function actmt.solve(a, dest, src, m, res, sub, opts, n)
     a.CGflops[n] = a.CGflops[n] + a.h:flops()
     a.CGits[n] = a.CGits[n] + a.h:its()
     a.CGmaxits[n] = math.max(a.CGmaxits[n], a.h:its())
+    a.CGresid[n] = a.CGresid[n] + resid
+    a.CGmaxresid[n] = math.max(a.CGmaxresid[n], resid)
     a.CGn[n] = a.CGn[n] + 1
   end
 end
