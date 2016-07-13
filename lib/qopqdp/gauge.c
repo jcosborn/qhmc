@@ -370,6 +370,7 @@ qopqdp_init_relmom(lua_State *L)
   return 0;
 }
 
+#if 0
 static QLA_Real
 random_8d_relmom(QLA_RandomState *s)
 {
@@ -426,6 +427,54 @@ randforce_relmom(NCPROT QLA_ColorMatrix(*m), int i, void *args)
   QLA_Real r = random_8d_relmom(s + i) / (c*n);
   QLA_M_eq_r_times_M(m, &r, &m0);
 }
+#endif
+
+static QLA_Real
+ranRelmom1(QLA_RandomState *s)
+{
+  QLA_Real c = relmom.m;
+  QLA_Real c2 = c*c;
+  QLA_Real c4 = c2*c2;
+  QLA_Real cc = 1+sqrt(1+c4);
+  QLA_Real vhmaxc = sqrt(2*cc*exp(c2-cc));
+  QLA_Real u, vh;
+  //int n = 0;
+  while(1) {
+    //inc n
+    u = QLA_random(s);
+    vh = vhmaxc*(QLA_random(s)-0.5);
+    QLA_Real lnu = log(u);
+    if(vh*vh <= u*u*lnu*(lnu-c2)) break;
+  }
+  QLA_Real v = 2*vh/c;
+  QLA_Real r = v/u;
+  return r;
+}
+
+static void
+randforce_relmom1(NCPROT QLA_ColorMatrix(*m), int i, void *args)
+{
+  QLA_RandomState *s = (QLA_RandomState*)args + i;
+  QLA_Real s2 = 0.70710678118654752440;  // sqrt(1/2)
+  QLA_Real s3 = 0.57735026918962576450;  // sqrt(1/3)
+  QLA_Real r3 = s2*ranRelmom1(s);
+  QLA_Real r8 = s2*s3*ranRelmom1(s);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,0,0), 0, r3+r8);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,1,1), 0, -r3+r8);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,2,2), 0, -2*r8);
+  QLA_Real r01 = s2*ranRelmom1(s);
+  QLA_Real r02 = s2*ranRelmom1(s);
+  QLA_Real r12 = s2*ranRelmom1(s);
+  QLA_Real i01 = s2*ranRelmom1(s);
+  QLA_Real i02 = s2*ranRelmom1(s);
+  QLA_Real i12 = s2*ranRelmom1(s);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,0,1),  r01, i01);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,1,0), -r01, i01);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,0,2),  r02, i02);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,2,0), -r02, i02);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,1,2),  r12, i12);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,2,1), -r12, i12);
+}
 
 static int
 qopqdp_force_random_relmom(lua_State *L)
@@ -439,7 +488,7 @@ qopqdp_force_random_relmom(lua_State *L)
   if(QLA_Nc==3) {
     QLA_RandomState *s = QDP_expose_S(rs);
     for(int i=0; i<g->nd; i++) {
-      QDP_M_eq_funcia(g->links[i], randforce_relmom, s, QDP_all_L(g->qlat));
+      QDP_M_eq_funcia(g->links[i], randforce_relmom1, s, QDP_all_L(g->qlat));
     }
     QDP_reset_S(rs);
   } else {
@@ -470,6 +519,7 @@ qopqdp_gauge_norm2(lua_State *L)
   return 2;
 }
 
+#if 0
 static int
 qopqdp_norm2_relmom(lua_State *L)
 {
@@ -506,6 +556,65 @@ qopqdp_norm2_relmom(lua_State *L)
   QDP_destroy_R(mm);
   QDP_destroy_R(n0);
   QDP_destroy_R(n1);
+  lua_pushnumber(L, nrm);
+  qhmc_push_double_array(L, nd, tn);
+  return 2;
+#undef NC
+}
+#endif
+
+static double
+norm2Relmom1(double p)
+{
+  double c = relmom.m;
+  double c2 = c*c;
+  double r = c*sqrt(p*p+c2)-c2;
+  return r;
+}
+
+static void
+norm2_relmom1(NCPROT QLA_ColorMatrix(*m), int i, void *args)
+{
+  double t = 0;
+  QLA_Real s2 = 0.70710678118654752440;  // sqrt(1/2)
+  QLA_Real s3 = 0.57735026918962576450;  // sqrt(1/3)
+  double r3 = s2*(QLA_imag(QLA_elem_M(*m,0,0))-QLA_imag(QLA_elem_M(*m,1,1)));
+  double r8 = (s2/(2*s3))*(QLA_imag(QLA_elem_M(*m,0,0))+QLA_imag(QLA_elem_M(*m,1,1))-QLA_imag(QLA_elem_M(*m,2,2)));
+  t += norm2Relmom1(r3);
+  t += norm2Relmom1(r8);
+  double r01 = s2*(QLA_real(QLA_elem_M(*m,0,1))-QLA_real(QLA_elem_M(*m,1,0)));
+  double r02 = s2*(QLA_real(QLA_elem_M(*m,0,2))-QLA_real(QLA_elem_M(*m,2,0)));
+  double r12 = s2*(QLA_real(QLA_elem_M(*m,1,2))-QLA_real(QLA_elem_M(*m,2,1)));
+  double i01 = s2*(QLA_imag(QLA_elem_M(*m,0,1))+QLA_imag(QLA_elem_M(*m,1,0)));
+  double i02 = s2*(QLA_imag(QLA_elem_M(*m,0,2))+QLA_imag(QLA_elem_M(*m,2,0)));
+  double i12 = s2*(QLA_imag(QLA_elem_M(*m,1,2))+QLA_imag(QLA_elem_M(*m,2,1)));
+  t += norm2Relmom1(r01);
+  t += norm2Relmom1(r02);
+  t += norm2Relmom1(r12);
+  t += norm2Relmom1(i01);
+  t += norm2Relmom1(i02);
+  t += norm2Relmom1(i12);
+  *(double *)args += t;
+}
+
+static int
+qopqdp_norm2_relmom1(lua_State *L)
+{
+#define NC QDP_get_nc(g->links[0])
+  BEGIN_ARGS;
+  GET_GAUGE(g);
+  //OPT_DOUBLE(s, 1.);
+  END_ARGS;
+  int nd = g->nd;
+  double tn[nd];
+  for(int i=0; i<nd; i++) {
+    double t = 0;
+    QDP_M_eq_funcia(g->links[i], norm2_relmom1, &t, QDP_all_L(g->qlat));
+    tn[i] = 2*t;
+  }
+  QMP_sum_double_array(tn, nd);
+  double nrm = 0;
+  for(int i=0; i<nd; i++) nrm += tn[i];
   lua_pushnumber(L, nrm);
   qhmc_push_double_array(L, nd, tn);
   return 2;
@@ -1020,6 +1129,7 @@ qopqdp_gauge_update(lua_State *L)
 #undef NC
 }
 
+#if 0
 static int
 qopqdp_gauge_update_relmom(lua_State *L)
 {
@@ -1087,6 +1197,104 @@ qopqdp_gauge_update_relmom(lua_State *L)
   QDP_destroy_R(l);
   QDP_destroy_R(o);
   QDP_destroy_R(m2c);
+  lua_pushnumber(L, n2/(nd*QDP_volume_L(f->qlat)));
+  lua_pushnumber(L, ni);
+  return 2;
+#undef NC
+}
+#endif
+
+static double
+updateRelmom1(double p)
+{
+  double c = relmom.m;
+  double c2 = c*c;
+  double r = c*p/sqrt(p*p + c2);
+  return r;
+}
+
+static void
+update_relmom1(NCPROT QLA_ColorMatrix(*m), int i, void *args)
+{
+  QLA_Real s2 = 0.70710678118654752440;  // sqrt(1/2)
+  QLA_Real s3 = 0.57735026918962576450;  // sqrt(1/3)
+  double r3 = s2*(QLA_imag(QLA_elem_M(*m,0,0))-QLA_imag(QLA_elem_M(*m,1,1)));
+  double r8 = (s2/(2*s3))*(QLA_imag(QLA_elem_M(*m,0,0))+QLA_imag(QLA_elem_M(*m,1,1))-QLA_imag(QLA_elem_M(*m,2,2)));
+  r3 = s2*updateRelmom1(r3);
+  r8 = s2*s3*updateRelmom1(r8);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,0,0), 0, r3+r8);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,1,1), 0, -r3+r8);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,2,2), 0, -2*r8);
+  double r01 = s2*(QLA_real(QLA_elem_M(*m,0,1))-QLA_real(QLA_elem_M(*m,1,0)));
+  double r02 = s2*(QLA_real(QLA_elem_M(*m,0,2))-QLA_real(QLA_elem_M(*m,2,0)));
+  double r12 = s2*(QLA_real(QLA_elem_M(*m,1,2))-QLA_real(QLA_elem_M(*m,2,1)));
+  double i01 = s2*(QLA_imag(QLA_elem_M(*m,0,1))+QLA_imag(QLA_elem_M(*m,1,0)));
+  double i02 = s2*(QLA_imag(QLA_elem_M(*m,0,2))+QLA_imag(QLA_elem_M(*m,2,0)));
+  double i12 = s2*(QLA_imag(QLA_elem_M(*m,1,2))+QLA_imag(QLA_elem_M(*m,2,1)));
+  r01 = s2*updateRelmom1(r01);
+  r02 = s2*updateRelmom1(r02);
+  r12 = s2*updateRelmom1(r12);
+  i01 = s2*updateRelmom1(i01);
+  i02 = s2*updateRelmom1(i02);
+  i12 = s2*updateRelmom1(i12);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,0,1),  r01, i01);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,1,0), -r01, i01);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,0,2),  r02, i02);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,2,0), -r02, i02);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,1,2),  r12, i12);
+  QLA_c_eq_r_plus_ir(QLA_elem_M(*m,2,1), -r12, i12);
+}
+
+static int
+qopqdp_gauge_update_relmom1(lua_State *L)
+{
+#define NC QDP_get_nc(g->links[0])
+  BEGIN_ARGS;
+  GET_GAUGE(g);
+  GET_GAUGE(f);
+  GET_AS_DOUBLE_ARRAY(ns, s); ns = abs(ns);
+  OPT_INT(gr, GROUP_TAH);
+  END_ARGS;
+  int nd = g->nd;
+  double eps[nd];
+  for(int i=0; i<nd; i++) eps[i] = (i<ns) ? s[i] : eps[i-1];
+  QDP_ColorMatrix *m1 = QDP_create_M_L(g->qlat);
+  QDP_ColorMatrix *m2 = QDP_create_M_L(g->qlat);
+  QLA_Real n2 = 0;
+  QLA_Real ni = 0;
+  for(int i=0; i<nd; i++) {
+    QLA_Real teps = eps[i];
+    QDP_M_eq_M(m2, f->links[i], QDP_all_L(f->qlat));
+    QDP_M_eq_funcia(m2, update_relmom1, NULL, QDP_all_L(g->qlat));
+    QDP_M_eq_r_times_M(m1, &teps, m2, QDP_all_L(f->qlat));
+    QLA_Real n2t;
+    QDP_r_eq_norm2_M(&n2t, m1, QDP_all_L(f->qlat));
+    n2 += n2t;
+    n2t = infnorm_M(m1, QDP_all_L(f->qlat));
+    if(n2t>ni) ni = n2t;
+    if(gr==GROUP_TAH) {
+      QDP_M_eq_expTA_M(m2, m1, QDP_all_L(g->qlat));
+    } else {
+      QDP_M_eq_exp_M(m2, m1, QDP_all_L(g->qlat));
+    }
+    QDP_M_eq_M_times_M(m1, m2, g->links[i], QDP_all_L(g->qlat));
+    QDP_M_eq_M(g->links[i], m1, QDP_all_L(g->qlat));
+#ifdef QHMC_REPRO_UNIFORM
+    int err;
+#define chk(x, i, s)                  \
+    err = check_uniform_M((x)[i], s); \
+    if(err) {                                                           \
+      fprintf(stderr, "%i repro error %s %i index %i\n", QDP_this_node, #x, i, err-1); \
+      QDP_abort(1);                                                     \
+    }
+    chk(force, i, QDP_even);
+    chk(force, i, QDP_odd);
+    chk(g->links, i, QDP_even);
+    chk(g->links, i, QDP_odd);
+#endif
+  }
+  QDP_destroy_M(m1);
+  QDP_destroy_M(m2);
   lua_pushnumber(L, n2/(nd*QDP_volume_L(f->qlat)));
   lua_pushnumber(L, ni);
   return 2;
@@ -1389,7 +1597,7 @@ static struct luaL_Reg gauge_reg[] = {
   { "randomTAH",qopqdp_force_random },
   { "randomTAH_relmom",qopqdp_force_random_relmom },
   { "norm2",      qopqdp_gauge_norm2 },
-  { "norm2_relmom", qopqdp_norm2_relmom },
+  { "norm2_relmom", qopqdp_norm2_relmom1 },
   { "infnorm",    qopqdp_gauge_infnorm },
   { "derivForce", qopqdp_force_derivForce },
   { "load",     qopqdp_gauge_load },
@@ -1403,7 +1611,7 @@ static struct luaL_Reg gauge_reg[] = {
   { "force",    qopqdp_gauge_force },
   { "fupdate",  qopqdp_force_update },
   { "update",   qopqdp_gauge_update },
-  { "update_relmom",qopqdp_gauge_update_relmom },
+  { "update_relmom",qopqdp_gauge_update_relmom1 },
   { "init_relmom",qopqdp_init_relmom },
   { "heatbath", qopqdp_gauge_heatbath },
   { "loop",     qopqdp_gauge_loop },
