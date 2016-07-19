@@ -180,6 +180,36 @@ qhmcqdp_get_eodir(lattice_t *lat, int dir)
   return lat->eodir[dir];
 }
 
+static int
+hyper_func(QDP_Lattice *lat, int x[], void *args)
+{
+  int nd = *((int**)args)[0];
+  int *hs = ((int**)args)[1];
+  int *hn = ((int**)args)[2];
+  int k=0;
+  for(int i=0; i<nd; i++) {
+    k = k*hn[i] + x[i]/hs[i];
+  }
+  return k;
+}
+
+QDP_Subset *
+qhmcqdp_get_hyper(lattice_t *lat, int ha[], int *n)
+{
+  int nd = lat->nd;
+  int hn[nd];
+  *n = 1;
+  for(int i=0; i<nd; i++) {
+    int c = QDP_coord_size_L(lat->qlat, i);
+    hn[i] = (c+ha[i]-1)/ha[i];
+    *n *= hn[i];
+  }
+  int *args[3] = {&nd, ha, hn};
+  QDP_Subset *s = QDP_create_subset_L(lat->qlat, hyper_func, (void*)args,
+				      sizeof(args), *n);
+  return s;
+}
+
 QDP_Subset *
 qhmc_qopqdp_qsubset_from_string(lua_State *L, lattice_t *lat,
 				const char *s, int *n)
@@ -246,6 +276,17 @@ qhmc_qopqdp_qsubset_from_string(lua_State *L, lattice_t *lat,
 	  subs = &qhmcqdp_get_timeslices(lat)[t];
 	  *n = 1;
 	}
+      }
+    }
+    break;
+  case 'h':
+    if(strncmp(s,"hyper",5)==0) {
+      int nd = QDP_ndim_L(qlat);
+      int ha[nd];
+      // assuming nd==4 for now
+      int nn = sscanf(s+5," %i %i %i %i",ha,ha+1,ha+2,ha+3);
+      if(nn) {
+	subs = qhmcqdp_get_hyper(lat, ha, n);
       }
     }
     break;

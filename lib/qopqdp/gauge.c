@@ -319,7 +319,8 @@ qopqdp_init_relmom(lua_State *L)
   END_ARGS;
   QLA_Real m = (QLA_Real) m0;
   relmom.m = m;
-  relmom.m2 = m * m;
+  //relmom.m2 = m * m;
+  relmom.m2 = (1-fabs(m))/24;
   // optimal values for x1 and x2 to have >75% efficiency in all m values
   QLA_Real x1 = relmom_opt_model(relmom.m2, 11.2169, 173.873, 16.5335);
   QLA_Real x2 = relmom_opt_model(relmom.m2, 54.4532, 2363.1, 132.95);
@@ -429,8 +430,9 @@ randforce_relmom(NCPROT QLA_ColorMatrix(*m), int i, void *args)
 }
 #endif
 
+#if 0
 static QLA_Real
-ranRelmom1(QLA_RandomState *s)
+ranRelmom1X(QLA_RandomState *s)
 {
   QLA_Real c = relmom.m;
   QLA_Real c2 = c*c;
@@ -450,6 +452,34 @@ ranRelmom1(QLA_RandomState *s)
   QLA_Real r = v/u;
   return r;
 }
+#endif
+
+static QLA_Real
+ranRelmom1(QLA_RandomState *s)
+{
+  QLA_Real m = relmom.m;
+  QLA_Real n = relmom.m2;
+  QLA_Real a = 1;
+  if(m<0 && n>0) a = exp(m*m/(32*n));
+  QLA_Real p0;
+  if(n==0) p0 = sqrt(2/m);
+  else p0 = sqrt((sqrt(m*m+32*n)-m)/(8*n));
+  QLA_Real p2 = p0*p0;
+  QLA_Real b = 2*p0*exp(-0.5*p2*(0.5*m+n*p2));
+  QLA_Real r = 0;
+  while(1) {
+    QLA_Real u = a*QLA_random(s);
+    if(u!=0) {
+      QLA_Real v = b*(QLA_random(s) - 0.5);
+      r = v/u;
+      QLA_Real r2 = r*r;
+      QLA_Real t = exp(-0.5*r2*(0.5*m+n*r2));
+      if(u<=t) break;
+    }
+  }
+  return r;
+}
+
 
 static void
 randforce_relmom1(NCPROT QLA_ColorMatrix(*m), int i, void *args)
@@ -563,12 +593,24 @@ qopqdp_norm2_relmom(lua_State *L)
 }
 #endif
 
+#if 0
 static double
-norm2Relmom1(double p)
+norm2Relmom1X(double p)
 {
   double c = relmom.m;
   double c2 = c*c;
   double r = c*sqrt(p*p+c2)-c2;
+  return r;
+}
+#endif
+
+static double
+norm2Relmom1(double p)
+{
+  double m = relmom.m;
+  double n = relmom.m2;
+  double p2 = p*p;
+  double r = p2*(0.5*m+n*p2);
   return r;
 }
 
@@ -1204,12 +1246,23 @@ qopqdp_gauge_update_relmom(lua_State *L)
 }
 #endif
 
+#if 0
 static double
-updateRelmom1(double p)
+updateRelmom1X(double p)
 {
   double c = relmom.m;
   double c2 = c*c;
   double r = c*p/sqrt(p*p + c2);
+  return r;
+}
+#endif
+
+static double
+updateRelmom1(double p)
+{
+  double m = relmom.m;
+  double n = relmom.m2;
+  double r = p*(m+4*n*p*p);
   return r;
 }
 
