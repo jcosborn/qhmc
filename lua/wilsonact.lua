@@ -70,13 +70,13 @@ function wilsonact(ga, params)
   local rhmc = params.rhmc
   local smear = params.smear
   local a = {}
-  a.ga = ga --gauge action? 
+  a.ga = ga --gauge action?
   a.coeffs = params.coeffs or {}
   a.coeffs.clov_s = a.coeffs.clov_s or 0
   a.coeffs.clov_t = a.coeffs.clov_t or 0
   a.coeffs.aniso = a.coeffs.aniso or 1
   a.w = qopqdp.wilson() -- fermion action?
-  a.npseudo = #rhmc 
+  a.npseudo = #rhmc
   a.pseudo = {}
   for i=1,a.npseudo do a.pseudo[i] = a.w:quark() end
   a.ff = ga:forceNew()
@@ -116,12 +116,16 @@ function actmt.clearStats(a)
   if not a.CGflops then a.CGflops = {} end
   if not a.CGits then a.CGits = {} end
   if not a.CGmaxits then a.CGmaxits = {} end
+  if not a.CGresid then a.CGresid = {} end
+  if not a.CGmaxresid then a.CGmaxresid = {} end
   if not a.CGn then a.CGn = {} end
   for i=1,a.ncg do
     a.CGtime[i] = 0
     a.CGflops[i] = 0
     a.CGits[i] = 0
     a.CGmaxits[i] = 0
+    a.CGresid[i] = 0
+    a.CGmaxresid[i] = 0
     a.CGn[i] = 0
   end
 end
@@ -175,11 +179,18 @@ function actmt.solve(a, dest, src, mass, res, sub, opts, n)
   local t0 = clock()
   dest:zero()
   a.w:solve(dest, src, mass, res, sub, opts)
+  local resid = math.sqrt(a.w:rsq())
+  if resid > res then
+    printf("warning resid: %g > %g  ratio: %g  its: %i\n",
+	   resid, res, resid/res, a.w:its())
+  end
   if n>0 then
     a.CGtime[n] = a.CGtime[n] + clock() - t0
     a.CGflops[n] = a.CGflops[n] + a.w:flops()
     a.CGits[n] = a.CGits[n] + a.w:its()
     a.CGmaxits[n] = math.max(a.CGmaxits[n], a.w:its())
+    a.CGresid[n] = a.CGresid[n] + resid
+    a.CGmaxresid[n] = math.max(a.CGmaxresid[n], resid)
     a.CGn[n] = a.CGn[n] + 1
   end
 end
@@ -196,7 +207,7 @@ function actmt.refresh(a, g)
     if t.mass2 then
       a:solve(t.pt, t.qt, t.mass2, t.resid, "prec", t.solveopts, t.cgnum)
     --[[ not sure if this is needed
-    else 
+    else
       t.pt = t.qt
     -- not sure ended ]]
     end
@@ -211,7 +222,7 @@ function actmt.action(a, g)
     if fa.mass2 then
       a.w:precD(fa.qt, a.pseudo[i], fa.mass2) --fa.qt: fermion action quark temporary
     end
-    -- fa.pt holds the \chi vector 
+    -- fa.pt holds the \chi vector
     a:solve(fa.pt, fa.qt, fa.mass, fa.resid, "prec", fa.solveopts, fa.cgnum)
     act = act + fa.pt:norm2("even")
   end
@@ -234,9 +245,9 @@ function actmt.updateMomentum(a, f, g, teps, ti)
     if t.mass2 then
        a.w:precD(t.qt, a.pseudo[i], t.mass2) -- tempphi is now W \phi
        -- (M M^+)^{-1} W \phi = Y
-       a:solve(t.pt, t.qt, t.mass, t.resid, "precNE", t.solveopts, t.cgnum)	
+       a:solve(t.pt, t.qt, t.mass, t.resid, "precNE", t.solveopts, t.cgnum)
     else
-       -- t.pt = (M M^+)^{-1} \phi 
+       -- t.pt = (M M^+)^{-1} \phi
        a:solve(t.pt, a.pseudo[i], t.mass, t.resid, "precNE", t.solveopts, t.cgnum)
     end
     a.w:precDdag(t.qt, t.pt, t.mass) -- t.qt = M^+ Y

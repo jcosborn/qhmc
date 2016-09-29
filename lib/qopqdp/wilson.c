@@ -559,6 +559,7 @@ qopqdp_wilson_solve(lua_State *L)
   w->time = info.final_sec;
   w->flops = info.final_flop;
   w->its = resarg.final_iter;
+  w->rsq = resarg.final_rsq;
   return 0;
 #undef NC
 }
@@ -712,6 +713,15 @@ qopqdp_wilson_its(lua_State *L)
 }
 
 static int
+qopqdp_wilson_rsq(lua_State *L)
+{
+  qassert(lua_gettop(L)==1);
+  wilson_t *w = qopqdp_wilson_check(L, 1);
+  lua_pushnumber(L, w->rsq);
+  return 1;
+}
+
+static int
 qopqdp_wilson_printcoeffs(lua_State *L)
 {
   qassert(lua_gettop(L)==1);
@@ -737,6 +747,7 @@ static struct luaL_Reg wilson_reg[] = {
   { "time",     qopqdp_wilson_time },
   { "flops",    qopqdp_wilson_flops },
   { "its",      qopqdp_wilson_its },
+  { "rsq",      qopqdp_wilson_rsq },
   { "printcoeffs", qopqdp_wilson_printcoeffs },
   { NULL, NULL}
 };
@@ -747,6 +758,7 @@ qopqdp_wilson_create(lua_State *L, int nc, lattice_t *lat)
   wilson_t *w = lua_newuserdata(L, sizeof(wilson_t));
   w->time = 0;
   w->flops = 0;
+  w->rsq = 0;
   w->its = 0;
   w->nc = nc;
   w->lat = lat;

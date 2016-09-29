@@ -76,9 +76,9 @@ for i,v in ipairs(mi.runs) do
     fp[1][j+1] = {nsteps=nsteps, intalg=intalgF}
     rhmc1[j] = {GR={},FA={},MD={}}
     rhmc1[j].GR[1] = {}
-    rhmc1[j].GR[1].resid = v.cgresid_md_fa_gr[3*(j-1)+3]
-    rhmc1[j].FA.resid = v.cgresid_md_fa_gr[3*(j-1)+2]
-    rhmc1[j].MD.resid = v.cgresid_md_fa_gr[3*(j-1)+1]
+    rhmc1[j].GR[1].resid = tonumber(v.cgresid_md_fa_gr[3*(j-1)+3])
+    rhmc1[j].FA.resid = tonumber(v.cgresid_md_fa_gr[3*(j-1)+2])
+    rhmc1[j].MD.resid = tonumber(v.cgresid_md_fa_gr[3*(j-1)+1])
     rhmc1[j].GR[1].solveopts = {
       prec = v.cgprec_md_fa_gr[3*(j-1)+3],
       restart = v.max_multicg_md_fa_gr[3*(j-1)+3]
@@ -99,7 +99,7 @@ for i,v in ipairs(mi.runs) do
 
   local pbpreps = (v.npbp_reps or {1})[1]
   local pbpmasses = v.mass or mi.dyn_mass
-  local pbpresid = v.error_for_propagator or { 1e-6 }
+  local pbpresid = tonumber(v.error_for_propagator) or { 1e-6 }
   if #pbpresid ~= #pbpmasses then
     pbpresid = rep(pbpresid[1], #pbpmasses)
   end

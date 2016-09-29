@@ -126,12 +126,16 @@ function actmt.clearStats(a)
   if not a.CGflops then a.CGflops = {} end
   if not a.CGits then a.CGits = {} end
   if not a.CGmaxits then a.CGmaxits = {} end
+  if not a.CGresid then a.CGresid = {} end
+  if not a.CGmaxresid then a.CGmaxresid = {} end
   if not a.CGn then a.CGn = {} end
   for i=1,a.ncg do
     a.CGtime[i] = 0
     a.CGflops[i] = 0
     a.CGits[i] = 0
     a.CGmaxits[i] = 0
+    a.CGresid[i] = 0
+    a.CGmaxresid[i] = 0
     a.CGn[i] = 0
   end
 end
@@ -227,12 +231,19 @@ function actmt.solve(a, dest, src, mass, res, sub, opts, n, xtra)
       a:Ddag(t, s, mass)
       a:D(d, t, mass)
     end
-    info = cgms(dest, src, op, shifts, res, opts)
+    local info = cgms(dest, src, op, shifts, res, opts)
+    local resid = math.sqrt(info.rsq)
+    if resid > res then
+      printf("warning resid: %g > %g  ratio: %g  its: %i\n",
+  	     resid, res, resid/res, a.w:its())
+    end
     if n>0 then
       a.CGtime[n] = a.CGtime[n] + clock() - t0
       a.CGflops[n] = a.CGflops[n] + info.flops
       a.CGits[n] = a.CGits[n] + info.its
       a.CGmaxits[n] = math.max(a.CGmaxits[n], info.its)
+      a.CGresid[n] = a.CGresid[n] + resid
+      a.CGmaxresid[n] = math.max(a.CGmaxresid[n], resid)
       a.CGn[n] = a.CGn[n] + 1
     end
     return
@@ -248,11 +259,18 @@ function actmt.solve(a, dest, src, mass, res, sub, opts, n, xtra)
     else
       a.w:solve(dest[i], src[i], mass, res, sub, opts)
     end
+    local resid = math.sqrt(a.w:rsq())
+    if resid > res then
+      printf("warning resid: %g > %g  ratio: %g  its: %i\n",
+  	     resid, res, resid/res, a.w:its())
+    end
     if n>0 then
       a.CGtime[n] = a.CGtime[n] + clock() - t0
       a.CGflops[n] = a.CGflops[n] + a.w:flops()
       a.CGits[n] = a.CGits[n] + a.w:its()
       a.CGmaxits[n] = math.max(a.CGmaxits[n], a.w:its())
+      a.CGresid[n] = a.CGresid[n] + resid
+      a.CGmaxresid[n] = math.max(a.CGmaxresid[n], resid)
     end
   end
   if n>0 then a.CGn[n] = a.CGn[n] + 1 end

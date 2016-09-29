@@ -587,6 +587,7 @@ asqtad_t *qopqdp_asqtad_check(lua_State *L, int idx);
 typedef struct {
   double time;
   double flops;
+  double rsq;
   int its;
   int nc;
   lattice_t *lat;
@@ -612,6 +613,7 @@ void asqtadInvert(QOP_info_t *info, QOP_FermionLinksAsqtad *fla,
 typedef struct {
   double time;
   double flops;
+  double rsq;
   int its;
   int nc;
   lattice_t *lat;
@@ -629,6 +631,7 @@ wilson_t *qopqdp_wilson_check(lua_State *L, int idx);
 typedef struct {
   double time;
   double flops;
+  double rsq;
   int its;
   int ls;
   QOP_dw_coeffs_t coeffs;

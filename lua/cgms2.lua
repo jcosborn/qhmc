@@ -96,5 +96,6 @@ function cgms(x, src, op, shifts, resid, opts)
   end
   --collectgarbage()
   info.its = info.its + its
+  info.rsq = 0
   return info
 end

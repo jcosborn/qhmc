@@ -18,7 +18,12 @@ function hmcstep(fields, params)
 
   if params.checkReverse then
     fields:reverse()
-    integrate(fields, intparams)
+    if type(params.forceparams)=="function" then
+      params.forceparams(fields, params)
+    else
+      local intparams = setupint(fields, params)
+      integrate(fields, intparams)
+    end
     local Srev = fields:action()
     printf("Sold: %20.6f Srev: %20.6f dS: %20.6f\n", Sold, Srev, Srev-Sold)
     fields:endReverse()

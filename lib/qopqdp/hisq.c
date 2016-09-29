@@ -418,6 +418,7 @@ qopqdp_hisq_solve(lua_State *L)
   h->time = info.final_sec;
   h->flops = info.final_flop;
   h->its = resarg[0].final_iter;
+  h->rsq = resarg[0].final_rsq;
   return 0;
 #undef NC
 }
@@ -522,6 +523,15 @@ qopqdp_hisq_its(lua_State *L)
 }
 
 static int
+qopqdp_hisq_rsq(lua_State *L)
+{
+  qassert(lua_gettop(L)==1);
+  hisq_t *h = qopqdp_hisq_check(L, 1);
+  lua_pushnumber(L, h->rsq);
+  return 1;
+}
+
+static int
 qopqdp_hisq_printcoeffs(lua_State *L)
 {
   qassert(lua_gettop(L)==3);
@@ -582,6 +592,7 @@ static struct luaL_Reg hisq_reg[] = {
   { "time",    qopqdp_hisq_time },
   { "flops",   qopqdp_hisq_flops },
   { "its",     qopqdp_hisq_its },
+  { "rsq",     qopqdp_hisq_rsq },
   { "printcoeffs", qopqdp_hisq_printcoeffs },
   { "force_filter", qopqdp_hisq_force_filter },
   { "set_phases", qopqdp_hisq_set_phases },
@@ -594,6 +605,10 @@ qopqdp_hisq_create(lua_State *L, int nc, lattice_t *lat)
   if(lat==NULL) lat = qopqdp_get_default_lattice(L);
   if(nc==0) nc = lat->defaultNc;
   hisq_t *h = lua_newuserdata(L, sizeof(hisq_t));
+  h->time = 0;
+  h->flops = 0;
+  h->rsq = 0;
+  h->its = 0;
   h->nc = nc;
   h->lat = lat;
   h->fl = NULL;

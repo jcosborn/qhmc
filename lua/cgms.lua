@@ -19,7 +19,7 @@ function cg(x, src, op, resid, opts)
   end
   --local t1 = qopqdp.dtime()
   --printf("its: %i\tsecs: %g\trsq: %g\n", its, t1-t0, rsq)
-  return {its=its, flops=0}
+  return {its=its, flops=0, rsq=0}
 end
 
 function cgwrap(x, src, op, resid, opts)
@@ -39,6 +39,7 @@ function cgwrap(x, src, op, resid, opts)
     info.its = info.its + inf.its
     info.flops = info.flops + inf.flops
   end
+  info.rsq = 0
   return info
 end
 
@@ -57,5 +58,5 @@ function cgms(x, src, op, shifts, resid, opts)
     its = math.max(its,info.its)
     flops = flops + info.flops
   end
-  return {its=its, flops=flops}
+  return {its=its, flops=flops, rsq=0}
 end

@@ -67,7 +67,7 @@ end
 do
   local spaces = ""
   local function printline(event, ln)
-    if(event == "call") then 
+    if(event == "call") then
       spaces = spaces .. "  "
       elseif(event == "return") then
       spaces = string.sub(spaces, 1, -3)

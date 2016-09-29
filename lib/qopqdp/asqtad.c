@@ -756,6 +756,10 @@ qopqdp_asqtad_create(lua_State *L, int nc, lattice_t *lat)
   if(lat==NULL) lat = qopqdp_get_default_lattice(L);
   if(nc==0) nc = lat->defaultNc;
   asqtad_t *h = lua_newuserdata(L, sizeof(asqtad_t));
+  h->time = 0;
+  h->flops = 0;
+  h->rsq = 0;
+  h->its = 0;
   h->nc = nc;
   h->lat = lat;
   h->fl = NULL;
