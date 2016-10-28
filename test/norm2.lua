@@ -26,6 +26,15 @@ f:lnorm2(r)
 n = r:sum()
 printf("%g\n", n)
 
+c = f:ldot(f)
+n = c:sum()
+printf("%g\t%g\n", n.r, n.i)
+
+c:zero()
+f:ldot(f, c)
+n = c:sum()
+printf("%g\t%g\n", n.r, n.i)
+
 a = f:norm2("timeslices")
 myprint(a,"\n")
 

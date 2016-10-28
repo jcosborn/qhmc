@@ -56,7 +56,7 @@ typedef S3(qopqdp_,FTYPE,O_t) ftypeO_t;
 #define NCARGT NC,
 #define NCV NC
 #define SP(x,y,m,...)					\
-  switch(QDP_Nc) {						\
+  switch(QDP_Nc) {					\
   case 1: I(S3(x,1_,y)m(qdptype1,__VA_ARGS__)); break;	\
   case 2: I(S3(x,2_,y)m(qdptype2,__VA_ARGS__)); break;	\
   case 3: I(S3(x,3_,y)m(qdptype3,__VA_ARGS__)); break;	\
@@ -134,6 +134,7 @@ typedef S2(QDP_D_,QDPT) qdptypeD;
 #define qdpnorm2multi(r,f,s,n) SP4(QDP_,r_eq_norm2_,A,_multi,Cx1xx,r,f,s,n)
 #define qdplnorm2(r,f,s) SP3(QDP_,R_eq_norm2_,A,Cx1x,r,f,s)
 #define qdpdot(c,f1,f2,s) SP5(QDP_,c_eq_,A,_dot_,A,Cx11x,c,f1,f2,s)
+#define qdpldot(c,f1,f2,s) SP5(QDP_,C_eq_,A,_dot_,A,Cx11x,c,f1,f2,s)
 #define qdpdotmulti(c,f1,f2,s,n) SP6(QDP_,c_eq_,A,_dot_,A,_multi,Cx11xx,c,f1,f2,s,n)
 #define qdpadot(c,f1,f2,s) SP5(QDP_,c_eq_,A,a_dot_,A,Cx11x,c,f1,f2,s)
 #define qdpadotmulti(c,f1,f2,s,n) SP6(QDP_,c_eq_,A,a_dot_,A,_multi,Cx11xx,c,f1,f2,s,n)
@@ -724,7 +725,7 @@ ftype_site(lua_State *L)
 // 6: (if #5)    color origin (oc)
 // 7: (if #5)    spin origin (os)
 // 8: scale (a)
-// 9: original field value scale (b) 
+// 9: original field value scale (b)
 //10: subset
 static int
 ftype_momentum(lua_State *L)
@@ -979,7 +980,7 @@ ftype_random(lua_State *L)
   //omp_set_num_threads(1);
   qdpgaussian(t->field, rs, sub);
   if(s!=1) {
-    QLA_Real r = s;  
+    QLA_Real r = s;
     qdprtimes(t->field, &r, t->field, sub);
   }
   //omp_set_num_threads(ompnt);
@@ -1006,7 +1007,7 @@ ftype_randomGroup(lua_State *L)
   END_ARGS;
   qdpgaussian(t->field, rs, sub);
   if(s!=1) {
-    QLA_Real r = s;  
+    QLA_Real r = s;
     qdprtimes(t->field, &r, t->field, sub);
   }
   projectGroup(NCARGT t->field, g, sub);
@@ -1356,6 +1357,26 @@ ftype_dot(lua_State *L)
     qhmc_push_complex_array(L, ns, cc);
   }
   return 1;
+#undef NC
+}
+
+static int
+ftype_ldot(lua_State *L)
+{
+#define NC QDP_get_nc(t1->field)
+  BEGIN_ARGS;
+  GET_FTYPE(t1);
+  GET_FTYPE(t2);
+  OPT_QOPQDP_COMPLEX(r, NULL);
+  OPT_QSUBSET(sub, t1->lat, QDP_all_L(t1->qlat));
+  END_ARGS;
+  int rv = 0;
+  if(r==NULL) {
+    r = qopqdp_complex_create_unset(L, t1->lat);
+    rv = 1;
+  }
+  qdpldot(r->field, t1->field, t2->field, sub);
+  return rv;
 #undef NC
 }
 
@@ -1892,7 +1913,7 @@ private_squark_wall(NCPROT QLA_ColorVector(*s), int coords[], void *value)
 // 2 - Time slice.
 // 3 - An integer. 0 = even source, 1 = odd source.
 // THIS IS DIFFERENT FROM THE DEFINITIONS IN GUPTA ET AL (1991).
-// This is even/odd in terms of lattice sites. 
+// This is even/odd in terms of lattice sites.
 // 4 - Color
 // 5 - value (real or complex)
 static int
@@ -2062,9 +2083,9 @@ qopqdp_squark_s4_ferm_observables(lua_State *L)
   gauge_t *g = qopqdp_gauge_check(L, 3);
   int i;
   int r0[4]; // for phases.
-  
+
   QDP_Subset* dirsubset;
-  
+
   QLA_Complex interm[2];
   qhmc_complex_t pbp_e[6], pbp_o[6];
   // 0 - pbp on even and odd sites.
@@ -2073,17 +2094,17 @@ qopqdp_squark_s4_ferm_observables(lua_State *L)
   // 3 - add x one-link pbp if x even/odd
   // 4 - add y one-link pbp if y even/odd
   // 5 - add z one-link pbp if z even/odd
-  
+
   // Because we need it.
   QDP_ColorVector* temp_vec;
   QDP_Complex* temp_cmplx;
-  
+
   // Zero out arrays.
   for (i = 0; i < 6; i++)
   {
     pbp_e[i].r = pbp_e[i].i = pbp_o[i].r = pbp_o[i].i = 0;
   }
-  
+
   // Get even, odd pbp.
   QDP_c_eq_V_dot_V(&interm[0], q->field, q->field, QDP_even);
   QDP_c_eq_V_dot_V(&interm[1], q->field, q->field, QDP_odd);
@@ -2091,33 +2112,33 @@ qopqdp_squark_s4_ferm_observables(lua_State *L)
   pbp_e[0].i = QLA_imag(interm[0]);
   pbp_o[0].r = QLA_real(interm[1]);
   pbp_o[0].i = QLA_imag(interm[1]);
-  
+
   // Generate one-link separated.
   temp_vec = QDP_create_V();
   temp_cmplx = QDP_create_C();
-  
+
   // Time one link.
   QDP_V_eq_M_times_sV(temp_vec, g->links[3], q->field, QDP_neighbor[3], QDP_forward, QDP_all);
   QDP_C_eq_V_dot_V(temp_cmplx, q2->field, temp_vec, QDP_all);
-  
+
   dirsubset = qhmcqdp_get_eodir(q->lat, 0); // x even/odd
   QDP_c_eq_sum_C_multi(interm, temp_cmplx, dirsubset, 2);
   pbp_e[1].r = QLA_real(interm[0]);
   pbp_e[1].i = QLA_imag(interm[0]);
   pbp_o[1].r = QLA_real(interm[1]);
   pbp_o[1].i = QLA_imag(interm[1]);
-  
+
   dirsubset = qhmcqdp_get_eodir(q->lat, 3); // t even/odd
   QDP_c_eq_sum_C_multi(interm, temp_cmplx, dirsubset, 2);
   pbp_e[2].r = QLA_real(interm[0]);
   pbp_e[2].i = QLA_imag(interm[0]);
   pbp_o[2].r = QLA_real(interm[1]);
   pbp_o[2].i = QLA_imag(interm[1]);
-  
+
   // Prepare for phases.
   r0[0] = r0[1] = r0[2] = r0[3] = 0;
   relative_loc_esw = r0;
-  
+
   // X one link. Don't forget phase factors!
   QDP_V_eq_M_times_sV(temp_vec, g->links[0], q->field, QDP_neighbor[0], QDP_forward, QDP_all);
   phase_squark_esw = 0x8; // time
@@ -2129,7 +2150,7 @@ qopqdp_squark_s4_ferm_observables(lua_State *L)
   pbp_e[3].i = QLA_imag(interm[0]);
   pbp_o[3].r = QLA_real(interm[1]);
   pbp_o[3].i = QLA_imag(interm[1]);
-  
+
   // Y one link.
   QDP_V_eq_M_times_sV(temp_vec, g->links[1], q->field, QDP_neighbor[1], QDP_forward, QDP_all);
   phase_squark_esw = 0x9; // time, x
@@ -2141,7 +2162,7 @@ qopqdp_squark_s4_ferm_observables(lua_State *L)
   pbp_e[4].i = QLA_imag(interm[0]);
   pbp_o[4].r = QLA_real(interm[1]);
   pbp_o[4].i = QLA_imag(interm[1]);
-  
+
   // Z one link.
   QDP_V_eq_M_times_sV(temp_vec, g->links[2], q->field, QDP_neighbor[2], QDP_forward, QDP_all);
   phase_squark_esw = 0xB; // time, x, y
@@ -2153,13 +2174,13 @@ qopqdp_squark_s4_ferm_observables(lua_State *L)
   pbp_e[5].i = QLA_imag(interm[0]);
   pbp_o[5].r = QLA_real(interm[1]);
   pbp_o[5].i = QLA_imag(interm[1]);
-  
+
   QDP_destroy_V(temp_vec);
   QDP_destroy_C(temp_cmplx);
-  
+
   qhmc_push_complex_array(L, 6, pbp_e);
   qhmc_push_complex_array(L, 6, pbp_o);
-  
+
   return 2;
 #undef NC
 }
@@ -2186,7 +2207,7 @@ private_squark_wall_gaussian(NCPROT QLA_ColorVector(*s), int coords[], void *val
     }
 }
 
-// Constructs a normalized gaussian wall source. 
+// Constructs a normalized gaussian wall source.
 // Arguments:
 // 1 - the staggered quark, as always.
 // 2 - Time slice.
@@ -2266,7 +2287,7 @@ private_squark_dilute(QDP_ColorVector* cv_dil, QDP_ColorVector* cv_input,
 #define NC QDP_get_nc(cv_dil)
   QDP_ColorVector* temp_cvec = QDP_create_V();
   QDP_V_eq_zero(temp_cvec, QDP_all);
-  
+
   // First, get a subset right.
   QDP_Subset subset_use = QDP_all;
   if (space_eo == 0)
@@ -2277,7 +2298,7 @@ private_squark_dilute(QDP_ColorVector* cv_dil, QDP_ColorVector* cv_input,
     {
       subset_use = QDP_odd;
     }
-  
+
   // Next, process color (and even/odd, technically).
   if (color != -1)
     {
@@ -2291,7 +2312,7 @@ private_squark_dilute(QDP_ColorVector* cv_dil, QDP_ColorVector* cv_input,
     {
       QDP_V_eq_V(temp_cvec, cv_input, subset_use);
     }
-  
+
   // Last, process timeslice dilution.
   if (timeslice == -1) // no timeslice dilution.
     {
@@ -2301,15 +2322,15 @@ private_squark_dilute(QDP_ColorVector* cv_dil, QDP_ColorVector* cv_input,
     {
       QDP_Int* latint = QDP_create_I();
       QDP_I_eq_zero(latint, QDP_all);
-        
+
       struct squark_intwall_info data;
       data.timeslice = timeslice;
       data.td = 3; // time direction
       data.val = 1;
-        
+
       // Build a mask that has 1's on the timeslice you want, 0's elsewhere.
       QDP_I_eq_funca(latint, private_squark_intwall, (void*)(&data), QDP_all);
-        
+
       // And now copy.
       QDP_V_eq_V_mask_I(cv_dil, temp_cvec, latint, subset_use);
 
@@ -2335,13 +2356,13 @@ qopqdp_squark_dilute(lua_State *L)
   GET_INT(color); // a color coordinate, 0 normalized.
   GET_INT(space_eo); // even-odd -> 0-1
   END_ARGS;
-  
+
   //ftype_t *q1 = qopqdp_squark_create_unset(L, q2->nc, q2->lat);
   QDP_V_eq_zero(q1->field, QDP_all);
-  
+
   // Call an encapsulating function.
   private_squark_dilute(q1->field, q2->field, timeslice, color, space_eo);
-  
+
   return 0;
 }
 
@@ -2395,6 +2416,7 @@ static struct luaL_Reg ftype_reg[] = {
   { "contract",      ftype_redot },
 #else
   { "dot",           ftype_dot },
+  { "ldot",          ftype_ldot },
   { "contract",      ftype_contract },
 #endif
 #ifdef SPIN
@@ -2421,7 +2443,7 @@ static struct luaL_Reg ftype_reg[] = {
   { "epsContract", qopqdp_squark_epscontr }, // ESW addition 11/15/2013
   { "s4Ferm",      qopqdp_squark_s4_ferm_observables }, // ESW addition 12/18/2013
   { "wall_gaussian", qopqdp_squark_wall_gaussian }, // ESW addition 2/12/2014
-  { "norm2_wallsink",qopqdp_squark_norm2_wallsink }, 
+  { "norm2_wallsink",qopqdp_squark_norm2_wallsink },
   { "dilute",      qopqdp_squark_dilute }, // ESW addition 3/20/2014, update 5/12/2014
 #endif // ISCVECTOR
   { NULL, NULL}
