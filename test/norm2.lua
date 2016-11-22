@@ -7,6 +7,7 @@ ls = { nx, nx, nx, nt }
 L = qopqdp.lattice(ls)
 L:seed(98765321)
 
+TESTZEROTOL(1e-14)
 TESTON()
 
 ltypes = { "real", "complex", "colorVector", "diracFermion", "colorMatrix" }

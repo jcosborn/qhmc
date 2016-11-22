@@ -1,6 +1,6 @@
 #runtest: using temp file norm2.raw
-##loading: /home/josborn/lqcd/install/qhmc-git/lua/Init.lua
-##loading: /home/josborn/lqcd/install/qhmc-git/lua/pl/class.lua
+##loading: /home/osborn/lqcd/install/qhmc-git/lua/Init.lua
+##loading: /home/osborn/lqcd/install/qhmc-git/lua/pl/class.lua
 ##runtest: using temp file norm2.tmp
 #ndim = 4
 #numsites = 256
@@ -13,8 +13,8 @@
 4713.4
 4713.4
 4713.4
-4713.4	-1.60982e-15
-4713.4	-1.60982e-15
+4713.4	 0
+4713.4	 0
 { 1211.3158854509, 1155.7299870686, 1161.8152239148, 1184.5389067894 }
 { 1211.3158854509, 1155.7299870686, 1161.8152239148, 1184.5389067894 }
 { 2362.0225773204, 2351.3774259033 }
