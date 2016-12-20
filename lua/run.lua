@@ -157,8 +157,11 @@ function actsmt.run(a, r)
     local keylen = 0
     for k in pairs(a.f.FFn) do if type(k) == "string" then keys[#keys+1] = k; if #k>keylen then keylen = #k end end end
     table.sort(keys)
+    -- width has to be 2 digits at most (lstrlib.c), so we give up for long keylen.
+    local fs = keylen>98 and "%s" or "%-"..tostring(keylen+1).."s"
     for i,k in ipairs(keys) do
       printf("%-"..tostring(keylen+1).."s %-12g %-12g\n", k, a.f.FFrms[k], a.f.FFmax[k])
+      printf(fs.." %-12g %-12g\n", k, a.f.FFrms[k], a.f.FFmax[k])
     end
     io.stdout:flush()
 
