@@ -25,6 +25,8 @@ qopqdp_writer_close(lua_State *L)
   GET_WRITER(w);
   END_ARGS;
   if(w->open) {
+    volatile int *p = &(w->pending);
+    while(*p>0);
     QDP_close_write(w->qw);
     w->open = 0;
   }
@@ -185,6 +187,7 @@ qopqdp_writer_create(lua_State *L, const char *fn, const char *mds,
   w->qw = QDP_open_write_L(lat->qlat, md, (char*)fn, QDP_SINGLEFILE);
   w->lat = lat;
   w->open = 1;
+  w->pending = 0;
   QDP_string_destroy(md);
   if(luaL_newmetatable(L, mtname)) {
     lua_pushvalue(L, -1);

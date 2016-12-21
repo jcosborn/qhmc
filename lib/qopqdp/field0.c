@@ -1,3 +1,4 @@
+#include <pthread.h>
 //#include <omp.h>
 #include <string.h>
 #include <math.h>
@@ -160,6 +161,7 @@ typedef S2(QDP_D_,QDPT) qdptypeD;
 #define qdpOeq(f1,f2,s) S4(QDP_DF_,A,_eq_,A)(f1,f2,s)
 #define qdpvreadO(r,m,f,n) S2(QDP_D_vread_,A)(r,m,f,n)
 #define qdpvwriteO(r,m,f,n) S2(QDP_D_vwrite_,A)(r,m,f,n)
+#define qdpvwriteOT(r,m,f,n) S3(D_vwrite_,A,T)(r,m,f,n)
 #else
 #define qdptypeO qdptypeF
 #define qdpcreateO qdpcreateF
@@ -169,6 +171,7 @@ typedef S2(QDP_D_,QDPT) qdptypeD;
 #define qdpOeq(f1,f2,s) S4(QDP_FD_,A,_eq_,A)(f1,f2,s)
 #define qdpvreadO(r,m,f,n) S2(QDP_F_vread_,A)(r,m,f,n)
 #define qdpvwriteO(r,m,f,n) S2(QDP_F_vwrite_,A)(r,m,f,n)
+#define qdpvwriteOT(r,m,f,n) S3(F_vwrite_,A,T)(r,m,f,n)
 #endif
 
 ftype_t *
@@ -322,12 +325,49 @@ ftype_read(lua_State *L)
 #undef NC
 }
 
+#ifdef PRECISE
+typedef struct {
+  writer_t *w;
+  QDP_String *md;
+  qdptypeO **q;
+  int n;
+} ws1;
+
+static void *
+ws1f(void *aa)
+{
+  ws1 *a = (ws1 *)aa;
+  qdpvwriteO(a->w->qw, a->md, a->q, a->n);
+  a->w->pending = 0;
+  for(int i=0; i<a->n; i++) qdpdestroyO(a->q[i]);
+  free(a->q);
+  QDP_string_destroy(a->md);
+  free(a);
+  return NULL;
+}
+
+void
+qdpvwriteOT(writer_t *w, QDP_String *md, qdptypeO **q, int n)
+{
+  ws1 *a = malloc(sizeof(ws1));
+  a->w = w;
+  a->md = md;
+  a->q = q;
+  a->n = n;
+  //ws1f(a);
+  volatile int *p = &(a->w->pending);
+  while(*p>0);
+  a->w->pending = 1;
+  pthread_t thread;
+  pthread_create(&thread, NULL, ws1f, a);
+}
+#endif
+
 // 1: (optional) field or table of fields of same type (ignored)
 // 2: field or table of fields of same type
 // 3: writer
 // 4: metadata string
 // 5: (optional) precision string
-// return: field metadata
 static int
 ftype_write(lua_State *L)
 {
@@ -344,7 +384,7 @@ ftype_write(lua_State *L)
   ftype_t **t = t2;
   int n = n2;
   if(t2[0]==NULL) { t = t1; n = n1; }
-  double dt = -QDP_time();
+  //double dt = -QDP_time();
   QDP_String *md = QDP_string_create();
   QDP_string_set(md, (char *)mds);
 #ifdef PRECISE
@@ -353,19 +393,22 @@ ftype_write(lua_State *L)
     qdptype *q[n];
     for(int i=0; i<n; i++) q[i] = t[i]->field;
     qdpvwrite(w->qw, md, q, n);
+    QDP_string_destroy(md);
 #ifdef PRECISE
   } else {
-    qdptypeO *q[n];
+    //qdptypeO *q[n];
+    qdptypeO **q = malloc(n*sizeof(qdptypeO*));
     for(int i=0; i<n; i++) {
       q[i] = qdpcreateO(t[0]->qlat);
       qdpOeq(q[i], t[i]->field, QDP_all_L(t[0]->qlat));
     }
-    qdpvwriteO(w->qw, md, q, n);
-    for(int i=0; i<n; i++) qdpdestroyO(q[i]);
+    //qdpvwriteO(w->qw, md, q, n);
+    qdpvwriteOT(w, md, q, n);
+    //for(int i=0; i<n; i++) qdpdestroyO(q[i]);
+    //QDP_string_destroy(md);
   }
 #endif
-  QDP_string_destroy(md);
-  dt += QDP_time();
+  //dt += QDP_time();
   //printf0("%s: %g seconds\n", __func__, dt);
   return 0;
 #undef NC
