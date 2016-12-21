@@ -1,4 +1,4 @@
-#include <pthread.h>
+//#include <pthread.h>
 //#include <omp.h>
 #include <string.h>
 #include <math.h>
@@ -354,12 +354,12 @@ qdpvwriteOT(writer_t *w, QDP_String *md, qdptypeO **q, int n)
   a->md = md;
   a->q = q;
   a->n = n;
-  //ws1f(a);
-  volatile int *p = &(a->w->pending);
-  while(*p>0);
-  a->w->pending = 1;
-  pthread_t thread;
-  pthread_create(&thread, NULL, ws1f, a);
+  ws1f(a);
+  //volatile int *p = &(a->w->pending);
+  //while(*p>0);
+  //a->w->pending = 1;
+  //pthread_t thread;
+  //pthread_create(&thread, NULL, ws1f, a);
 }
 #endif
 
