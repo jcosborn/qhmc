@@ -160,7 +160,6 @@ function actsmt.run(a, r)
     -- width has to be 2 digits at most (lstrlib.c), so we give up for long keylen.
     local fs = keylen>98 and "%s" or "%-"..tostring(keylen+1).."s"
     for i,k in ipairs(keys) do
-      printf("%-"..tostring(keylen+1).."s %-12g %-12g\n", k, a.f.FFrms[k], a.f.FFmax[k])
       printf(fs.." %-12g %-12g\n", k, a.f.FFrms[k], a.f.FFmax[k])
     end
     io.stdout:flush()

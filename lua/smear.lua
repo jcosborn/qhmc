@@ -46,6 +46,13 @@ local function execSmear(sg, g, t)
     for i=1,#v.out do out[i] = t.g[v.out[i]] end
     --myprint("steps[",k,"] = ",v,"\n")
     qopqdp.smear(out, inn, v)
+    --myprint("v = ", v, "\n")
+    --for i=1,#v.inn do 
+    --  printf("inn[%i]:norm2 = %g\n", i, inn[i]:norm2())
+    --end
+    --for i=1,#v.out do 
+    --  printf("out[%i]:norm2 = %g\n", i, out[i]:norm2())
+    --end
   end
 end
 

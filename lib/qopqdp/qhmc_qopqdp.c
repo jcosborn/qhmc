@@ -352,6 +352,20 @@ qopqdp_verbosity(lua_State *L)
 }
 
 static int
+qopqdp_qioVerbosity(lua_State *L)
+{
+  BEGIN_ARGS;
+  OPT_INT(v, 0);
+  END_ARGS;
+  int qio = QIO_verbose(v);
+  if(nargs==0) {
+    QIO_verbose(qio);
+  }
+  lua_pushinteger(L, qio);
+  return 1;
+}
+
+static int
 qopqdp_blocksize(lua_State *L)
 {
   BEGIN_ARGS;
@@ -662,6 +676,7 @@ static struct luaL_Reg qopqdp_reg[] = {
   { "defaultLattice", qopqdp_defaultLattice },
   { "profile",        qopqdp_profile },
   { "verbosity",      qopqdp_verbosity },
+  { "qioVerbosity",   qopqdp_qioVerbosity },
   { "blocksize",      qopqdp_blocksize },
   { "readGroupSize",  qopqdp_readGroupSize },
   { "writeGroupSize", qopqdp_writeGroupSize },
