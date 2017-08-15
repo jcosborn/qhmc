@@ -623,6 +623,20 @@ qopqdp_option(lua_State *L)
 }
 
 static int
+qopqdp_asqtadinvertopt(lua_State *L)
+{
+  BEGIN_ARGS;
+  GET_STRING(t);
+  GET_DOUBLE(v);
+  END_ARGS;
+  QOP_opt_t opt;
+  opt.tag = (char *)t;
+  opt.value = v;
+  QOP_asqtad_invert_set_opts(&opt, 1);
+  return 0;
+}
+
+static int
 qopqdp_groupNumber(lua_State *L)
 {
   BEGIN_ARGS;
@@ -693,6 +707,7 @@ static struct luaL_Reg qopqdp_reg[] = {
   { "getFileLattice", qopqdp_getFileLattice },
   { "remapout",       qopqdp_remapout },
   { "option",         qopqdp_option },
+  { "asqtadinvertopt",qopqdp_asqtadinvertopt },
   { "groupNumber",    qopqdp_groupNumber },
   { "groupName",      qopqdp_groupName },
   { NULL, NULL}

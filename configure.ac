@@ -28,10 +28,10 @@ AC_ARG_ENABLE(
   AC_SUBST(NC, [$enableval]),
   AC_SUBST(NC, [all])
 )
-if test "X$NC" = X; then NC="all"; fi 
+if test "X$NC" = X; then NC="all"; fi
 if test "X$NC" = Xn; then NC="N"; fi
 if test `expr $NC : '[0-9]*$' \& $NC \> 3` -ne 0; then NC="N"; fi
-if test "X$NC" != X1 -a "X$NC" != X2 -a "X$NC" != X3 -a "X$NC" != XN; then NC="all"; fi 
+if test "X$NC" != X1 -a "X$NC" != X2 -a "X$NC" != X3 -a "X$NC" != XN; then NC="all"; fi
 AM_CONDITIONAL(HAVENC1, [test "X$NC" = "X1" -o "X$NC" = "Xall"])
 AM_CONDITIONAL(HAVENC2, [test "X$NC" = "X2" -o "X$NC" = "Xall"])
 AM_CONDITIONAL(HAVENC3, [test "X$NC" = "X3" -o "X$NC" = "Xall"])
@@ -203,6 +203,12 @@ else
   AC_MSG_WARN([QMP configuration program qmp-config not found.])
   AC_MSG_WARN([Set environment variables QMP_CFLAGS QMP_LDFAGS QMP_LIBS
     before configure])
+fi
+if set | grep -q '^LD=' ; then
+  AC_SUBST(CCLD, "${LD}")
+  AC_MSG_NOTICE([Using linker: ${LD}])
+else
+  AC_SUBST(CCLD, "${CC}")
 fi
 
 AC_SUBST(QOPQDP_CFLAGS, "$qopqdpcflags $qdpcflags $qlacflags $qiocflags $qmpcflags")
