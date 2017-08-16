@@ -46,7 +46,7 @@ function TESTPATFMT(s, f)
     return r
   end
   TESTPAT(s, numpat,
-	  function(x) return string.format(fmt(),x) end)
+	  function(x) if string.sub(x,-1)=="-" then return x else return string.format(fmt(),x) end end)
 end
 function TESTPATFMTSPACE(s, f)
   local n = 1
