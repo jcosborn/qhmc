@@ -90,7 +90,7 @@ local color = 0
 local spin = 0
 src:zero()
 -- point({coord},color,spin,re,im)
-src:point({0,0,0,0},color,spin,1,0)
+src:point({0,0,0,0},color,spin,1)
 printf("src norm2: %g\n", src:norm2())
 src:smearGauss(g, 0.9, 10);
 printf("src norm2: %g\n", src:norm2())

@@ -2,124 +2,107 @@
 #include <string.h>
 #include <math.h>
 
-// This is a private function to extract the SU(2) submatrix V from an SU(3) matrix.
+// This is a private function to extract the SU(2) submatrix V from an SU(N) matrix.
 // Taken from Chroma function "su2Extract_t". The submatrix correspond with sunFill.
 static void
 su2Extract_local(NCPROT QLA_Real *r, QLA_ColorMatrix(*v), int su2_index)
 {
-  // Determine the SU(3) indices corresponding to the SU(2) indices
+  // Determine the SU(N) indices corresponding to the SU(2) indices
   // of the SU(2) subgroup 'su2_index'
-	int i1=0, i2;
-	int found = 0;
-	int del_i = 0;
-	int index = -1;
-	
-	while (del_i < (QLA_Nc - 1) && found == 0)
-	{
-		del_i++;
-		for (i1=0; i1 < (QLA_Nc - del_i); i1++)
-		{
-			index++;
-			if (index == su2_index)
-			{
-				found = 1;
-				break;
-			}
-		}
-	}
-	i2 = i1 + del_i;
-	
-	qassert(found != 0);
+  int i1=0, i2;
+  int found = 0;
+  int del_i = 0;
+  int index = -1;
 
-	// Compute the b(k) of A_SU(2) = b0 + i sum_k bk sigma_k	
-	QLA_Complex s11, s12, s21, s22;
-	//QLA_Real thing1, thing2;
-	
-	QLA_C_eq_elem_M(&s11, v, i1, i1);
-	QLA_C_eq_elem_M(&s12, v, i1, i2);
-	QLA_C_eq_elem_M(&s21, v, i2, i1);
-	QLA_C_eq_elem_M(&s22, v, i2, i2);
-	
-	r[0] = QLA_real(s11) + QLA_real(s22);
-	r[1] = QLA_imag(s12) + QLA_imag(s21);
-	r[2] = QLA_real(s12) - QLA_real(s21);
-	r[3] = QLA_imag(s11) - QLA_imag(s22);
-	
-	return;
+  while (del_i < (QLA_Nc - 1) && found == 0) {
+    del_i++;
+    for (i1=0; i1 < (QLA_Nc - del_i); i1++) {
+      index++;
+      if (index == su2_index) {
+	found = 1;
+	break;
+      }
+    }
+  }
+  i2 = i1 + del_i;
+
+  qassert(found != 0);
+
+  // Compute the b(k) of A_SU(2) = b0 + i sum_k bk sigma_k
+  QLA_Complex s11, s12, s21, s22;
+
+  QLA_C_eq_elem_M(&s11, v, i1, i1);
+  QLA_C_eq_elem_M(&s12, v, i1, i2);
+  QLA_C_eq_elem_M(&s21, v, i2, i1);
+  QLA_C_eq_elem_M(&s22, v, i2, i2);
+
+  r[0] = QLA_real(s11) + QLA_real(s22);
+  r[1] = QLA_imag(s12) + QLA_imag(s21);
+  r[2] = QLA_real(s12) - QLA_real(s21);
+  r[3] = QLA_imag(s11) - QLA_imag(s22);
 }
 
-// This is a private function to fill an SU(3) matrix V with a submatrix.
-// Taken from Chroma function "sunFill", specified for SU(3).
+// This is a private function to fill an SU(N) matrix V with a submatrix.
+// Taken from Chroma function "sunFill".
 static void
 sunFill_local(NCPROT QLA_ColorMatrix(*v), QLA_Real *a, int su2_index)
 {
-	// Determine the SU(3) indices corresponding to the SU(2) indices
-	// of the SU(2) subgroup 'su2_index'
-	int i1, i2;
-	int found = 0;
-	int del_i = 0;
-	int index = -1;
-	
-	while (del_i < (QLA_Nc - 1) && found == 0)
-	{
-		del_i++;
-		for (i1 = 0; i1 < (QLA_Nc - del_i); i1++)
-		{
-			index++;
-			if (index == su2_index)
-			{
-				found = 1;
-				break;
-			}
-		}
-	}
-	i2 = i1 + del_i;
-	
-	qassert(found != 0);
-	
-	// Insert the b[k] of A_SU(2) = b0 + i sum_k bk sigma_k
-	// back into the SU(N) matrix.
-	
-	
-	QLA_Complex one1;
-	QLA_Real re = 1.0;
-	QLA_Real im = 0.0;
-	QLA_ColorMatrix(v2);
-	QLA_M_eq_zero(&v2);
-	QLA_C_eq_R_plus_i_R(&one1, &re, &im);
-	QLA_M_eq_elem_C(&v2, &one1, 1, 1);
-	QLA_M_eq_elem_C(&v2, &one1, 2, 2);
-	QLA_M_eq_elem_C(&v2, &one1, 0, 0);
-	
-	QLA_Complex fills;
-	
-	QLA_real(fills) = a[0];
-	QLA_imag(fills) = a[3];
-	QLA_M_eq_elem_C(&v2, &fills, i1, i1);
-	
-	QLA_real(fills) = a[2];
-	QLA_imag(fills) = a[1];
-	QLA_M_eq_elem_C(&v2, &fills, i1, i2);
-	
-	QLA_real(fills) = -a[2];
-	QLA_imag(fills) = a[1];
-	QLA_M_eq_elem_C(&v2, &fills, i2, i1);
-	
-	QLA_real(fills) = a[0];
-	QLA_imag(fills) = -a[3];
-	QLA_M_eq_elem_C(&v2, &fills, i2, i2);
-	
-	QLA_M_eq_M(v, &v2);
-	
-	return;
+  // Determine the SU(N) indices corresponding to the SU(2) indices
+  // of the SU(2) subgroup 'su2_index'
+  int i1, i2;
+  int found = 0;
+  int del_i = 0;
+  int index = -1;
+
+  while (del_i < (QLA_Nc - 1) && found == 0) {
+    del_i++;
+    for (i1 = 0; i1 < (QLA_Nc - del_i); i1++) {
+      index++;
+      if (index == su2_index) {
+	found = 1;
+	break;
+      }
+    }
+  }
+  i2 = i1 + del_i;
+
+  qassert(found != 0);
+
+  // Insert the b[k] of A_SU(2) = b0 + i sum_k bk sigma_k
+  // back into the SU(N) matrix.
+  QLA_Real rone = 1.0;
+  QLA_Complex cone;
+  QLA_C_eq_R(&cone, &rone);
+  QLA_ColorMatrix(v2);
+  QLA_M_eq_c(&v2, &cone);
+
+  QLA_Complex fills;
+
+  QLA_real(fills) = a[0];
+  QLA_imag(fills) = a[3];
+  QLA_M_eq_elem_C(&v2, &fills, i1, i1);
+
+  QLA_real(fills) = a[2];
+  QLA_imag(fills) = a[1];
+  QLA_M_eq_elem_C(&v2, &fills, i1, i2);
+
+  QLA_real(fills) = -a[2];
+  QLA_imag(fills) = a[1];
+  QLA_M_eq_elem_C(&v2, &fills, i2, i1);
+
+  QLA_real(fills) = a[0];
+  QLA_imag(fills) = -a[3];
+  QLA_M_eq_elem_C(&v2, &fills, i2, i2);
+
+  QLA_M_eq_M(v, &v2);
 }
 
 struct grelax_params
 {
-	int su2_index;
-	int OrDo;
-	double OrPara;
-	int nd;
+  int su2_index;
+  int OrDo;
+  double OrPara;
+  int nd;
 };
 
 static double fuzz = 1e-12;
