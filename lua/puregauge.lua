@@ -92,7 +92,7 @@ fields.F = act.g:forceNew()
 
 local fp = {}
 fp.nsteps = nsteps
-fp.intalg = { type = "leapfrog" }
+fp.intalg = intalg or { type = "leapfrog" }
 --fp.intalg = { type = "omelyan", lambda = 0.21 }
 --hmcparams.traceS = true
 --qcd.defaults{qdpProfcontrol=1}

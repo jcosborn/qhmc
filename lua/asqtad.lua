@@ -19,6 +19,11 @@ seed = seed or os.time()
 local first = first or -1
 local ffreq = ffreq or 3
 local prec = prec or 1
+local gresid = gresid or 1e-6
+local fresid = fresid or 1e-6
+local mresid = mresid or 1e-5
+local gintalg = gintalg or {type="omelyan", lambda=0.2}
+local fintalg = fintalg or {type="omelyan", lambda=0.2}
 
 local latsize = { nx, nx, nx, nt }
 local vol = 1
@@ -214,17 +219,17 @@ hmcparams.tau = tau
 local fp = {}
 hmcparams.forceparams = fp
 fp[1] = {}
-fp[1][1] = {nsteps=ffreq*nsteps, intalg={type="omelyan", lambda=0.2}}
+fp[1][1] = {nsteps=ffreq*nsteps, intalg=gintalg}
 local rhmc1 = {}
 for j=1,#rhmc do
   --printf("j = %i\n", j)
   --printf("ns = %i\n", nfsteps[j])
-  fp[1][j+1] = {nsteps=nsteps, intalg={type="omelyan", lambda=0.2}}
+  fp[1][j+1] = {nsteps=nsteps, intalg=fintalg}
   rhmc1[j] = {GR={},FA={},MD={}}
   rhmc1[j].GR[1] = {}
-  rhmc1[j].GR[1].resid = 1e-6
-  rhmc1[j].FA.resid = 1e-6
-  rhmc1[j].MD.resid = 1e-5
+  rhmc1[j].GR[1].resid = gresid
+  rhmc1[j].FA.resid = fresid
+  rhmc1[j].MD.resid = mresid
   rhmc1[j].GR[1].solveopts = {
     prec = prec,
     restart = 500
