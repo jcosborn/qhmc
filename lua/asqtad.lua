@@ -24,6 +24,8 @@ local fresid = fresid or 1e-6
 local mresid = mresid or 1e-5
 local gintalg = gintalg or {type="omelyan", lambda=0.2}
 local fintalg = fintalg or {type="omelyan", lambda=0.2}
+local save = save
+if save==nil then save = true; end
 
 local latsize = { nx, nx, nx, nt }
 local vol = 1
@@ -143,7 +145,9 @@ if first >= 0 then
 else
   G:unit()
 end
-outfn = basefn .. tostring(last)
+if save then
+  outfn = basefn .. tostring(last)
+end
 
 do
   local devavg,devmax = G.g:checkSU()
