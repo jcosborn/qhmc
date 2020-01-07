@@ -21,7 +21,8 @@ p.vol = vol
 p.beta = beta
 p.seed = seed
 if gact then
-  p.gaugeact = { type = gact }
+  --p.gaugeact = { type = gact }
+  p.gaugeact = gact
 end
 act = {}
 act.g = gaugeact(p)
